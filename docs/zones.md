@@ -6,17 +6,20 @@ and regenerating (skill `firewall-matrix`).
 
 ## Zones
 
-Each zone is a VNet in one Proxmox SDN Simple zone, with a subnet whose gateway
-is the host (`gw`) and SNAT for egress through `eno1`.
+Each zone is a VNet in one Proxmox SDN Simple zone (`homelab`), with a subnet
+whose gateway is the host (`gw`) and SNAT for egress through `eno1` — except
+`data`, which initiates nothing and gets no SNAT. `vnet` is the VNet ID in
+Proxmox, limited to 8 letters and digits; `environments/prod/terraform.tfvars`
+mirrors this block.
 
 ```yaml
 zones:
-  mgmt:      { cidr: 10.10.0.0/24,  gw: 10.10.0.1,  group: control }
-  ci:        { cidr: 10.10.1.0/24,  gw: 10.10.1.1,  group: control }
-  platform:  { cidr: 10.10.4.0/24,  gw: 10.10.4.1,  group: platform }
-  edge:      { cidr: 10.10.8.0/24,  gw: 10.10.8.1,  group: exposed }
-  workloads: { cidr: 10.10.16.0/20, gw: 10.10.16.1, group: workloads }
-  data:      { cidr: 10.10.32.0/24, gw: 10.10.32.1, group: data }
+  mgmt:      { cidr: 10.10.0.0/24,  gw: 10.10.0.1,  group: control,   vnet: mgmt }
+  ci:        { cidr: 10.10.1.0/24,  gw: 10.10.1.1,  group: control,   vnet: ci }
+  platform:  { cidr: 10.10.4.0/24,  gw: 10.10.4.1,  group: platform,  vnet: platform }
+  edge:      { cidr: 10.10.8.0/24,  gw: 10.10.8.1,  group: exposed,   vnet: edge }
+  workloads: { cidr: 10.10.16.0/20, gw: 10.10.16.1, group: workloads, vnet: wklds }
+  data:      { cidr: 10.10.32.0/24, gw: 10.10.32.1, group: data,      vnet: data }
 
 # Control aggregate: mgmt + ci. The only source allowed towards the node.
 aggregates:
