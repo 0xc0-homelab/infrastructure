@@ -27,6 +27,13 @@ Do not implement VMs or services from later phases even if they fit. The phase
 of each VM is in `docs/zones.md`. If something requires a future phase, say so
 and stop.
 
+## Architecture
+
+`docs/architecture.md` explains how the node, the zones, the flows, CI and the
+secrets fit together, with diagrams. Read it before a change that touches more
+than one of them. It explains; `docs/zones.md` and the workspace
+`docs/design.md` decide.
+
 ## Network source of truth
 
 `docs/zones.md`. It holds the zones, the reserved ranges, the IP of each VM and
