@@ -2,8 +2,8 @@
 
 Proxmox VE 9 on a Hetzner dedicated server (`pve-1`, `pve.0xc0.cc`), 2× NVMe
 in mdadm RAID 0, no ZFS. A single node until phase 5. The host is router and
-firewall and holds `.1` in every zone; `eno1` keeps the public IP, the zone
-bridges are internal and egress is NAT through `eno1`.
+firewall and holds `.1` in every zone; `eno1` keeps the public IP, each zone
+is an SDN VNet with no physical port, and egress is SNAT through `eno1`.
 
 The host also runs Traefik, RustFS and PBS. They are **not managed from this
 repo** and must never be touched by it: Traefik is the reverse proxy for the
@@ -12,8 +12,11 @@ Hetzner Storage Box. Any change here that could cut the host's public access —
 firewall rules on `eno1` above all — puts those three at risk.
 
 Packer (images) → OpenTofu (VMs, network, firewall) → Ansible (configuration).
-Proxmox provider: `bpg/proxmox`. Bridges in Ansible for now; SDN arrives with
-node 2 in phase 5.
+Proxmox provider: `bpg/proxmox`. Zones are Proxmox SDN: one Simple zone, a
+VNet and a subnet per zone, with the host as gateway and SNAT for egress, all
+in OpenTofu. Use the `proxmox_sdn_*` resources — the
+`proxmox_virtual_environment_sdn_*` ones are deprecated. Zones spanning nodes
+arrive with node 2 in phase 5.
 
 ## CURRENT PHASE: 1 (Base)
 
@@ -47,7 +50,11 @@ and services, lab).
 - `data` does not initiate connections anywhere. Never add an egress rule from
   `data`.
 - Nobody initiates towards `mgmt`.
-- The node has a DROP policy: only 22 and 8006 from `10.10.0.0/22`.
+- The node has a DROP policy: 22 and 8006 from `10.10.0.0/22`, plus 443 from
+  the internet for Traefik (`t11`) until the CI runner exists.
+- The node DROP is applied **last** in phase 1, only once admin access through
+  `vm-access` and WARP has been tested. Applied earlier, it locks the operator
+  out: `10.10.0.0/22` has no hosts yet.
 - `ci` reaches the node over 8006 (API), never over 22.
 - Private dashboards go through the `vm-access` tunnel, never through
   `vm-edge`.
@@ -120,10 +127,11 @@ Caveats:
 
 ## Discarded — do not propose it
 
-WireGuard (Access+WARP covers it) · Traefik (with no containers alongside it
-adds nothing over NGINX) · Coraza (open-appsec avoids tuning the CRS) ·
+WireGuard (Access+WARP covers it) · Traefik as ingress (with no containers
+alongside it adds nothing over NGINX; it only runs on the host as its reverse
+proxy, outside IaC) · Coraza (open-appsec avoids tuning the CRS) ·
 BunkerWeb (config in SQLite) · OPNsense and VyOS (fragile hop, immature
-providers) · VLANs now (they arrive with SDN in phase 5) · Terraform Stacks
+providers) · VLAN zones now (an SDN Simple zone covers one node) · Terraform Stacks
 (paid) · OpenBao (Vault's BSL does not affect this case) · Loki and Tempo now.
 
 Full reasoning in `../docs/design.md`.

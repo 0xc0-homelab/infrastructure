@@ -48,7 +48,8 @@ firewall through `bpg/proxmox`. Every resource carries:
 After the transit rules, generate:
 
 - The explicit egress deny from `data` (`t10`), with a comment.
-- The node rules: `DROP` policy, and acceptance of 22 and 8006 only from the
+- The node rules: `DROP` policy, every transit entry whose `to` includes
+  `node` (today `t11`, 443 from the internet), and acceptance of 22 and 8006 only from the
   `control` aggregate (`10.10.0.0/22`).
 
 ## Final check

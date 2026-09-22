@@ -55,7 +55,7 @@ alignment of the existing entries:
 
 ## Step 3 — write the OpenTofu resource
 
-Provider is `bpg/proxmox`. The resource takes its zone bridge, its IP and its
+Provider is `bpg/proxmox`. The resource takes its zone VNet, its IP and its
 gateway from the matrix — never hardcode a literal that already exists as a
 variable or a value in `zones.md`.
 
