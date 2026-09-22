@@ -1,8 +1,15 @@
 # infrastructure
 
-Proxmox VE on a Hetzner dedicated server, ZFS mirror. A single node until
-phase 5. The host is router and firewall, holds `.1` in every zone, and runs
-nothing else.
+Proxmox VE 9 on a Hetzner dedicated server (`pve-1`, `pve.0xc0.cc`), 2× NVMe
+in mdadm RAID 0, no ZFS. A single node until phase 5. The host is router and
+firewall and holds `.1` in every zone; `eno1` keeps the public IP, the zone
+bridges are internal and egress is NAT through `eno1`.
+
+The host also runs Traefik, RustFS and PBS. They are **not managed from this
+repo** and must never be touched by it: Traefik is the reverse proxy for the
+Proxmox UI, PBS and RustFS; RustFS holds the OpenTofu state; PBS backs up to a
+Hetzner Storage Box. Any change here that could cut the host's public access —
+firewall rules on `eno1` above all — puts those three at risk.
 
 Packer (images) → OpenTofu (VMs, network, firewall) → Ansible (configuration).
 Proxmox provider: `bpg/proxmox`. Bridges in Ansible for now; SDN arrives with
