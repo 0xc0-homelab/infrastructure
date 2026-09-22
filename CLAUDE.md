@@ -49,6 +49,13 @@ and services, lab).
 - Idempotent playbooks: no `shell`/`command` without `creates:` or
   `changed_when:`.
 - Disks and volumes holding data carry `lifecycle { prevent_destroy = true }`.
+- OpenTofu is **always** written as modules: `modules/<name>/` holds the
+  resources, a root only calls modules. A VM, a firewall and a network are
+  modules; the root wires them together.
+- Each root has its own state key under `homelab/` in RustFS
+  (`https://s3.0xc0.cc`, bucket `tfstate`). Never share a key between roots.
+- Plans and applies in CI use the reusable `tofu-plan` and `tofu-apply`
+  workflows from `0xc0-homelab/.github`. Do not write local copies of them.
 
 ## Before opening a PR
 
