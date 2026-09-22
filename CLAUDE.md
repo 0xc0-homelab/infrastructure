@@ -30,6 +30,9 @@ and services, lab).
 
 - Everything written is in English: files, file names, comments, commits,
   branches and PRs.
+- No work without an issue on the org project board. The PR links it
+  (`Closes #N` / `Refs owner/repo#N`) or the `issue` check fails. See the
+  workspace `CLAUDE.md`, section Tracking.
 - `firewall.tf` is **generated** from the matrix in `docs/zones.md`. Do not
   hand-edit it. If you are asked to open a port, the change goes in the matrix
   and then it is regenerated (skill `firewall-matrix`). Every generated rule

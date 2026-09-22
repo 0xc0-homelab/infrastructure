@@ -1,0 +1,12 @@
+# Every PR must link an issue. The check itself lives in 0xc0-homelab/.github.
+name: issue
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+permissions: {}
+
+jobs:
+  issue:
+    uses: 0xc0-homelab/.github/.github/workflows/pr-issue.yml@main
