@@ -1,0 +1,4 @@
+# SOPS creation rules for this repo. Values are encrypted; keys stay readable.
+creation_rules:
+  - path_regex: (^|/)secrets/.*\.sops\.ya?ml$
+    age: age1y9zwa2420qx648f6q93qxhjsukvfsmp05fp62ju2eqvlkrrndvesu3k90u
