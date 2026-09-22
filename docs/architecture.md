@@ -179,18 +179,21 @@ internet — temporarily. **Target:** from phase 2, a self-hosted runner on
 ```mermaid
 flowchart LR
   key["age key<br/>operator laptop"] --> sops["SOPS"]
-  sops -- "encrypts" --> file["secrets/*.sops.yaml<br/>gitignored — repos are public"]
+  cikey["CI age key, one per repo<br/>SOPS_AGE_KEY Actions secret"] --> sops
+  sops -- "encrypts to both" --> file["secrets/*.sops.yaml<br/>committed, ciphertext only"]
   file -- "scripts/tofu decrypts into env" --> tofu["tofu, locally"]
-  file -- "loaded by hand" --> gh["GitHub Actions secrets"]
-  gh --> ci["tofu in CI"]
+  file -- "tofu workflows decrypt into env, masked" --> ci["tofu in CI"]
 ```
 
-- Nothing sensitive is committed, encrypted or not: the repos are public, and
-  ciphertext in a public history is forever.
+- Secrets are committed **encrypted**, to the operator's key and to the repo's
+  own CI key. The repos are public, so the ciphertext is too — standard SOPS
+  practice; a leaked key means rotating the secrets it protects. Each repo's CI
+  key decrypts only that repo's files, and is the only Actions secret there.
+- CI masks every decrypted value before using it.
 - `scripts/tofu` decrypts into the environment for one command; plaintext
   never reaches disk. Saved plan files are never kept, because they contain
   the variables.
-- From phase 2, `vm-ci` holds the age key. From phase 3, secrets move
+- From phase 2, the CI keys live on `vm-ci` and the Actions secrets go away. From phase 3, secrets move
   progressively to Vault over OIDC.
 
 ## Backups
