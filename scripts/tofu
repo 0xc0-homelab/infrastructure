@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Runs tofu against one environment with the secrets decrypted into the
+# environment only, never onto disk.
+# Usage: scripts/tofu <environment> <tofu args...>   e.g. scripts/tofu prod plan
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+env="${1:?usage: scripts/tofu <environment> <tofu args...>}"
+shift
+[ -d "environments/$env" ] || { echo "no such environment: environments/$env" >&2; exit 1; }
+
+# Wait for CI to release the state lock rather than failing straight away.
+export TF_CLI_ARGS_plan="${TF_CLI_ARGS_plan:--lock-timeout=5m}"
+export TF_CLI_ARGS_apply="${TF_CLI_ARGS_apply:--lock-timeout=5m}"
+
+exec sops exec-env secrets/tofu.sops.yaml "tofu -chdir=environments/$env $(printf '%q ' "$@")"
