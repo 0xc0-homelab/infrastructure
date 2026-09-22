@@ -49,11 +49,16 @@ and services, lab).
 - Idempotent playbooks: no `shell`/`command` without `creates:` or
   `changed_when:`.
 - Disks and volumes holding data carry `lifecycle { prevent_destroy = true }`.
-- OpenTofu is **always** written as modules: `modules/<name>/` holds the
-  resources, a root only calls modules. A VM, a firewall and a network are
-  modules; the root wires them together.
-- Each root has its own state key under `homelab/` in RustFS
-  (`https://s3.0xc0.cc`, bucket `tfstate`). Never share a key between roots.
+- OpenTofu is **always** written as modules, with Google's layout:
+  `modules/<name>/` holds the resources, `environments/<env>/` holds the roots,
+  which only call modules. A VM, a firewall and a network are modules; the
+  root wires them together.
+- Each root has its own state key, `homelab/infrastructure/<env>.tfstate`, in
+  RustFS (`https://s3.0xc0.cc`, bucket `tfstate`). Never share a key. Keep a
+  root under a few dozen resources: every run refreshes all of it.
+- A resource that is the only one of its type is named `main`. Root values go
+  in `terraform.tfvars`; secrets come from the environment. Module READMEs
+  carry a generated inputs/outputs section (`terraform-docs`).
 - Plans and applies in CI use the reusable `tofu-plan` and `tofu-apply`
   workflows from `0xc0-homelab/.github`. Do not write local copies of them.
 
