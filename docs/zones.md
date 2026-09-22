@@ -6,6 +6,9 @@ and regenerating (skill `firewall-matrix`).
 
 ## Zones
 
+Each zone is a VNet in one Proxmox SDN Simple zone, with a subnet whose gateway
+is the host (`gw`) and SNAT for egress through `eno1`.
+
 ```yaml
 zones:
   mgmt:      { cidr: 10.10.0.0/24,  gw: 10.10.0.1,  group: control }
@@ -25,6 +28,8 @@ node:
   policy: DROP
   ingress_allowed_from: control
   ingress_ports: [22, 8006]
+  # Plus every transit entry whose `to` includes `node` — today t11, 443 from
+  # the internet for Traefik.
 ```
 
 ## Reserved ranges
@@ -119,6 +124,12 @@ transit:
     to:   []
     ports: []
     note: data does NOT initiate connections. Explicit egress deny rule.
+
+  - id: t11
+    from: internet
+    to:   [node]
+    ports: [443]
+    note: Traefik on the host (Proxmox UI, PBS, RustFS). Open to the internet until the CI runner exists — 0xc0-homelab/.github#13
 ```
 
 ## Invariants
@@ -132,7 +143,9 @@ Checked by the `homelab:network-reviewer` agent before every PR.
    backing is a **critical** finding.
 4. Zero egress rules from `data`.
 5. Zero ingress rules towards `mgmt` from any zone.
-6. The node stays on DROP, with only 22 and 8006 from `10.10.0.0/22`.
+6. The node stays on DROP, with only 22 and 8006 from `10.10.0.0/22`, plus
+   443 from the internet through `t11`. Any other ingress to the node is a
+   **critical** finding.
 7. No admin dashboard published through `vm-edge`: private ones go through the
    `vm-access` tunnel.
 8. No VM from a phase later than the one declared in `CLAUDE.md`.
