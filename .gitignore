@@ -1,6 +1,3 @@
-# Encrypted, but this repo is public: the ciphertext stays off its history.
-secrets/
-
 .terraform/
 *.tfstate
 *.tfstate.*

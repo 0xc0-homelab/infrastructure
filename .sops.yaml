@@ -1,4 +1,6 @@
 # SOPS creation rules for this repo. Values are encrypted; keys stay readable.
 creation_rules:
   - path_regex: (^|/)secrets/.*\.sops\.ya?ml$
-    age: age1y9zwa2420qx648f6q93qxhjsukvfsmp05fp62ju2eqvlkrrndvesu3k90u
+    # The operator, and this repo's CI key, whose private half exists only as
+    # the SOPS_AGE_KEY Actions secret.
+    age: age1y9zwa2420qx648f6q93qxhjsukvfsmp05fp62ju2eqvlkrrndvesu3k90u,age10a8gxkumclmrvhzgc28gahj00f7cskk3un754lrttazugeyxpgtqmkdv24
