@@ -127,8 +127,9 @@ Caveats:
 
 ## Discarded — do not propose it
 
-WireGuard (Access+WARP covers it) · Traefik (with no containers alongside it
-adds nothing over NGINX) · Coraza (open-appsec avoids tuning the CRS) ·
+WireGuard (Access+WARP covers it) · Traefik as ingress (with no containers
+alongside it adds nothing over NGINX; it only runs on the host as its reverse
+proxy, outside IaC) · Coraza (open-appsec avoids tuning the CRS) ·
 BunkerWeb (config in SQLite) · OPNsense and VyOS (fragile hop, immature
 providers) · VLAN zones now (an SDN Simple zone covers one node) · Terraform Stacks
 (paid) · OpenBao (Vault's BSL does not affect this case) · Loki and Tempo now.
