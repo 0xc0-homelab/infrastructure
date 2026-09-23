@@ -18,6 +18,16 @@ resource "cloudflare_zero_trust_device_default_profile" "main" {
   # Declared so OpenTofu does not reset it: left out, the plan clears it back
   # to the provider default.
   tunnel_protocol = var.tunnel_protocol
+
+  # Provider bug: policy_id is planned as unknown on every run, so without this
+  # the profile shows a change forever. It is computed-only, so ignoring it
+  # hides nothing we manage. OpenTofu warns "Redundant ignore_changes element"
+  # — the warning is wrong here: tested, without this line every plan shows
+  # 1 change, with it the plan is clean. Keep it until the provider is fixed:
+  # cloudflare/terraform-provider-cloudflare#6773
+  lifecycle {
+    ignore_changes = [policy_id]
+  }
 }
 
 resource "cloudflare_zero_trust_access_policy" "main" {
