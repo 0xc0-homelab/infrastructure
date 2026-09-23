@@ -30,6 +30,15 @@ group_id=$(gh_api GET "/orgs/$GITHUB_ORG/actions/runner-groups?per_page=100" "$t
   jq -r --arg name "$GITHUB_RUNNER_GROUP" '.runner_groups[] | select(.name == $name) | .id')
 [ -n "$group_id" ] || { echo "runner group $GITHUB_RUNNER_GROUP not found" >&2; exit 1; }
 
+# A runner killed before its job (a restart, a reboot) cannot deregister
+# itself. Drop this instance's offline registrations before making a new one.
+gh_api GET "/orgs/$GITHUB_ORG/actions/runner-groups/$group_id/runners?per_page=100" "$token" |
+  jq -r --arg prefix "$(hostname)-$instance-" \
+    '.runners[] | select(.status == "offline" and (.name | startswith($prefix))) | .id' |
+  while read -r stale; do
+    gh_api DELETE "/orgs/$GITHUB_ORG/actions/runners/$stale" "$token" >/dev/null
+  done
+
 body=$(jq -n --arg name "$(hostname)-$instance-$now" --argjson group "$group_id" \
   --argjson labels "$GITHUB_RUNNER_LABELS" \
   '{name: $name, runner_group_id: $group, labels: $labels, work_folder: "_work"}')
