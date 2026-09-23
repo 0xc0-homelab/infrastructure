@@ -82,3 +82,7 @@ vms = {
     memory_mb = 1024
   }
 }
+
+# Off until the controlled test of infrastructure#2 passes: turning it on
+# enforces every VM's firewall at once.
+datacenter_firewall_enabled = false
