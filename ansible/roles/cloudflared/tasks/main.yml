@@ -45,6 +45,7 @@
     owner: root
     group: root
     mode: "0644"
+  register: cloudflared_unit
   notify: Restart cloudflared
 
 - name: Enable and start cloudflared

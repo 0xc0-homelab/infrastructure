@@ -1,0 +1,4 @@
+# The node is reached directly through the operator's `hetzner` alias, which
+# carries its own user and key. Never through a jump: it is the jump.
+ansible_user: root
+ansible_ssh_common_args: -o StrictHostKeyChecking=accept-new

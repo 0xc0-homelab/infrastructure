@@ -52,8 +52,13 @@ into the environment, never onto disk:
 scripts/ansible playbooks/vm-access.yml --check --diff
 ```
 
+The node itself is touched by Ansible **only** for what the SDN needs:
+`playbooks/node.yml` lets the zones egress past Docker's `FORWARD DROP`, through
+`DOCKER-USER`. Traefik, RustFS, PBS and Docker itself are never touched. Run it
+before any VM playbook: without it the VMs have no egress.
+
 Until admin access through WARP is tested (#12), `bootstrap_via_host: true` in
-`inventory/group_vars/all.yml` makes Ansible jump through the node (the
+`inventory/group_vars/vms.yml` makes Ansible jump through the node (the
 operator's `hetzner` SSH alias). After that it goes through WARP, and the jump
 is switched off.
 
