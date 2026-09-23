@@ -1,0 +1,85 @@
+# What makes a VM a runner: the App, the JIT step and one unit per instance.
+# Never baked: the key is a secret, and the count belongs to the VM.
+
+- name: Refuse an empty App key
+  ansible.builtin.assert:
+    that: github_runner_app_private_key | length > 0
+    fail_msg: No App key. Run through scripts/ansible, which decrypts it from secrets/ansible.sops.yaml.
+  no_log: true
+
+- name: Create the App config directory
+  ansible.builtin.file:
+    path: /etc/github-runner
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: Write the App key
+  ansible.builtin.copy:
+    dest: /etc/github-runner/app.pem
+    content: "{{ github_runner_app_private_key }}\n"
+    owner: root
+    group: root
+    mode: "0600"
+  no_log: true
+
+- name: Write the App settings
+  ansible.builtin.template:
+    src: app.env.j2
+    dest: /etc/github-runner/app.env
+    owner: root
+    group: root
+    mode: "0600"
+
+- name: Install the JIT step
+  ansible.builtin.template:
+    src: github-runner-jit.j2
+    dest: /usr/local/libexec/github-runner-jit
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: Create a directory per runner
+  ansible.builtin.file:
+    path: "/opt/actions-runner/{{ item }}"
+    state: directory
+    owner: runner
+    group: runner
+    mode: "0750"
+  loop: "{{ range(1, github_runner_count + 1) | list }}"
+
+# One copy per instance: each keeps its own _work and _diag. The marker holds
+# the version, so a bump unpacks again; a runner that updated itself is left
+# alone until then.
+- name: Unpack the runner
+  ansible.builtin.command:
+    cmd: >-
+      sh -c 'tar -xzf /var/cache/actions-runner-{{ github_runner_version }}.tar.gz
+      && touch .version-{{ github_runner_version }}'
+    chdir: "/opt/actions-runner/{{ item }}"
+    creates: "/opt/actions-runner/{{ item }}/.version-{{ github_runner_version }}"
+  become: true
+  become_user: runner
+  loop: "{{ range(1, github_runner_count + 1) | list }}"
+  when: not (ansible_check_mode and github_runner_tarball.changed)
+  notify: Restart runners
+
+- name: Install the systemd unit
+  ansible.builtin.template:
+    src: github-runner@.service.j2
+    dest: /etc/systemd/system/github-runner@.service
+    owner: root
+    group: root
+    mode: "0644"
+  register: github_runner_unit
+  notify: Restart runners
+
+- name: Enable and start the runners
+  ansible.builtin.systemd_service:
+    name: "github-runner@{{ item }}"
+    enabled: true
+    state: started
+    daemon_reload: true
+  loop: "{{ range(1, github_runner_count + 1) | list }}"
+  when: not (ansible_check_mode and github_runner_unit.changed)

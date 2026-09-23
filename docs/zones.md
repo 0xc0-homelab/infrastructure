@@ -66,6 +66,18 @@ vms:
   vm-rke2:     { zone: workloads, ip: 10.10.16.20, vcpu: 4, ram_gb: 12, phase: 6 }
 ```
 
+Packer builds a template on a throwaway VM, cloned from the base template,
+which becomes the new template when the build ends: it takes the template's
+VMID. It lives in `ci`, where the runner that drives
+it can reach it over SSH, at an address no machine may take. Packer cannot set
+a VM's firewall options, so the build VM is the one NIC without zone
+filtering, for the minutes the build lasts.
+
+```yaml
+build_vms:
+  packer:      { zone: ci,        ip: 10.10.1.250 }
+```
+
 ## Transit matrix
 
 Anything not listed here is denied. Every rule in `firewall.tf` must trace back

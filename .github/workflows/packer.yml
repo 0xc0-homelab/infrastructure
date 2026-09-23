@@ -1,0 +1,98 @@
+# Validates the Packer templates on every PR that touches them, and builds on
+# a merge to main, once the operator approves the production environment. A
+# build creates a new template; no VM changes until OpenTofu points at it.
+name: packer
+
+on:
+  pull_request:
+    branches: [main]
+    paths: ['packer/**', 'ansible/roles/**', 'scripts/packer', '.github/workflows/packer.yml']
+  # A build happens only for a template version that does not exist yet, so a
+  # role change alone rebuilds nothing until the version is bumped.
+  push:
+    branches: [main]
+    paths: ['packer/**', 'scripts/packer', '.github/workflows/packer.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  # No secrets and no network beyond the plugin downloads: GitHub's runners,
+  # fork PRs included.
+  validate:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+        with:
+          install_args: packer
+
+      - name: validate
+        env:
+          # validate checks the variables' presence, not their values.
+          PKR_VAR_proxmox_url: https://example.invalid/api2/json
+          PKR_VAR_proxmox_username: validate@pve!validate
+          PKR_VAR_proxmox_token: validate
+        run: |
+          packer fmt -check -recursive packer
+          for t in packer/*/; do
+            packer init "$t"
+            packer validate "$t"
+          done
+
+  # Inside the network: the build VM is reached over SSH in the ci zone. The
+  # runner group admits this workflow only as it is on main.
+  build:
+    if: github.event_name == 'push'
+    runs-on:
+      group: homelab
+      labels: homelab
+    environment: production
+    timeout-minutes: 60
+    # One build at a time; a running one is never cancelled, or it leaves a
+    # half-built VM behind.
+    concurrency:
+      group: packer-${{ github.repository }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+        with:
+          install_args: packer sops jq uv ansible
+
+      # Same as the tofu workflows: the CI key in the job's temporary
+      # directory, and every decrypted value masked.
+      - name: secrets
+        env:
+          SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+        run: |
+          key_file="$RUNNER_TEMP/age-key.txt"
+          ( umask 077 && printf '%s\n' "$SOPS_AGE_KEY" > "$key_file" )
+          echo "SOPS_AGE_KEY_FILE=$key_file" >> "$GITHUB_ENV"
+          export SOPS_AGE_KEY_FILE="$key_file"
+          sops decrypt --output-type json secrets/tofu.sops.yaml | jq -r '.[] | strings' |
+            while IFS= read -r line; do [ -n "$line" ] && echo "::add-mask::$line"; done
+          token="$(sops decrypt --extract '["PROXMOX_VE_API_TOKEN"]' secrets/tofu.sops.yaml)"
+          echo "::add-mask::${token#*=}"
+
+      # Proxmox never overwrites a template: a version that already exists is
+      # skipped, not rebuilt.
+      - name: build
+        run: |
+          for t in packer/*/; do
+            name="$(basename "$t")"
+            vm_id="$(sed -nE 's/^vm_id *= *([0-9]+).*/\1/p' "$t$name.auto.pkrvars.hcl")"
+            status="$(sops exec-env secrets/tofu.sops.yaml \
+              "curl -s -o /dev/null -w '%{http_code}' -H \"Authorization: PVEAPIToken=\$PROXMOX_VE_API_TOKEN\" \
+              \"\${PROXMOX_VE_ENDPOINT%/}/api2/json/nodes/pve-1/qemu/$vm_id/config\"")"
+            case "$status" in
+              200) echo "$name: template $vm_id exists, skipped. Bump its version to rebuild."; continue ;;
+              500) ;;  # Proxmox answers 500 for a VMID that does not exist.
+              *) echo "$name: unexpected $status checking VMID $vm_id" >&2; exit 1 ;;
+            esac
+            scripts/packer "$name" init
+            scripts/packer "$name" build -color=false
+          done
