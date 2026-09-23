@@ -37,9 +37,10 @@ variable "no_egress" {
 }
 
 variable "vms" {
-  description = "Every VM, with its VMID and VNet."
+  description = "Every VM, with its VMID, VNet and NIC MAC. A new MAC means the VM was recreated."
   type = map(object({
     vm_id = number
     vnet  = string
+    mac   = string
   }))
 }

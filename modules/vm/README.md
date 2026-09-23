@@ -60,5 +60,6 @@ No modules.
 | Name | Description |
 | ---- | ----------- |
 | <a name="output_ipv4_address"></a> [ipv4\_address](#output\_ipv4\_address) | Static address, without the prefix length. |
+| <a name="output_mac_address"></a> [mac\_address](#output\_mac\_address) | MAC of the NIC. New on every creation, so it tells a recreated VM from the old one. |
 | <a name="output_vm_id"></a> [vm\_id](#output\_vm\_id) | VMID. |
 <!-- END_TF_DOCS -->
