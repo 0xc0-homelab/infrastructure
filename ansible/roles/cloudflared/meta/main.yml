@@ -1,0 +1,9 @@
+galaxy_info:
+  author: sergioaten
+  description: A cloudflared connector for a remotely managed tunnel
+  license: MIT
+  min_ansible_version: "2.17"
+  platforms:
+    - name: Debian
+      versions: [trixie]
+dependencies: []

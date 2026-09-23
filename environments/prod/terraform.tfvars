@@ -56,3 +56,19 @@ templates = {
 cloudflare_account_id = "ca1599ae7852d5b4718cba351adad927"
 zero_trust_team       = "0xc0"
 homelab_network       = "10.10.0.0/16"
+
+vm_admin_user     = "ops"
+vm_admin_ssh_keys = ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO0Sq1ydjDPRC82QwtxDWSxk2ci/E2bChEJCwm665nzZ sergioaten@0xc0-homelab 2026-09-22"]
+vm_dns_servers    = ["1.1.1.1", "1.0.0.1"]
+
+# Mirrors the vms block of docs/zones.md. Only phase 1 VMs.
+vms = {
+  "vm-access" = {
+    vm_id     = 100
+    template  = "debian-13-base"
+    vnet      = "mgmt"
+    ip        = "10.10.0.10"
+    cores     = 1
+    memory_mb = 1024
+  }
+}

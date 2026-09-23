@@ -1,0 +1,19 @@
+- name: Install baseline packages
+  ansible.builtin.apt:
+    name: "{{ base_packages }}"
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+# No start task for qemu-guest-agent: its unit binds to the virtio port that
+# Proxmox only adds once the agent is enabled in the VM config. systemd starts
+# it as soon as that device appears.
+
+- name: Harden SSH
+  ansible.builtin.template:
+    src: sshd-hardening.conf.j2
+    dest: /etc/ssh/sshd_config.d/10-hardening.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart ssh

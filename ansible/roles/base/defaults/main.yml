@@ -1,0 +1,3 @@
+# Packages every VM needs.
+base_packages:
+  - qemu-guest-agent

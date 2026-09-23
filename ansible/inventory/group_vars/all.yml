@@ -1,0 +1,10 @@
+ansible_user: ops
+ansible_ssh_private_key_file: ~/.ssh/0xc0-homelab
+
+# Until admin access through WARP works, the zones are only reachable through
+# the host: jump through it. `hetzner` is the operator's SSH alias for the
+# node. Once WARP is tested (infrastructure#12), set this to false.
+bootstrap_via_host: true
+ansible_ssh_common_args: >-
+  -o StrictHostKeyChecking=accept-new
+  {{ '-o ProxyJump=hetzner' if bootstrap_via_host else '' }}

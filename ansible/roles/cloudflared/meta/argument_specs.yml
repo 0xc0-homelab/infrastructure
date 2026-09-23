@@ -1,0 +1,21 @@
+argument_specs:
+  main:
+    short_description: A cloudflared connector for a remotely managed tunnel
+    description:
+      - Installs cloudflared pinned by version and checksum, and runs it as a
+        hardened systemd service with the tunnel token. The tunnel's routes and
+        ingress are managed in Cloudflare by OpenTofu, not here.
+    options:
+      cloudflared_tunnel_token:
+        type: str
+        required: true
+        no_log: true
+        description: Connector token, from the tunnel's OpenTofu output.
+      cloudflared_version:
+        type: str
+        default: "2026.9.1"
+        description: Release to install.
+      cloudflared_deb_sha256:
+        type: str
+        required: true
+        description: SHA-256 of that release's cloudflared-linux-amd64.deb.

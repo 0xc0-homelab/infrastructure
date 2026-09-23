@@ -48,3 +48,30 @@ module "access_tunnel" {
   name       = "vm-access"
   routes     = [var.homelab_network]
 }
+
+module "vms" {
+  source   = "../../modules/vm"
+  for_each = var.vms
+
+  name           = each.key
+  vm_id          = each.value.vm_id
+  node_name      = var.nodes[0]
+  template_vm_id = module.templates[each.value.template].vm_id
+  datastore_id   = var.template_datastore
+
+  vnet         = each.value.vnet
+  ipv4_address = "${each.value.ip}/${split("/", var.zones[each.value.vnet].cidr)[1]}"
+  ipv4_gateway = cidrhost(var.zones[each.value.vnet].cidr, 1)
+  dns_servers  = var.vm_dns_servers
+
+  cores        = each.value.cores
+  memory_mb    = each.value.memory_mb
+  disk_size_gb = each.value.disk_size_gb
+
+  username        = var.vm_admin_user
+  ssh_public_keys = var.vm_admin_ssh_keys
+  tags            = [each.value.vnet]
+
+  # The VNets must exist before a VM can attach to one.
+  depends_on = [module.sdn]
+}

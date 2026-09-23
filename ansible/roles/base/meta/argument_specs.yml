@@ -1,0 +1,12 @@
+argument_specs:
+  main:
+    short_description: Baseline for every homelab VM
+    description:
+      - Installs the guest agent and hardens SSH. Everything a VM needs beyond
+        its cloud image, before its own role.
+    options:
+      base_packages:
+        type: list
+        elements: str
+        default: [qemu-guest-agent]
+        description: Packages installed on every VM.
