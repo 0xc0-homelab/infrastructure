@@ -14,7 +14,21 @@ Packer produces the template; OpenTofu clones it. The split matters: anything
 that belongs to a specific VM (its address, its hostname, its role) is
 OpenTofu's and Ansible's job, never baked into the image.
 
-The builder is `proxmox-iso`, from `github.com/hashicorp/packer-plugin-proxmox`.
+A template derived from the Debian base uses the `proxmox-clone` builder, from
+`github.com/hashicorp/packer-plugin-proxmox`: it clones the base template
+(VMID 9000), and Ansible bakes the rest with the same roles the VMs use, through
+their `install` entry point. `proxmox-iso` is only for a template that cannot
+start from the base.
+
+The build VM takes the address reserved under `build_vms` in `docs/zones.md`.
+Packer injects its throwaway SSH key through cloud-init and reaches that
+address directly, so the build does not wait on the guest agent.
+
+Builds run in CI (`.github/workflows/packer.yml`): `validate` on every PR, and
+`build` on a merge to `main`, on `vm-ci`, after the operator approves
+`production`. A template version that already exists is skipped: bumping
+`version` and `vm_id` in `<name>.auto.pkrvars.hcl` is what rebuilds.
+Locally: `scripts/packer <name> validate`.
 The HashiCorp Packer skills in this session target AWS, Azure and HCP — none of
 them applies here. Do not follow `amazon-ebs` patterns.
 
@@ -31,10 +45,11 @@ secret baked into it is a secret you cannot rotate.
 
 ```
 packer/<template-name>/
-  <name>.pkr.hcl          sources and build
-  variables.pkr.hcl       variable declarations, no values
-  http/                   autoinstall / preseed served during boot
-  scripts/                provisioner scripts
+  <name>.pkr.hcl             sources and build
+  variables.pkr.hcl          variable declarations, no secret values
+  <name>.auto.pkrvars.hcl    the version being built and its VMID
+  playbook.yml               the roles baked in (install entry points)
+  http/                      autoinstall / preseed, proxmox-iso only
 ```
 
 ## Required pieces
@@ -51,8 +66,9 @@ template that builds fine and is useless afterwards.
 **Cloud-init must be enabled** on the template, so OpenTofu can inject the
 per-VM configuration at clone time.
 
-**`boot_command` and `http_directory`** serve the autoinstall or preseed file
-to the installer. This is the fiddliest part; expect to iterate.
+**`boot_command` and `http_directory`** (`proxmox-iso` only) serve the
+autoinstall or preseed file to the installer. This is the fiddliest part;
+expect to iterate.
 
 **Credentials come from the environment or SOPS**, never from the `.pkr.hcl`.
 Declare them as variables with `sensitive = true` and no default.

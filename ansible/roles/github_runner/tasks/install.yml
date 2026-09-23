@@ -1,0 +1,46 @@
+# What a runner VM needs before it is one: baked into the runner template by
+# Packer, and a no-op on a VM cloned from it.
+
+- name: Install what the JIT step and the jobs need
+  ansible.builtin.apt:
+    name: [curl, jq, openssl, git, tar, unzip, ca-certificates]
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Create the runner user
+  ansible.builtin.user:
+    name: runner
+    system: true
+    shell: /bin/bash
+    home: /home/runner
+    create_home: true
+
+- name: Download runner {{ github_runner_version }}
+  ansible.builtin.get_url:
+    url: "https://github.com/actions/runner/releases/download/v{{ github_runner_version }}/actions-runner-linux-x64-{{ github_runner_version }}.tar.gz"
+    dest: "/var/cache/actions-runner-{{ github_runner_version }}.tar.gz"
+    checksum: "sha256:{{ github_runner_tarball_sha256 }}"
+    mode: "0644"
+  register: github_runner_tarball
+
+# installdependencies.sh ships inside the tarball: unpack one copy to run it.
+- name: Unpack a copy for the dependency installer
+  ansible.builtin.command:
+    cmd: >-
+      sh -c 'mkdir -p /opt/actions-runner/.dist-{{ github_runner_version }}
+      && tar -xzf /var/cache/actions-runner-{{ github_runner_version }}.tar.gz
+      -C /opt/actions-runner/.dist-{{ github_runner_version }}'
+    creates: /opt/actions-runner/.dist-{{ github_runner_version }}/bin/installdependencies.sh
+  when: not (ansible_check_mode and github_runner_tarball.changed)
+  register: github_runner_dist
+
+- name: Install the runner's system dependencies
+  ansible.builtin.command:
+    cmd: >-
+      sh -c './bin/installdependencies.sh
+      && touch /var/lib/actions-runner-deps-{{ github_runner_version }}'
+    chdir: /opt/actions-runner/.dist-{{ github_runner_version }}
+    creates: /var/lib/actions-runner-deps-{{ github_runner_version }}
+  # In check mode the copy above is not unpacked, so there is no directory yet.
+  when: not (ansible_check_mode and (github_runner_tarball.changed or github_runner_dist.changed))

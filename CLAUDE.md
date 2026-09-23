@@ -74,6 +74,15 @@ by root on `vm-ci`; jobs run as the unprivileged `runner` user.
 Every role follows the `ansible-role` skill and passes `ansible-lint` on the
 `production` profile.
 
+## Packer
+
+`packer/<template>/` bakes templates that must not wait for first boot: today
+`debian-13-runner`, the base with the GitHub Actions runner installed. It clones
+the base template and runs the roles' `install` entry points; secrets and
+per-VM settings stay in Ansible. `scripts/packer <template> validate` locally;
+builds run in CI on a merge to `main`, after approval, and only for a version
+that does not exist yet. Skill `packer-template`.
+
 ## Network source of truth
 
 `docs/zones.md`. It holds the zones, the reserved ranges, the IP of each VM and

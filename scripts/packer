@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Runs packer against one template with the Proxmox credentials decrypted into
+# the environment only, never onto disk. They are the ones OpenTofu uses.
+# Usage: scripts/packer <template> <packer command>   e.g. scripts/packer debian-13-runner build
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+template="${1:?usage: scripts/packer <template> <packer command...>}"
+shift
+[ -d "packer/$template" ] || { echo "no such template: packer/$template" >&2; exit 1; }
+
+# PROXMOX_VE_API_TOKEN is user@realm!token=secret; Packer takes the two halves.
+exec sops exec-env secrets/tofu.sops.yaml "bash -c '
+  export PKR_VAR_proxmox_url=\"\${PROXMOX_VE_ENDPOINT%/}/api2/json\"
+  export PKR_VAR_proxmox_username=\"\${PROXMOX_VE_API_TOKEN%%=*}\"
+  export PKR_VAR_proxmox_token=\"\${PROXMOX_VE_API_TOKEN#*=}\"
+  exec packer \"\$@\" packer/$template
+' packer $(printf '%q ' "$@")"

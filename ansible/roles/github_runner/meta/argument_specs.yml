@@ -46,3 +46,18 @@ argument_specs:
         elements: str
         default: [homelab]
         description: Custom labels workflows target.
+  install:
+    short_description: What a runner VM needs, without the runners
+    description:
+      - The packages, the runner user, the runner tarball pinned by version and
+        checksum, and its system dependencies. No App, no key, no units; this
+        is what the runner template bakes, with Packer.
+    options:
+      github_runner_version:
+        type: str
+        default: "2.337.0"
+        description: Runner release to install.
+      github_runner_tarball_sha256:
+        type: str
+        required: true
+        description: SHA-256 of that release's actions-runner-linux-x64 tarball.
