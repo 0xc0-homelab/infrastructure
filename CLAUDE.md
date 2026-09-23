@@ -101,11 +101,12 @@ and services, lab).
 - `data` does not initiate connections anywhere. Never add an egress rule from
   `data`.
 - Nobody initiates towards `mgmt`.
-- The node has a DROP policy (`node_firewall_enabled`): 22 and 8006 from
-  `mgmt`, 8006 from `ci`, 9100 and 10250 from `platform` (`t08`), plus 443
-  from the internet for Traefik (`t11`) until the CI runner exists. All of it
-  generated from the matrix. Admin access to the node is over WARP only, to
-  `10.10.0.1`; the Hetzner Rescue system is the way back in.
+- The node has a DROP policy (`node_firewall_enabled`): 22, 443 and 8006
+  from `mgmt`, 443 and 8006 from `ci`, 9100 and 10250 from `platform`
+  (`t08`), and nothing from the internet. All of it generated from the
+  matrix. Admin access to the node, Traefik included, is over WARP only, to
+  `10.10.0.1`: Gateway resolves `node_web_hostnames` there. The Hetzner Rescue
+  system is the way back in.
 - `local_network` is overridden to loopback, so Proxmox grants no implicit
   admin access to the network it detects. Never remove that alias.
 - A change to the node firewall is tested first by hand, with a rollback

@@ -35,12 +35,12 @@ flowchart TB
 
   sbox[("Hetzner Storage Box<br/>PBS datastore")]
 
-  internet -- "443 (t11)" --> eno1 --> traefik
+  operator(("Operator, WARP")) -- "443 (t11), via vm-access" --> traefik
   traefik --> pveui
   traefik --> pbs
   traefik --> rustfs
   pbs --> sbox
-  zones -- "SNAT" --> eno1
+  zones -- "SNAT" --> eno1 --> internet
 ```
 
 - **Base services** — Traefik, RustFS and PBS run on the host itself. They are
@@ -98,7 +98,7 @@ flowchart LR
   workloads -- "t07 · 8200" --> platform
   platform -- "t08 · 9100, 10250" --> workloads & data & node
   platform -- "t09 · 443" --> internet
-  internet -- "t11 · 443" --> node
+  mgmt -- "t11 · 443" --> node
 ```
 
 The arrows are the `id`s of the transit matrix in [`zones.md`](zones.md). Two
@@ -108,9 +108,9 @@ things the diagram shows by what is missing:
 - **Nothing leaves `data`** (`t10`). It initiates no connection, and its
   subnet has no SNAT either.
 
-The node accepts 22 and 8006 from `mgmt`, only 8006 from `ci`, the scrape
-ports from `platform` (`t08`), plus 443 from the internet for Traefik
-(`t11`) until the CI runner exists.
+The node accepts 22, 443 and 8006 from `mgmt`, 443 and 8006 from `ci`, and
+the scrape ports from `platform` (`t08`). Nothing from the internet: Traefik
+is reached over WARP, where Gateway resolves its hostnames to `10.10.0.1`.
 
 ## Web traffic
 
@@ -156,8 +156,8 @@ The **way back in** if this breaks is the Hetzner Rescue system. Both paths
 were tested before the node's firewall went to DROP.
 
 **Today:** WARP through the two `vm-access` connectors. The node's own
-firewall is on DROP: SSH and the Proxmox UI on 8006 answer on `10.10.0.1`
-only, and the public IP keeps just 443 for Traefik.
+firewall is on DROP: SSH, the Proxmox UI on 8006 and Traefik on 443 answer
+on `10.10.0.1` only. The public IP accepts nothing.
 
 ## Changes, CI and state
 
@@ -183,10 +183,10 @@ flowchart LR
 - Every OpenTofu root has its own state key in RustFS, locked with a lockfile.
   Plans and applies wait for the lock instead of failing.
 
-**Today:** CI runs on GitHub-hosted runners, so RustFS is reachable from the
-internet — temporarily. **Target:** end of phase 1, two ephemeral runners on
-`vm-ci` inside the network (#44), only for PRs from the same repo, and RustFS
-closed again
+**Today:** plans and applies run on two ephemeral runners on `vm-ci`, inside
+the network (#44). The runner group admits only the reusable tofu workflows
+from `main`, and fork PRs go to GitHub's runners, where they get no secrets.
+RustFS, like the rest of Traefik, is no longer reachable from the internet
 ([`.github#13`](https://github.com/0xc0-homelab/.github/issues/13)).
 
 ## Secrets
