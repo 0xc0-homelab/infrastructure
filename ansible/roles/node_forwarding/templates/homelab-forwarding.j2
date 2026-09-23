@@ -6,7 +6,9 @@ set -eu
 TAG=homelab-forwarding
 
 remove() {
-  iptables -S DOCKER-USER 2>/dev/null | grep -- "--comment $TAG" | sed 's/^-A /-D /' |
+  # iptables -S prints the comment quoted (--comment "homelab-…"), so match the
+  # tag as a fixed string rather than after "--comment ".
+  iptables -S DOCKER-USER 2>/dev/null | grep -F -- "$TAG" | sed 's/^-A /-D /' |
     while read -r rule; do eval "iptables $rule"; done
 }
 
