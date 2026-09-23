@@ -11,7 +11,9 @@ Proxmox UI, PBS and RustFS; RustFS holds the OpenTofu state; PBS backs up to a
 Hetzner Storage Box. Any change here that could cut the host's public access —
 firewall rules on `eno1` above all — puts those three at risk.
 
-Packer (images) → OpenTofu (VMs, network, firewall) → Ansible (configuration).
+OpenTofu (templates from official cloud images, VMs, network, firewall) →
+Ansible (configuration). Packer arrives in phase 2, for templates that must be
+baked (the CI runner, zones with no egress).
 Proxmox provider: `bpg/proxmox`. Zones are Proxmox SDN: one Simple zone, a
 VNet and a subnet per zone, with the host as gateway and SNAT for egress, all
 in OpenTofu. Use the `proxmox_sdn_*` resources — the
@@ -20,7 +22,8 @@ arrive with node 2 in phase 5.
 
 ## CURRENT PHASE: 1 (Base)
 
-Scope of phase 1: Proxmox, zones, NAT, Packer, `vm-access`, `vm-edge`. SOPS
+Scope of phase 1: Proxmox, zones, NAT, the Debian base template, `vm-access`,
+`vm-edge`. SOPS
 working. Rescue and WARP tested. Everything driven manually from the laptop.
 
 Do not implement VMs or services from later phases even if they fit. The phase
@@ -73,6 +76,12 @@ and services, lab).
 - Idempotent playbooks: no `shell`/`command` without `creates:` or
   `changed_when:`.
 - Disks and volumes holding data carry `lifecycle { prevent_destroy = true }`.
+- The provider **never** gets SSH to the node. Everything goes through the API:
+  import disks with `import_from`, never `file_id`; no cloud-init snippets.
+  Both would make the provider SSH into the host. What a VM needs beyond its
+  image is Ansible's job.
+- Templates use VMIDs 9000-9099, and their image is a pinned, dated build with
+  its published SHA-512 — never a `latest` link.
 - OpenTofu is **always** written as modules, with Google's layout:
   `modules/<name>/` holds the resources, `environments/<env>/` holds the roots,
   which only call modules. A VM, a firewall and a network are modules; the
@@ -111,7 +120,7 @@ Under `.claude/skills/`, for the operations that repeat here:
 |-------------------|------------------------------------------------------|
 | `new-vm`          | adding, moving or re-addressing a VM                 |
 | `firewall-matrix` | opening, closing or reviewing a port between zones   |
-| `packer-template` | creating or updating a base image                    |
+| `packer-template` | a baked template — from phase 2 only                 |
 | `ansible-role`    | creating, restructuring or reviewing a role          |
 
 `new-vm` and `firewall-matrix` both write to `docs/zones.md`. That file is

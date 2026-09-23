@@ -62,7 +62,9 @@ variable or a value in `zones.md`.
 - Cloud-init for the user, SSH key and network configuration.
 - `qemu_agent` enabled: OpenTofu needs it to read the VM's address back.
 - Any disk holding data carries `lifecycle { prevent_destroy = true }`.
-- The image comes from a Packer template, not from an ISO at this layer.
+- The VM clones a template from `modules/cloud-image-template` (VMIDs
+  9000-9099), not an ISO. Anything beyond the image is Ansible's job, after
+  first boot.
 
 Check the exact field names against the `bpg/proxmox` provider documentation.
 Do not invent attribute names from memory.

@@ -32,3 +32,18 @@ variable "zones" {
     error_message = "The data zone must not have SNAT: it initiates no connection (t10 in docs/zones.md)."
   }
 }
+
+variable "template_datastore" {
+  description = "Datastore holding cloud images and VM templates. Must allow the import content type."
+  type        = string
+}
+
+variable "templates" {
+  description = "VM templates built from official cloud images, keyed by template name."
+  type = map(object({
+    vm_id          = number
+    image_url      = string
+    image_checksum = string
+    bridge         = string
+  }))
+}
