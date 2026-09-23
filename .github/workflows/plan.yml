@@ -16,6 +16,8 @@ jobs:
     uses: 0xc0-homelab/.github/.github/workflows/tofu-plan.yml@main
     with:
       working-directory: environments/prod
+      # The self-hosted runners on vm-ci, inside the network.
+      runs-on: '{"group": "homelab", "labels": "homelab"}'
       paths: '^(environments/|modules/|mise\.toml$|\.github/workflows/(plan|apply)\.yml$)'
     secrets:
       SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
