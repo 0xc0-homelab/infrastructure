@@ -52,3 +52,7 @@ templates = {
     bridge         = "mgmt"
   }
 }
+
+cloudflare_account_id = "ca1599ae7852d5b4718cba351adad927"
+zero_trust_team       = "0xc0"
+homelab_network       = "10.10.0.0/16"

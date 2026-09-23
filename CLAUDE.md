@@ -20,6 +20,11 @@ in OpenTofu. Use the `proxmox_sdn_*` resources — the
 `proxmox_virtual_environment_sdn_*` ones are deprecated. Zones spanning nodes
 arrive with node 2 in phase 5.
 
+Cloudflare — tunnels, Zero Trust, DNS — lives in the same root,
+`environments/prod/`, alongside the node (operator decision, 2026-09-23):
+`prod` is the one environment, with everything that makes it up. Split by
+service only if the coupling ever gets in the way.
+
 ## CURRENT PHASE: 1 (Base)
 
 Scope of phase 1: Proxmox, zones, NAT, the Debian base template, `vm-access`,
