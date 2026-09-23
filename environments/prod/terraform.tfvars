@@ -39,3 +39,16 @@ zones = {
     snat  = false
   }
 }
+
+template_datastore = "local"
+
+# Official Debian cloud images, pinned to a dated build with the SHA-512 Debian
+# publishes next to it (SHA512SUMS). Bumping the image is its own commit.
+templates = {
+  "debian-13-base" = {
+    vm_id          = 9000
+    image_url      = "https://cloud.debian.org/images/cloud/trixie/20260914-2601/debian-13-genericcloud-amd64-20260914-2601.qcow2"
+    image_checksum = "95e110dfcdbd0ed8a82a75ed9579802f9950cabf51a810dcc6388e81bc778188713878b9f28d583a0ea602fbf48b35996ae9ad37f584166d8fbd6489df248f53"
+    bridge         = "mgmt"
+  }
+}

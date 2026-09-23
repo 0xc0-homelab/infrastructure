@@ -5,6 +5,11 @@ description: Builds and maintains Proxmox VM templates with Packer using the pro
 
 # Packer templates for Proxmox
 
+> **Phase 2 onwards.** In phase 1 the base template is an official cloud image
+> imported by OpenTofu (`modules/cloud-image-template`). Use Packer only for a
+> template that must be baked: the CI runner, or a zone with no egress where a
+> VM cannot install packages at first boot.
+
 Packer produces the template; OpenTofu clones it. The split matters: anything
 that belongs to a specific VM (its address, its hostname, its role) is
 OpenTofu's and Ansible's job, never baked into the image.
