@@ -9,6 +9,15 @@ module "sdn" {
   vnets   = var.zones
 }
 
+# Every template a VM can be cloned from: the ones imported here from cloud
+# images, and the ones Packer bakes.
+locals {
+  template_ids = merge(
+    { for name, t in module.templates : name => t.vm_id },
+    var.baked_templates,
+  )
+}
+
 module "templates" {
   source   = "../../modules/cloud-image-template"
   for_each = var.templates
@@ -59,7 +68,7 @@ module "vms" {
   name           = each.key
   vm_id          = each.value.vm_id
   node_name      = var.nodes[0]
-  template_vm_id = module.templates[each.value.template].vm_id
+  template_vm_id = local.template_ids[each.value.template]
   datastore_id   = var.template_datastore
 
   vnet         = each.value.vnet
