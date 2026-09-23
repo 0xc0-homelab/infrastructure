@@ -42,6 +42,24 @@ secrets fit together, with diagrams. Read it before a change that touches more
 than one of them. It explains; `docs/zones.md` and the workspace
 `docs/design.md` decide.
 
+## Ansible
+
+`ansible/` configures what runs inside the VMs, after cloud-init. Run it
+through `scripts/ansible`, which reads the tunnel token from the OpenTofu state
+into the environment, never onto disk:
+
+```
+scripts/ansible playbooks/vm-access.yml --check --diff
+```
+
+Until admin access through WARP is tested (#12), `bootstrap_via_host: true` in
+`inventory/group_vars/all.yml` makes Ansible jump through the node (the
+operator's `hetzner` SSH alias). After that it goes through WARP, and the jump
+is switched off.
+
+Every role follows the `ansible-role` skill and passes `ansible-lint` on the
+`production` profile.
+
 ## Network source of truth
 
 `docs/zones.md`. It holds the zones, the reserved ranges, the IP of each VM and
@@ -85,6 +103,8 @@ and services, lab).
   import disks with `import_from`, never `file_id`; no cloud-init snippets.
   Both would make the provider SSH into the host. What a VM needs beyond its
   image is Ansible's job.
+- VMs use VMIDs 100-8999. Every NIC has the Proxmox firewall on, or zone rules
+  do not apply to it.
 - Templates use VMIDs 9000-9099, and their image is a pinned, dated build with
   its published SHA-512 — never a `latest` link.
 - OpenTofu is **always** written as modules, with Google's layout:

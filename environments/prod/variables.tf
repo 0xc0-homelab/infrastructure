@@ -75,3 +75,47 @@ variable "warp_allowed_emails" {
   type        = list(string)
   sensitive   = true
 }
+
+variable "vm_admin_user" {
+  description = "Admin user cloud-init creates on every VM. SSH keys only."
+  type        = string
+}
+
+variable "vm_admin_ssh_keys" {
+  description = "Public SSH keys authorised on every VM."
+  type        = list(string)
+}
+
+variable "vm_dns_servers" {
+  description = "Resolvers for every VM."
+  type        = list(string)
+}
+
+variable "vms" {
+  description = "VMs, keyed by name. Must match the vms block of docs/zones.md, which is normative."
+  type = map(object({
+    vm_id        = number
+    template     = string
+    vnet         = string
+    ip           = string
+    cores        = optional(number, 1)
+    memory_mb    = optional(number, 1024)
+    disk_size_gb = optional(number, 8)
+  }))
+
+  # The address must sit inside its zone, and never on the host's .1.
+  validation {
+    condition = alltrue([
+      for v in values(var.vms) :
+      contains(keys(var.zones), v.vnet)
+      && cidrhost("${v.ip}/${split("/", var.zones[v.vnet].cidr)[1]}", 0) == cidrhost(var.zones[v.vnet].cidr, 0)
+      && v.ip != cidrhost(var.zones[v.vnet].cidr, 1)
+    ])
+    error_message = "Every VM's ip must be inside its vnet's zone and must not be the host's .1 — see docs/zones.md."
+  }
+
+  validation {
+    condition     = length(distinct([for v in values(var.vms) : v.ip])) == length(var.vms)
+    error_message = "Two VMs share an address."
+  }
+}

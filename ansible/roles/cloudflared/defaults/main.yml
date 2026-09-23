@@ -1,0 +1,5 @@
+# Pinned by version and SHA-256 of the release .deb. Cloudflare's apt repo only
+# keeps the latest version, so pinning there would break on the next release.
+# Bumping is its own commit: version and checksum together.
+cloudflared_version: "2026.9.1"
+cloudflared_deb_sha256: "3be76adc4185d36a0bfb4c2dd8663292f0ed363797f2180333b513b43c81d419"

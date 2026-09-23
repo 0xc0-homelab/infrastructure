@@ -1,0 +1,10 @@
+- name: Configure vm-access
+  hosts: vm-access
+  become: true
+  roles:
+    - role: base
+    - role: cloudflared
+      vars:
+        # Read from the OpenTofu state by scripts/ansible, into the
+        # environment only.
+        cloudflared_tunnel_token: "{{ lookup('ansible.builtin.env', 'CLOUDFLARED_TUNNEL_TOKEN') }}"

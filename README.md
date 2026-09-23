@@ -11,6 +11,8 @@ firewall, and the VMs on it.
 environments/prod/     the root for the node — only calls modules
 modules/<name>/        the resources
 scripts/tofu           runs tofu on an environment, secrets decrypted in env
+scripts/ansible        runs ansible-playbook with the tunnel token in env
+ansible/               what runs inside the VMs: inventory, playbooks, roles
 secrets/               SOPS-encrypted, to the operator and this repo's CI key
 docs/                  architecture and the zone matrix
 ```

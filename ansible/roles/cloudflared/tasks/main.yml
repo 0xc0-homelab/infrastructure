@@ -1,0 +1,56 @@
+- name: Refuse an empty tunnel token
+  ansible.builtin.assert:
+    that: cloudflared_tunnel_token | length > 0
+    fail_msg: No tunnel token. Run through scripts/ansible, which reads it from the OpenTofu state.
+  no_log: true
+
+- name: Download cloudflared {{ cloudflared_version }}
+  ansible.builtin.get_url:
+    url: "https://github.com/cloudflare/cloudflared/releases/download/{{ cloudflared_version }}/cloudflared-linux-amd64.deb"
+    dest: "/var/cache/cloudflared-{{ cloudflared_version }}.deb"
+    checksum: "sha256:{{ cloudflared_deb_sha256 }}"
+    mode: "0644"
+  register: cloudflared_deb
+
+# In check mode a first download does not happen, so there is no .deb to
+# install yet: skip rather than fail the dry run.
+- name: Install cloudflared {{ cloudflared_version }}
+  ansible.builtin.apt:
+    deb: "/var/cache/cloudflared-{{ cloudflared_version }}.deb"
+  when: not (ansible_check_mode and cloudflared_deb.changed)
+  notify: Restart cloudflared
+
+- name: Create the config directory
+  ansible.builtin.file:
+    path: /etc/cloudflared
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: Write the tunnel token
+  ansible.builtin.copy:
+    dest: /etc/cloudflared/tunnel.env
+    content: "TUNNEL_TOKEN={{ cloudflared_tunnel_token }}\n"
+    owner: root
+    group: root
+    mode: "0600"
+  no_log: true
+  notify: Restart cloudflared
+
+- name: Install the systemd unit
+  ansible.builtin.template:
+    src: cloudflared.service.j2
+    dest: /etc/systemd/system/cloudflared.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart cloudflared
+
+- name: Enable and start cloudflared
+  ansible.builtin.systemd_service:
+    name: cloudflared
+    enabled: true
+    state: started
+    daemon_reload: true
+  when: not (ansible_check_mode and cloudflared_deb.changed)
