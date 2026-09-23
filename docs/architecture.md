@@ -66,6 +66,13 @@ flowchart TB
   [`#2`](https://github.com/0xc0-homelab/infrastructure/issues/2)). On a
   reinstalled node, write that file, restart Docker and run
   `iptables -P FORWARD ACCEPT` **before** the first apply.
+- **Hetzner firewall**, in Robot, also by hand. It is stateless: a reply gets
+  in only if an incoming rule matches it. TCP replies pass through the `ack`
+  rule, UDP only for what is listed. Besides DNS and NTP (source ports 53 and
+  123), cloudflared's QUIC needs **udp from `198.41.192.0/20`, source port
+  7844, to ports 32768-65535**. Without it the tunnel falls back to HTTP/2
+  ([`#37`](https://github.com/0xc0-homelab/infrastructure/issues/37)). IPv6
+  is not filtered there.
 
 **Today:** Proxmox, Traefik, RustFS and PBS run, with the six VNets, the two
 `vm-access` connectors and the zone firewall on.
