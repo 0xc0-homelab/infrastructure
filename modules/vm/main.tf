@@ -2,7 +2,7 @@
 # only: user, SSH keys, address. Everything inside the guest after that is
 # Ansible's job.
 
-# Holds the rebuild counter. The VM will be replaced when it changes.
+# Holds the rebuild counter: the VM is replaced when it changes.
 resource "terraform_data" "rebuild" {
   input = var.rebuild
 }
@@ -75,5 +75,9 @@ resource "proxmox_virtual_environment_vm" "main" {
       username = var.username
       keys     = var.ssh_public_keys
     }
+  }
+
+  lifecycle {
+    replace_triggered_by = [terraform_data.rebuild]
   }
 }
