@@ -1,0 +1,23 @@
+# {{ ansible_managed }}
+[Unit]
+Description=Ephemeral GitHub Actions runner %i
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=runner
+Group=runner
+WorkingDirectory=/opt/actions-runner/%i
+# "+" runs these as root: a clean work folder, then a fresh just-in-time
+# config fetched with the App key, which the runner user cannot read.
+ExecStartPre=+/usr/bin/rm -rf /opt/actions-runner/%i/_work
+ExecStartPre=+/usr/local/libexec/github-runner-jit %i
+ExecStart=/bin/bash -c 'config=$(cat /run/github-runner/%i.jit); rm -f /run/github-runner/%i.jit; exec ./run.sh --jitconfig "$config"'
+# One job, then the runner exits and deregisters: start the next one.
+Restart=always
+RestartSec=10s
+NoNewPrivileges=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target

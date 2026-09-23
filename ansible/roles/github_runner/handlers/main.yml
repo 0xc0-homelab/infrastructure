@@ -1,0 +1,8 @@
+# Handlers run in check mode too: on a first dry run the units do not exist.
+- name: Restart runners
+  ansible.builtin.systemd_service:
+    name: "github-runner@{{ item }}"
+    state: restarted
+    daemon_reload: true
+  loop: "{{ range(1, github_runner_count + 1) | list }}"
+  when: not (ansible_check_mode and github_runner_unit.changed)

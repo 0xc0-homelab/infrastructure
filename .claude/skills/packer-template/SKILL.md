@@ -5,8 +5,8 @@ description: Builds and maintains Proxmox VM templates with Packer using the pro
 
 # Packer templates for Proxmox
 
-> **Phase 2 onwards.** In phase 1 the base template is an official cloud image
-> imported by OpenTofu (`modules/cloud-image-template`). Use Packer only for a
+> **Once `vm-ci` runs (end of phase 1).** The base template stays an official
+> cloud image imported by OpenTofu (`modules/cloud-image-template`). Use Packer only for a
 > template that must be baked: the CI runner, or a zone with no egress where a
 > VM cannot install packages at first boot.
 

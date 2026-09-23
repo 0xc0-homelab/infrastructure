@@ -1,0 +1,10 @@
+- name: Configure the CI runners
+  hosts: ci
+  become: true
+  roles:
+    - role: base
+    - role: github_runner
+      vars:
+        # Decrypted from secrets/ansible.sops.yaml by scripts/ansible, into
+        # the environment only.
+        github_runner_app_private_key: "{{ lookup('ansible.builtin.env', 'GITHUB_RUNNER_APP_PRIVATE_KEY') }}"
