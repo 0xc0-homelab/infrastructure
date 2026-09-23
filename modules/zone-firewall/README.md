@@ -33,6 +33,7 @@ there — which is why every VM has one before the master switch is turned on.
 | Name | Version |
 | ---- | ------- |
 | <a name="provider_proxmox"></a> [proxmox](#provider\_proxmox) | 0.114.0 |
+| <a name="provider_terraform"></a> [terraform](#provider\_terraform) | n/a |
 
 ## Modules
 
@@ -49,6 +50,7 @@ No modules.
 | [proxmox_virtual_environment_firewall_options.main](https://registry.terraform.io/providers/bpg/proxmox/0.114.0/docs/resources/virtual_environment_firewall_options) | resource |
 | [proxmox_virtual_environment_firewall_rules.main](https://registry.terraform.io/providers/bpg/proxmox/0.114.0/docs/resources/virtual_environment_firewall_rules) | resource |
 | [proxmox_virtual_environment_firewall_rules.node](https://registry.terraform.io/providers/bpg/proxmox/0.114.0/docs/resources/virtual_environment_firewall_rules) | resource |
+| [terraform_data.vm](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) | resource |
 
 ## Inputs
 
@@ -60,7 +62,7 @@ No modules.
 | <a name="input_node_name"></a> [node\_name](#input\_node\_name) | Proxmox node. | `string` | n/a | yes |
 | <a name="input_node_rules"></a> [node\_rules](#input\_node\_rules) | Inbound rules of the node, generated from docs/zones.md into firewall.tf. An empty source is any. | <pre>list(object({<br/>    source  = string<br/>    dport   = string<br/>    comment = string<br/>  }))</pre> | n/a | yes |
 | <a name="input_rules"></a> [rules](#input\_rules) | Inbound rules per zone, keyed by VNet — generated from docs/zones.md into firewall.tf. | <pre>map(list(object({<br/>    source  = string<br/>    dport   = string<br/>    comment = string<br/>  })))</pre> | n/a | yes |
-| <a name="input_vms"></a> [vms](#input\_vms) | Every VM, with its VMID and VNet. | <pre>map(object({<br/>    vm_id = number<br/>    vnet  = string<br/>  }))</pre> | n/a | yes |
+| <a name="input_vms"></a> [vms](#input\_vms) | Every VM, with its VMID, VNet and NIC MAC. A new MAC means the VM was recreated. | <pre>map(object({<br/>    vm_id = number<br/>    vnet  = string<br/>    mac   = string<br/>  }))</pre> | n/a | yes |
 
 ## Outputs
 

@@ -71,6 +71,14 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "main" {
   }
 }
 
+# Proxmox deletes a VM's firewall config with the VM, and the provider cannot
+# move rules to a new VMID in place. So a recreated VM, same VMID or not, gets
+# its options and rules recreated: its MAC is new on every creation.
+resource "terraform_data" "vm" {
+  for_each = var.vms
+  input    = each.value.mac
+}
+
 resource "proxmox_virtual_environment_firewall_options" "main" {
   for_each = var.vms
 
@@ -81,6 +89,10 @@ resource "proxmox_virtual_environment_firewall_options" "main" {
   input_policy  = "DROP"
   output_policy = contains(var.no_egress, each.value.vnet) ? "DROP" : "ACCEPT"
   macfilter     = true
+
+  lifecycle {
+    replace_triggered_by = [terraform_data.vm[each.key]]
+  }
 }
 
 resource "proxmox_virtual_environment_firewall_rules" "main" {
@@ -92,5 +104,9 @@ resource "proxmox_virtual_environment_firewall_rules" "main" {
   rule {
     security_group = proxmox_virtual_environment_cluster_firewall_security_group.main[each.value.vnet].name
     comment        = "zone ${each.value.vnet}"
+  }
+
+  lifecycle {
+    replace_triggered_by = [terraform_data.vm[each.key]]
   }
 }

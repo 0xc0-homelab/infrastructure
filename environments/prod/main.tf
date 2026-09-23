@@ -99,7 +99,11 @@ module "zone_firewall" {
   rules        = local.zone_firewall_rules
   node_rules   = local.node_firewall_rules
   no_egress    = local.zone_firewall_no_egress
-  vms          = { for name, vm in var.vms : name => { vm_id = vm.vm_id, vnet = vm.vnet } }
+  vms = { for name, vm in var.vms : name => {
+    vm_id = vm.vm_id
+    vnet  = vm.vnet
+    mac   = module.vms[name].mac_address
+  } }
 
   depends_on = [module.vms]
 }
