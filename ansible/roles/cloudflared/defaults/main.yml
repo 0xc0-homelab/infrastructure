@@ -4,7 +4,6 @@
 cloudflared_version: "2026.9.1"
 cloudflared_deb_sha256: "3be76adc4185d36a0bfb4c2dd8663292f0ed363797f2180333b513b43c81d419"
 
-# QUIC (UDP 7844) does not get through from the node today, and with "auto"
-# cloudflared keeps retrying QUIC and never connects. HTTP/2 goes over TCP 7844.
-# Back to "auto" once UDP 7844 works: infrastructure#37.
-cloudflared_protocol: http2
+# QUIC over UDP 7844, falling back to HTTP/2 over TCP 7844. UDP needs its own
+# rule in the Hetzner firewall, which is stateless: see docs/architecture.md.
+cloudflared_protocol: auto
