@@ -26,7 +26,10 @@ The flow is always: edit the matrix → regenerate → read the plan.
 - Every entry whose `to` is a zone becomes an inbound rule in that zone's
   security group (`zone-<vnet>`), sourced from the `from` zone's CIDR, with the
   entry's `id` and note in the comment.
-- `to: [node]` entries belong to the node firewall (#13) and are skipped.
+- Every `to: [node]` entry becomes a rule of the node firewall
+  (`node_firewall_rules`). From a control zone (`mgmt`, `ci`) only its ports
+  among the node's `ingress_ports` survive: `t01` gives `mgmt` 22 and 8006,
+  `t03` gives `ci` 8006. Any other source keeps the entry's ports.
 - `to: [internet]` entries are egress, allowed by the outbound policy.
 - An entry with an empty `to` (`t10`, data) gives that zone's VMs an outbound
   DROP policy.

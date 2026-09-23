@@ -120,6 +120,11 @@ variable "vms" {
   }
 }
 
+variable "node_firewall_enabled" {
+  description = "The node's own firewall and its DROP policy. Only 22 and 8006 from control, and what docs/zones.md sends to the node."
+  type        = bool
+}
+
 variable "datacenter_firewall_enabled" {
   description = "Proxmox datacenter firewall master switch. While off, no VM firewall is enforced."
   type        = bool
