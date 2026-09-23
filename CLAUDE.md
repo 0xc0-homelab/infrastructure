@@ -53,9 +53,11 @@ scripts/ansible playbooks/vm-access.yml --check --diff
 ```
 
 The node itself is touched by Ansible **only** for what the SDN needs:
-`playbooks/node.yml` lets the zones egress past Docker's `FORWARD DROP`, through
-`DOCKER-USER`. Traefik, RustFS, PBS and Docker itself are never touched. Run it
-before any VM playbook: without it the VMs have no egress.
+`playbooks/node.yml` keeps `data` from egressing, in `DOCKER-USER`, and accepts
+the other zones' egress and its replies there. Traefik, RustFS, PBS and Docker
+itself are never touched from this repo. Docker carries one setting by hand,
+`ip-forward-no-drop`, that the zone firewall needs (`docs/architecture.md`,
+The node).
 
 Until admin access through WARP is tested (#12), `bootstrap_via_host: true` in
 `inventory/group_vars/vms.yml` makes Ansible jump through the node (the
@@ -87,8 +89,8 @@ and services, lab).
   carries the `id` of its matrix line, and the `firewall-matrix` check fails a
   PR whose `firewall.tf` does not match.
 - Zone filtering happens on each guest's NIC (`modules/zone-firewall`). Every
-  VM has its own firewall on: with Docker's `FORWARD DROP` on the node, a VM
-  without one has all its traffic dropped once the datacenter firewall is on.
+  VM has its own firewall on: the node's `FORWARD` policy is ACCEPT, so a VM
+  without one is not filtered at all.
 - `data` does not initiate connections anywhere. Never add an egress rule from
   `data`.
 - Nobody initiates towards `mgmt`.

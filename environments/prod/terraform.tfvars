@@ -83,6 +83,6 @@ vms = {
   }
 }
 
-# Off until the controlled test of infrastructure#2 passes: turning it on
-# enforces every VM's firewall at once.
-datacenter_firewall_enabled = false
+# Enforces every VM's firewall. Needs Docker on the node with
+# `ip-forward-no-drop` (docs/architecture.md, The node).
+datacenter_firewall_enabled = true
