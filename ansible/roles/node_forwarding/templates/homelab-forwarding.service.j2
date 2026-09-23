@@ -1,0 +1,16 @@
+# {{ ansible_managed }}
+[Unit]
+Description=Homelab SDN egress rules in DOCKER-USER
+# Docker creates DOCKER-USER and resets FORWARD when it starts: go after it,
+# and restart with it.
+After=docker.service
+PartOf=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/homelab-forwarding apply
+ExecStop=/usr/local/sbin/homelab-forwarding remove
+
+[Install]
+WantedBy=docker.service multi-user.target

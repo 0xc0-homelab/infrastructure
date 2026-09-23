@@ -1,0 +1,31 @@
+#!/bin/sh
+# {{ ansible_managed }}
+# Adds or removes the homelab's rules in DOCKER-USER. Idempotent: its rules
+# carry a comment, and are always removed before being inserted again.
+set -eu
+TAG=homelab-forwarding
+
+remove() {
+  iptables -S DOCKER-USER 2>/dev/null | grep -- "--comment $TAG" | sed 's/^-A /-D /' |
+    while read -r rule; do eval "iptables $rule"; done
+}
+
+apply() {
+  iptables -N DOCKER-USER 2>/dev/null || true
+  remove
+  # Inserted in reverse, so they end up in this order at the top of the chain.
+  iptables -I DOCKER-USER -i {{ node_forwarding_uplink }} -d {{ node_forwarding_zones_cidr }} \
+    -m conntrack --ctstate RELATED,ESTABLISHED -m comment --comment "$TAG replies" -j ACCEPT
+  iptables -I DOCKER-USER -s {{ node_forwarding_zones_cidr }} -o {{ node_forwarding_uplink }} \
+    -m comment --comment "$TAG egress" -j ACCEPT
+{% for cidr in node_forwarding_no_egress_cidrs %}
+  iptables -I DOCKER-USER -s {{ cidr }} -o {{ node_forwarding_uplink }} \
+    -m comment --comment "$TAG no egress" -j DROP
+{% endfor %}
+}
+
+case "${1:-}" in
+  apply) apply ;;
+  remove) remove ;;
+  *) echo "usage: $0 apply|remove" >&2; exit 2 ;;
+esac

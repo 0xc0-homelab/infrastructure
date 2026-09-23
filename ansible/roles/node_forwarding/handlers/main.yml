@@ -1,7 +1,7 @@
 # Handlers run in check mode too: on a first dry run the unit does not exist.
-- name: Restart cloudflared
+- name: Reapply homelab forwarding
   ansible.builtin.systemd_service:
-    name: cloudflared
+    name: homelab-forwarding
     state: restarted
     daemon_reload: true
-  when: not (ansible_check_mode and (cloudflared_unit.changed or cloudflared_deb.changed))
+  when: not (ansible_check_mode and node_forwarding_unit.changed)
