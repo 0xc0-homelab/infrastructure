@@ -15,6 +15,11 @@ argument_specs:
         type: str
         default: "2026.9.1"
         description: Release to install.
+      cloudflared_protocol:
+        type: str
+        default: http2
+        choices: [auto, quic, http2]
+        description: Transport to Cloudflare's edge. http2 while UDP 7844 is blocked.
       cloudflared_deb_sha256:
         type: str
         required: true
