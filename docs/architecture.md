@@ -52,9 +52,23 @@ flowchart TB
 - **`eno1`** keeps the public IP. Guests never attach to it: Hetzner drops
   unknown MACs on the public interface. They live on internal VNets, and reach
   the internet through SNAT on the host.
+- **Docker** runs Traefik and RustFS, and is configured by hand, outside IaC,
+  with one setting the zone firewall depends on. `/etc/docker/daemon.json`:
 
-**Today:** Proxmox, Traefik, RustFS and PBS run. There are no VNets, no
-guests, and the Proxmox firewall is off. **Target:** everything below.
+  ```json
+  {"ip-forward-no-drop": true}
+  ```
+
+  Without it Docker sets the `FORWARD` policy to DROP. The Proxmox firewall
+  explicitly accepts only traffic *into* a VM. It leaves traffic *out of* a
+  VM, and the hop across a zone bridge, to that policy, so every VM loses its
+  egress and its peers (tested in
+  [`#2`](https://github.com/0xc0-homelab/infrastructure/issues/2)). On a
+  reinstalled node, write that file, restart Docker and run
+  `iptables -P FORWARD ACCEPT` **before** the first apply.
+
+**Today:** Proxmox, Traefik, RustFS and PBS run, with the six VNets, the two
+`vm-access` connectors and the zone firewall on.
 
 ## Zones
 

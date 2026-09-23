@@ -121,6 +121,6 @@ variable "vms" {
 }
 
 variable "datacenter_firewall_enabled" {
-  description = "Proxmox datacenter firewall master switch. Off until the controlled test in infrastructure#2 passes."
+  description = "Proxmox datacenter firewall master switch. While off, no VM firewall is enforced."
   type        = bool
 }
