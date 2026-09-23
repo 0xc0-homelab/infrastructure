@@ -2,9 +2,15 @@
 # only: user, SSH keys, address. Everything inside the guest after that is
 # Ansible's job.
 
+# Holds the rebuild counter. The VM will be replaced when it changes.
+resource "terraform_data" "rebuild" {
+  input = var.rebuild
+}
+
+# No vm_id: Proxmox assigns the next free one, from 100, and it stays in the
+# state. Nobody picks VMIDs.
 resource "proxmox_virtual_environment_vm" "main" {
   name      = var.name
-  vm_id     = var.vm_id
   node_name = var.node_name
   tags      = sort(distinct(concat(["opentofu"], var.tags)))
 

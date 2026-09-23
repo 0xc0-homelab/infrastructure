@@ -3,14 +3,10 @@ variable "name" {
   type        = string
 }
 
-variable "vm_id" {
-  description = "VMID. VMs use 100-8999; 9000-9099 is for templates."
+variable "rebuild" {
+  description = "Bump to recreate the VM, keeping everything else as it is."
   type        = number
-
-  validation {
-    condition     = var.vm_id >= 100 && var.vm_id <= 8999
-    error_message = "VMs use VMIDs 100-8999."
-  }
+  default     = 0
 }
 
 variable "node_name" {

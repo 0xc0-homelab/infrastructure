@@ -66,7 +66,7 @@ module "vms" {
   for_each = var.vms
 
   name           = each.key
-  vm_id          = each.value.vm_id
+  rebuild        = each.value.rebuild
   node_name      = var.nodes[0]
   template_vm_id = local.template_ids[each.value.template]
   datastore_id   = var.template_datastore
@@ -100,7 +100,7 @@ module "zone_firewall" {
   node_rules   = local.node_firewall_rules
   no_egress    = local.zone_firewall_no_egress
   vms = { for name, vm in var.vms : name => {
-    vm_id = vm.vm_id
+    vm_id = module.vms[name].vm_id
     vnet  = vm.vnet
     mac   = module.vms[name].mac_address
   } }

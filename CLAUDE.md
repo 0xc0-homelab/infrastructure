@@ -135,8 +135,10 @@ and services, lab).
   import disks with `import_from`, never `file_id`; no cloud-init snippets.
   Both would make the provider SSH into the host. What a VM needs beyond its
   image is Ansible's job.
-- VMs use VMIDs 100-8999. Every NIC has the Proxmox firewall on, or zone rules
-  do not apply to it.
+- Nobody picks a VM's VMID: Proxmox assigns the next free one, from 100, and
+  the state keeps it. To recreate a VM, bump its `rebuild` in
+  `terraform.tfvars`. Every NIC has the Proxmox firewall on, or zone rules do
+  not apply to it.
 - Templates use VMIDs 9000-9099, and their image is a pinned, dated build with
   its published SHA-512 — never a `latest` link.
 - OpenTofu is **always** written as modules, with Google's layout:
