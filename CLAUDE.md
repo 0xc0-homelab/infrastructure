@@ -81,10 +81,14 @@ and services, lab).
 - No work without an issue on the org project board. The PR links it
   (`Closes #N` / `Refs owner/repo#N`) or the `issue` check fails. See the
   workspace `CLAUDE.md`, section Tracking.
-- `firewall.tf` is **generated** from the matrix in `docs/zones.md`. Do not
-  hand-edit it. If you are asked to open a port, the change goes in the matrix
-  and then it is regenerated (skill `firewall-matrix`). Every generated rule
-  carries the `id` of the matrix line it came from.
+- `environments/prod/firewall.tf` is **generated** from the matrix in
+  `docs/zones.md` by `scripts/generate-firewall`. Do not hand-edit it: change
+  the matrix and regenerate (skill `firewall-matrix`). Every generated rule
+  carries the `id` of its matrix line, and the `firewall-matrix` check fails a
+  PR whose `firewall.tf` does not match.
+- Zone filtering happens on each guest's NIC (`modules/zone-firewall`). Every
+  VM has its own firewall on: with Docker's `FORWARD DROP` on the node, a VM
+  without one has all its traffic dropped once the datacenter firewall is on.
 - `data` does not initiate connections anywhere. Never add an egress rule from
   `data`.
 - Nobody initiates towards `mgmt`.

@@ -75,3 +75,17 @@ module "vms" {
   # The VNets must exist before a VM can attach to one.
   depends_on = [module.sdn]
 }
+
+# The zone firewall. Its rules are generated from docs/zones.md into
+# firewall.tf by scripts/generate-firewall.
+module "zone_firewall" {
+  source = "../../modules/zone-firewall"
+
+  node_name = var.nodes[0]
+  enabled   = var.datacenter_firewall_enabled
+  rules     = local.zone_firewall_rules
+  no_egress = local.zone_firewall_no_egress
+  vms       = { for name, vm in var.vms : name => { vm_id = vm.vm_id, vnet = vm.vnet } }
+
+  depends_on = [module.vms]
+}

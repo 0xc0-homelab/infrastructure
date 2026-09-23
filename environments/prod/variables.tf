@@ -119,3 +119,8 @@ variable "vms" {
     error_message = "Two VMs share an address."
   }
 }
+
+variable "datacenter_firewall_enabled" {
+  description = "Proxmox datacenter firewall master switch. Off until the controlled test in infrastructure#2 passes."
+  type        = bool
+}

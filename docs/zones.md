@@ -134,7 +134,17 @@ transit:
     to:   [node]
     ports: [443]
     note: Traefik on the host (Proxmox UI, PBS, RustFS). Open to the internet until the CI runner exists — 0xc0-homelab/.github#13
+
+  - id: t12
+    from: mgmt
+    to:   [mgmt]
+    ports: [22]
+    note: between the vm-access connectors; a WARP session can leave from either one
 ```
+
+Every port above is **TCP**; the matrix has no UDP flow. Zone egress to the
+internet is not listed per zone: every zone but `data` may reach out through
+SNAT (see Flows in the workspace `docs/design.md`).
 
 ## Invariants
 
@@ -146,7 +156,8 @@ Checked by the `homelab:network-reviewer` agent before every PR.
 3. Every rule in `firewall.tf` traces to an `id` of the matrix. A rule with no
    backing is a **critical** finding.
 4. Zero egress rules from `data`.
-5. Zero ingress rules towards `mgmt` from any zone.
+5. Zero ingress rules towards `mgmt` from any other zone. Traffic inside `mgmt`
+   (`t12`) is the only way in.
 6. The node stays on DROP, with only 22 and 8006 from `10.10.0.0/22`, plus
    443 from the internet through `t11`. Any other ingress to the node is a
    **critical** finding.
