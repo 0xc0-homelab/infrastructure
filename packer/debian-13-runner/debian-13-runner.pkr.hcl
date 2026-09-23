@@ -65,9 +65,11 @@ source "proxmox-clone" "runner" {
 build {
   sources = ["source.proxmox-clone.runner"]
 
-  # cloud-init installs nothing we need, but apt must not race it.
+  # cloud-init installs nothing we need, but apt must not race it. Exit 2 is
+  # "done, with recoverable errors" (deprecation warnings, typically): shown in
+  # the log, and not a failure.
   provisioner "shell" {
-    inline = ["cloud-init status --wait"]
+    inline = ["cloud-init status --wait --long || { rc=$?; [ $rc -eq 2 ] && exit 0; exit $rc; }"]
   }
 
   provisioner "ansible" {
