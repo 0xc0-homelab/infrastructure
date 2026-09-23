@@ -47,3 +47,31 @@ variable "templates" {
     bridge         = string
   }))
 }
+
+variable "cloudflare_account_id" {
+  description = "Cloudflare account holding the tunnels and Zero Trust."
+  type        = string
+}
+
+variable "zero_trust_team" {
+  description = "Zero Trust team name; the team domain is <team>.cloudflareaccess.com."
+  type        = string
+}
+
+variable "homelab_network" {
+  description = "Every homelab zone, as one CIDR: what WARP carries, and what vm-access routes."
+  type        = string
+
+  validation {
+    condition     = var.homelab_network == "10.10.0.0/16"
+    error_message = "homelab_network must be 10.10.0.0/16, the supernet of every zone in docs/zones.md."
+  }
+}
+
+# Not a secret, but kept out of this public repo: it comes from
+# secrets/tofu.sops.yaml as TF_VAR_warp_allowed_emails.
+variable "warp_allowed_emails" {
+  description = "Who may enroll a WARP device, and so reach the homelab."
+  type        = list(string)
+  sensitive   = true
+}
