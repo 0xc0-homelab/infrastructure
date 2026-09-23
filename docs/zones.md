@@ -30,11 +30,11 @@ node:
   role: router+firewall
   policy: DROP
   ingress_allowed_from: control
-  ingress_ports: [22, 8006]
+  ingress_ports: [22, 443, 8006]
   # Every transit entry whose `to` includes `node` becomes a node rule. From a
   # control zone, only its ports in ingress_ports: t01 gives mgmt 22 and 8006,
-  # t03 gives ci 8006. From elsewhere, the entry as written: t08 (platform,
-  # 9100 and 10250) and t11 (443 from the internet, for Traefik).
+  # t03 gives ci 443 and 8006, t11 gives mgmt 443. From elsewhere, the entry as
+  # written: t08 (platform, 9100 and 10250). Nothing from the internet.
 ```
 
 ## Reserved ranges
@@ -88,8 +88,8 @@ transit:
   - id: t03
     from: ci
     to:   [node]
-    ports: [8006]
-    note: Proxmox API. NEVER 22 towards the node from ci
+    ports: [443, 8006]
+    note: Proxmox API and RustFS, through Traefik on 443. NEVER 22 towards the node from ci
 
   - id: t04
     from: ci
@@ -132,10 +132,10 @@ transit:
     note: data does NOT initiate connections. Explicit egress deny rule.
 
   - id: t11
-    from: internet
+    from: mgmt
     to:   [node]
     ports: [443]
-    note: Traefik on the host (Proxmox UI, PBS, RustFS). Open to the internet until the CI runner exists — 0xc0-homelab/.github#13
+    note: Traefik on the host (Proxmox UI, PBS, RustFS), over WARP. Closed to the internet since the CI runner exists
 
   - id: t12
     from: mgmt
@@ -160,9 +160,9 @@ Checked by the `homelab:network-reviewer` agent before every PR.
 4. Zero egress rules from `data`.
 5. Zero ingress rules towards `mgmt` from any other zone. Traffic inside `mgmt`
    (`t12`) is the only way in.
-6. The node stays on DROP, with only 22 and 8006 from `10.10.0.0/22` (22
-   never from `ci`), 9100 and 10250 from `platform` through `t08`, and 443
-   from the internet through `t11`. Any other ingress to the node is a
+6. The node stays on DROP, with only 22, 443 and 8006 from `10.10.0.0/22`
+   (22 never from `ci`), and 9100 and 10250 from `platform` through `t08`.
+   Nothing from the internet. Any other ingress to the node is a
    **critical** finding, and so is implicit admin access: `local_network`
    stays pointed at loopback.
 7. No admin dashboard published through `vm-edge`: private ones go through the

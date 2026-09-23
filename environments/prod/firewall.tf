@@ -42,8 +42,8 @@ locals {
   # Inbound rules of the node itself. All TCP; an empty source is any.
   node_firewall_rules = [
     { source = "10.10.0.0/24", dport = "22,8006", comment = "t01: admin access, arrives through the vm-access tunnel" },
-    { source = "10.10.1.0/24", dport = "8006", comment = "t03: Proxmox API. NEVER 22 towards the node from ci" },
+    { source = "10.10.1.0/24", dport = "443,8006", comment = "t03: Proxmox API and RustFS, through Traefik on 443. NEVER 22 towards the node from ci" },
     { source = "10.10.4.0/24", dport = "9100,10250", comment = "t08: Prometheus scrape" },
-    { source = "", dport = "443", comment = "t11: Traefik on the host (Proxmox UI, PBS, RustFS). Open to the internet until the CI runner exists - 0xc0-homelab/.github#13" },
+    { source = "10.10.0.0/24", dport = "443", comment = "t11: Traefik on the host (Proxmox UI, PBS, RustFS), over WARP. Closed to the internet since the CI runner exists" },
   ]
 }
