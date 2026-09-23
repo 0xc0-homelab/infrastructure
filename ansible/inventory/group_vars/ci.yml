@@ -1,0 +1,5 @@
+# The GitHub App that registers the runners: its own, with only
+# "Self-hosted runners: Read and write" on the org. Not secret; the key is, and
+# comes from secrets/ansible.sops.yaml through scripts/ansible.
+github_runner_app_id: "5051391"
+github_runner_app_installation_id: "164149198"
