@@ -71,4 +71,14 @@ vms = {
     cores     = 1
     memory_mb = 1024
   }
+  # Second connector of the same tunnel, for HA: one can be rebuilt while the
+  # other keeps admin access.
+  "vm-access-02" = {
+    vm_id     = 101
+    template  = "debian-13-base"
+    vnet      = "mgmt"
+    ip        = "10.10.0.20"
+    cores     = 1
+    memory_mb = 1024
+  }
 }

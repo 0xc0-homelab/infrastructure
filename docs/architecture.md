@@ -65,7 +65,7 @@ not listed in the transit matrix is denied.
 ```mermaid
 flowchart LR
   subgraph control["control — 10.10.0.0/22"]
-    mgmt["mgmt<br/>10.10.0.0/24<br/>vm-access .10"]
+    mgmt["mgmt<br/>10.10.0.0/24<br/>vm-access .10<br/>vm-access-02 .20"]
     ci["ci<br/>10.10.1.0/24<br/>vm-ci .10 · phase 2"]
   end
   platform["platform<br/>10.10.4.0/24<br/>vm-vault .10 · phase 3<br/>vm-platform .20 · phase 3"]

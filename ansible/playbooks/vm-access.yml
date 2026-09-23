@@ -1,6 +1,8 @@
-- name: Configure vm-access
-  hosts: vm-access
+- name: Configure the vm-access connectors
+  hosts: access
   become: true
+  # One at a time: while one connector restarts, the other keeps admin access.
+  serial: 1
   roles:
     - role: base
     - role: cloudflared
