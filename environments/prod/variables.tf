@@ -105,13 +105,14 @@ variable "vm_dns_servers" {
 variable "vms" {
   description = "VMs, keyed by name. Must match the vms block of docs/zones.md, which is normative."
   type = map(object({
-    vm_id        = number
     template     = string
     vnet         = string
     ip           = string
     cores        = optional(number, 1)
     memory_mb    = optional(number, 1024)
     disk_size_gb = optional(number, 8)
+    # Bump to recreate the VM from its template.
+    rebuild = optional(number, 0)
   }))
 
   # The address must sit inside its zone, and never on the host's .1.

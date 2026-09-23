@@ -70,7 +70,6 @@ vm_dns_servers    = ["1.1.1.1", "1.0.0.1"]
 # Mirrors the vms block of docs/zones.md. Only phase 1 VMs.
 vms = {
   "vm-access-01" = {
-    vm_id     = 103
     template  = "debian-13-base"
     vnet      = "mgmt"
     ip        = "10.10.0.10"
@@ -80,7 +79,6 @@ vms = {
   # Second connector of the same tunnel, for HA: one can be rebuilt while the
   # other keeps admin access.
   "vm-access-02" = {
-    vm_id     = 101
     template  = "debian-13-base"
     vnet      = "mgmt"
     ip        = "10.10.0.20"
@@ -90,7 +88,6 @@ vms = {
   # The self-hosted GitHub Actions runners (infrastructure#44). The disk holds
   # the runner, the tools mise installs per job and the providers.
   "vm-ci" = {
-    vm_id        = 102
     template     = "debian-13-runner-1"
     vnet         = "ci"
     ip           = "10.10.1.10"

@@ -24,6 +24,7 @@ Everything inside the guest after first boot is Ansible's job.
 | Name | Version |
 | ---- | ------- |
 | <a name="provider_proxmox"></a> [proxmox](#provider\_proxmox) | 0.114.0 |
+| <a name="provider_terraform"></a> [terraform](#provider\_terraform) | n/a |
 
 ## Modules
 
@@ -34,6 +35,7 @@ No modules.
 | Name | Type |
 | ---- | ---- |
 | [proxmox_virtual_environment_vm.main](https://registry.terraform.io/providers/bpg/proxmox/0.114.0/docs/resources/virtual_environment_vm) | resource |
+| [terraform_data.rebuild](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) | resource |
 
 ## Inputs
 
@@ -48,11 +50,11 @@ No modules.
 | <a name="input_memory_mb"></a> [memory\_mb](#input\_memory\_mb) | Memory in MB. | `number` | `1024` | no |
 | <a name="input_name"></a> [name](#input\_name) | VM name, e.g. vm-access. | `string` | n/a | yes |
 | <a name="input_node_name"></a> [node\_name](#input\_node\_name) | Proxmox node. | `string` | n/a | yes |
+| <a name="input_rebuild"></a> [rebuild](#input\_rebuild) | Bump to recreate the VM, keeping everything else as it is. | `number` | `0` | no |
 | <a name="input_ssh_public_keys"></a> [ssh\_public\_keys](#input\_ssh\_public\_keys) | Public keys authorised for username. | `list(string)` | n/a | yes |
 | <a name="input_tags"></a> [tags](#input\_tags) | Proxmox tags. | `list(string)` | `[]` | no |
 | <a name="input_template_vm_id"></a> [template\_vm\_id](#input\_template\_vm\_id) | VMID of the template to clone. | `number` | n/a | yes |
 | <a name="input_username"></a> [username](#input\_username) | Admin user created by cloud-init; SSH keys only, no password. | `string` | n/a | yes |
-| <a name="input_vm_id"></a> [vm\_id](#input\_vm\_id) | VMID. VMs use 100-8999; 9000-9099 is for templates. | `number` | n/a | yes |
 | <a name="input_vnet"></a> [vnet](#input\_vnet) | SDN VNet the VM attaches to — its zone. | `string` | n/a | yes |
 
 ## Outputs
