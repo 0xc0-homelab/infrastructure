@@ -44,3 +44,20 @@ resource "cloudflare_zero_trust_access_application" "main" {
   name       = "Warp Login App"
   policies   = [{ id = cloudflare_zero_trust_access_policy.main.id, precedence = 1 }]
 }
+
+# The node's web front (Traefik: Proxmox, PBS, RustFS) answers on the node's
+# address in mgmt too. For WARP devices, Gateway resolves those names to it, so
+# the operator reaches them through the tunnel and the public 443 can close.
+resource "cloudflare_zero_trust_gateway_policy" "main" {
+  account_id  = var.account_id
+  name        = "${var.team_name} private hostnames"
+  description = "Resolves the node's web front to its address in mgmt, through WARP"
+  action      = "override"
+  enabled     = true
+  filters     = ["dns"]
+  traffic     = "dns.fqdn in {${join(" ", [for h in var.private_hostnames : "\"${h}\""])}}"
+
+  rule_settings = {
+    override_ips = [var.private_hostnames_ip]
+  }
+}

@@ -39,3 +39,13 @@ variable "tunnel_protocol" {
     error_message = "tunnel_protocol must be masque or wireguard."
   }
 }
+
+variable "private_hostnames" {
+  description = "Hostnames that WARP devices resolve to private_hostnames_ip instead of their public record."
+  type        = list(string)
+}
+
+variable "private_hostnames_ip" {
+  description = "Private address those hostnames resolve to for WARP devices, inside include_networks."
+  type        = string
+}
