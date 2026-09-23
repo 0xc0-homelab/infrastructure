@@ -101,3 +101,6 @@ datacenter_firewall_enabled = true
 # The node's DROP. Admin access to the node is then only over WARP, to
 # 10.10.0.1, and the Hetzner Rescue system is the way back in.
 node_firewall_enabled = true
+
+# Traefik on the node, outside IaC. WARP devices resolve these to 10.10.0.1.
+node_web_hostnames = ["pve.0xc0.cc", "pbs.0xc0.cc", "s3.0xc0.cc", "s3-console.0xc0.cc"]

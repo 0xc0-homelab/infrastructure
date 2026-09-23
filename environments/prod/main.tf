@@ -32,6 +32,9 @@ module "zero_trust" {
   team_name        = var.zero_trust_team
   include_networks = [var.homelab_network]
   allowed_emails   = var.warp_allowed_emails
+
+  private_hostnames    = var.node_web_hostnames
+  private_hostnames_ip = cidrhost(var.zones["mgmt"].cidr, 1)
 }
 
 # The Default device profile exists as soon as Zero Trust is enabled: adopt it.
