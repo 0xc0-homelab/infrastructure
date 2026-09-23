@@ -19,7 +19,8 @@ resource "proxmox_virtual_environment_cluster_firewall" "main" {
 # network is added regardless.
 resource "proxmox_virtual_environment_firewall_alias" "local_network" {
   name    = "local_network"
-  cidr    = "127.0.0.1/32"
+  # A single address, as the API returns it: "/32" would diff on every plan.
+  cidr    = "127.0.0.1"
   comment = "Overrides the detected network: no implicit admin access"
 }
 

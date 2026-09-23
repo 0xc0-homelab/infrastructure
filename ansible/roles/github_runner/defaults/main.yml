@@ -1,0 +1,15 @@
+# Pinned by version and the SHA-256 published in the release notes. Bumping is
+# its own commit: version and checksum together. The runner may still update
+# itself in place when GitHub requires it; the pin is what a new instance
+# starts from.
+github_runner_version: "2.337.0"
+github_runner_tarball_sha256: "70920811a4f8ad4328818682bca5c6469c1c942fab52448868071d0063816613"
+
+# Runners on this VM. Each one takes one job at a time.
+github_runner_count: 2
+
+github_runner_org: 0xc0-homelab
+# Created by 0xc0-homelab/.github (modules/runner-group), open only to the
+# repos that use it.
+github_runner_group: homelab
+github_runner_labels: [homelab]

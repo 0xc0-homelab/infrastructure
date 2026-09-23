@@ -57,8 +57,8 @@ reserved:
 vms:
   vm-access:   { zone: mgmt,      ip: 10.10.0.10,  vcpu: 1, ram_gb: 1,  phase: 1 }
   vm-access-02: { zone: mgmt,     ip: 10.10.0.20,  vcpu: 1, ram_gb: 1,  phase: 1 }
-  vm-edge:     { zone: edge,      ip: 10.10.8.10,  vcpu: 2, ram_gb: 4,  phase: 1 }
-  vm-ci:       { zone: ci,        ip: 10.10.1.10,  vcpu: 2, ram_gb: 4,  phase: 2 }
+  vm-edge:     { zone: edge,      ip: 10.10.8.10,  vcpu: 2, ram_gb: 4,  phase: 2 }
+  vm-ci:       { zone: ci,        ip: 10.10.1.10,  vcpu: 2, ram_gb: 4,  phase: 1 }
   vm-apps:     { zone: workloads, ip: 10.10.16.10, vcpu: 4, ram_gb: 12, phase: 2 }
   vm-data:     { zone: data,      ip: 10.10.32.10, vcpu: 2, ram_gb: 8,  phase: 2 }
   vm-vault:    { zone: platform,  ip: 10.10.4.10,  vcpu: 1, ram_gb: 2,  phase: 3 }

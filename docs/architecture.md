@@ -184,8 +184,9 @@ flowchart LR
   Plans and applies wait for the lock instead of failing.
 
 **Today:** CI runs on GitHub-hosted runners, so RustFS is reachable from the
-internet — temporarily. **Target:** from phase 2, a self-hosted runner on
-`vm-ci` inside the network, and RustFS closed again
+internet — temporarily. **Target:** end of phase 1, two ephemeral runners on
+`vm-ci` inside the network (#44), only for PRs from the same repo, and RustFS
+closed again
 ([`.github#13`](https://github.com/0xc0-homelab/.github/issues/13)).
 
 ## Secrets

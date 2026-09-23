@@ -81,6 +81,17 @@ vms = {
     cores     = 1
     memory_mb = 1024
   }
+  # The self-hosted GitHub Actions runners (infrastructure#44). The disk holds
+  # the runner, the tools mise installs per job and the providers.
+  "vm-ci" = {
+    vm_id        = 102
+    template     = "debian-13-base"
+    vnet         = "ci"
+    ip           = "10.10.1.10"
+    cores        = 2
+    memory_mb    = 4096
+    disk_size_gb = 32
+  }
 }
 
 # Enforces every VM's firewall. Needs Docker on the node with

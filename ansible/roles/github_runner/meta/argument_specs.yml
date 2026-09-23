@@ -1,0 +1,48 @@
+argument_specs:
+  main:
+    short_description: Ephemeral GitHub Actions runners registered just in time by a GitHub App
+    description:
+      - Installs the runner pinned by version and checksum, one copy per
+        instance, and runs each as a systemd service. Before every start, a
+        root-only step uses the GitHub App to fetch a just-in-time config, so
+        each runner takes one job, deregisters and starts clean.
+      - Jobs run as the unprivileged runner user, which cannot read the App key.
+    options:
+      github_runner_app_id:
+        type: str
+        required: true
+        description: ID of the GitHub App that registers the runners.
+      github_runner_app_installation_id:
+        type: str
+        required: true
+        description: Installation ID of that App on the org.
+      github_runner_app_private_key:
+        type: str
+        required: true
+        no_log: true
+        description: PEM private key of the App, from SOPS through scripts/ansible.
+      github_runner_version:
+        type: str
+        default: "2.337.0"
+        description: Runner release to install.
+      github_runner_tarball_sha256:
+        type: str
+        required: true
+        description: SHA-256 of that release's actions-runner-linux-x64 tarball.
+      github_runner_count:
+        type: int
+        default: 2
+        description: Runners on this VM, each taking one job at a time.
+      github_runner_org:
+        type: str
+        default: 0xc0-homelab
+        description: Organization the runners register with.
+      github_runner_group:
+        type: str
+        default: homelab
+        description: Runner group they register into.
+      github_runner_labels:
+        type: list
+        elements: str
+        default: [homelab]
+        description: Custom labels workflows target.

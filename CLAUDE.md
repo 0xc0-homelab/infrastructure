@@ -12,8 +12,9 @@ Hetzner Storage Box. Any change here that could cut the host's public access —
 firewall rules on `eno1` above all — puts those three at risk.
 
 OpenTofu (templates from official cloud images, VMs, network, firewall) →
-Ansible (configuration). Packer arrives in phase 2, for templates that must be
-baked (the CI runner, zones with no egress).
+Ansible (configuration). Packer arrives at the end of phase 1, right after
+`vm-ci`, for templates that must be baked (the CI runner, zones with no
+egress).
 Proxmox provider: `bpg/proxmox`. Zones are Proxmox SDN: one Simple zone, a
 VNet and a subnet per zone, with the host as gateway and SNAT for egress, all
 in OpenTofu. Use the `proxmox_sdn_*` resources — the
@@ -28,8 +29,10 @@ service only if the coupling ever gets in the way.
 ## CURRENT PHASE: 1 (Base)
 
 Scope of phase 1: Proxmox, zones, NAT, the Debian base template, `vm-access`,
-`vm-edge`. SOPS
-working. Rescue and WARP tested. Everything driven manually from the laptop.
+`vm-ci` with the self-hosted runners, then Packer for the templates that must
+be baked. SOPS working. Rescue and WARP tested. `vm-edge` moved to phase 2,
+with `vm-apps`: until then there is nothing to publish (operator decision,
+2026-09-23).
 
 Do not implement VMs or services from later phases even if they fit. The phase
 of each VM is in `docs/zones.md`. If something requires a future phase, say so
@@ -59,10 +62,14 @@ itself are never touched from this repo. Docker carries one setting by hand,
 `ip-forward-no-drop`, that the zone firewall needs (`docs/architecture.md`,
 The node).
 
-Until admin access through WARP is tested (#12), `bootstrap_via_host: true` in
-`inventory/group_vars/vms.yml` makes Ansible jump through the node (the
-operator's `hetzner` SSH alias). After that it goes through WARP, and the jump
-is switched off.
+Ansible reaches every VM directly over WARP. `bootstrap_via_host` in
+`inventory/group_vars/vms.yml` stays false: a jump through the node leaves from
+its `.1` in each zone, which only `mgmt` admits.
+
+`playbooks/vm-ci.yml` runs the `github_runner` role: ephemeral runners, each
+fetching a just-in-time config from a GitHub App of their own before every
+job. The App key comes from `secrets/ansible.sops.yaml` and is readable only
+by root on `vm-ci`; jobs run as the unprivileged `runner` user.
 
 Every role follows the `ansible-role` skill and passes `ansible-lint` on the
 `production` profile.
@@ -160,7 +167,7 @@ Under `.claude/skills/`, for the operations that repeat here:
 |-------------------|------------------------------------------------------|
 | `new-vm`          | adding, moving or re-addressing a VM                 |
 | `firewall-matrix` | opening, closing or reviewing a port between zones   |
-| `packer-template` | a baked template — from phase 2 only                 |
+| `packer-template` | a baked template — once `vm-ci` runs                 |
 | `ansible-role`    | creating, restructuring or reviewing a role          |
 
 `new-vm` and `firewall-matrix` both write to `docs/zones.md`. That file is
