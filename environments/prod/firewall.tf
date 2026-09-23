@@ -1,7 +1,5 @@
 # GENERATED from docs/zones.md by scripts/generate-firewall - do not edit by hand.
 # To change a rule: edit the transit block of docs/zones.md and regenerate.
-# Node-bound entries (t01, t03, t08, t11) belong to the node firewall
-# (infrastructure#13) and are not generated here.
 # Internet-bound entries (t09) are egress, allowed by the
 # outbound policy of every zone but those in zone_firewall_no_egress.
 
@@ -40,4 +38,12 @@ locals {
 
   # Zones that initiate nothing: their VMs get an outbound DROP policy.
   zone_firewall_no_egress = ["data"]
+
+  # Inbound rules of the node itself. All TCP; an empty source is any.
+  node_firewall_rules = [
+    { source = "10.10.0.0/24", dport = "22,8006", comment = "t01: admin access, arrives through the vm-access tunnel" },
+    { source = "10.10.1.0/24", dport = "8006", comment = "t03: Proxmox API. NEVER 22 towards the node from ci" },
+    { source = "10.10.4.0/24", dport = "9100,10250", comment = "t08: Prometheus scrape" },
+    { source = "", dport = "443", comment = "t11: Traefik on the host (Proxmox UI, PBS, RustFS). Open to the internet until the CI runner exists - 0xc0-homelab/.github#13" },
+  ]
 }

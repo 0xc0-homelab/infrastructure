@@ -31,8 +31,10 @@ node:
   policy: DROP
   ingress_allowed_from: control
   ingress_ports: [22, 8006]
-  # Plus every transit entry whose `to` includes `node` — today t11, 443 from
-  # the internet for Traefik.
+  # Every transit entry whose `to` includes `node` becomes a node rule. From a
+  # control zone, only its ports in ingress_ports: t01 gives mgmt 22 and 8006,
+  # t03 gives ci 8006. From elsewhere, the entry as written: t08 (platform,
+  # 9100 and 10250) and t11 (443 from the internet, for Traefik).
 ```
 
 ## Reserved ranges
@@ -158,9 +160,11 @@ Checked by the `homelab:network-reviewer` agent before every PR.
 4. Zero egress rules from `data`.
 5. Zero ingress rules towards `mgmt` from any other zone. Traffic inside `mgmt`
    (`t12`) is the only way in.
-6. The node stays on DROP, with only 22 and 8006 from `10.10.0.0/22`, plus
-   443 from the internet through `t11`. Any other ingress to the node is a
-   **critical** finding.
+6. The node stays on DROP, with only 22 and 8006 from `10.10.0.0/22` (22
+   never from `ci`), 9100 and 10250 from `platform` through `t08`, and 443
+   from the internet through `t11`. Any other ingress to the node is a
+   **critical** finding, and so is implicit admin access: `local_network`
+   stays pointed at loopback.
 7. No admin dashboard published through `vm-edge`: private ones go through the
    `vm-access` tunnel.
 8. No VM from a phase later than the one declared in `CLAUDE.md`.

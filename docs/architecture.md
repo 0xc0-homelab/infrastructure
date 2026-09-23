@@ -108,8 +108,9 @@ things the diagram shows by what is missing:
 - **Nothing leaves `data`** (`t10`). It initiates no connection, and its
   subnet has no SNAT either.
 
-The node accepts only 22 and 8006 from `control`, plus 443 from the internet
-for Traefik (`t11`) until the CI runner exists.
+The node accepts 22 and 8006 from `mgmt`, only 8006 from `ci`, the scrape
+ports from `platform` (`t08`), plus 443 from the internet for Traefik
+(`t11`) until the CI runner exists.
 
 ## Web traffic
 
@@ -151,13 +152,12 @@ The operator reaches every zone and the node's internal address directly,
 without a jump host, as if on the network. Private dashboards — Grafana, Vault
 UI, Proxmox — are reached this way, never through the edge.
 
-The **way back in** if this breaks is the Hetzner Rescue system. Phase 1 is not
-done until both paths have been tested, and the node's firewall goes to DROP
-only after that — before, `10.10.0.0/22` is empty and the DROP would lock the
-operator out.
+The **way back in** if this breaks is the Hetzner Rescue system. Both paths
+were tested before the node's firewall went to DROP.
 
-**Today:** the operator reaches the node over its public IP, and the Proxmox
-UI through Traefik. **Target:** WARP through `vm-access`, phase 1.
+**Today:** WARP through the two `vm-access` connectors. The node's own
+firewall is on DROP: SSH and the Proxmox UI on 8006 answer on `10.10.0.1`
+only, and the public IP keeps just 443 for Traefik.
 
 ## Changes, CI and state
 

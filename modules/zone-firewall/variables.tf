@@ -17,6 +17,20 @@ variable "rules" {
   })))
 }
 
+variable "node_enabled" {
+  description = "The node's own firewall: DROP on everything but node_rules. Needs `enabled` too."
+  type        = bool
+}
+
+variable "node_rules" {
+  description = "Inbound rules of the node, generated from docs/zones.md into firewall.tf. An empty source is any."
+  type = list(object({
+    source  = string
+    dport   = string
+    comment = string
+  }))
+}
+
 variable "no_egress" {
   description = "VNets whose VMs initiate nothing: outbound policy DROP."
   type        = list(string)

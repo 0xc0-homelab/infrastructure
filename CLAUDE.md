@@ -94,11 +94,15 @@ and services, lab).
 - `data` does not initiate connections anywhere. Never add an egress rule from
   `data`.
 - Nobody initiates towards `mgmt`.
-- The node has a DROP policy: 22 and 8006 from `10.10.0.0/22`, plus 443 from
-  the internet for Traefik (`t11`) until the CI runner exists.
-- The node DROP is applied **last** in phase 1, only once admin access through
-  `vm-access` and WARP has been tested. Applied earlier, it locks the operator
-  out: `10.10.0.0/22` has no hosts yet.
+- The node has a DROP policy (`node_firewall_enabled`): 22 and 8006 from
+  `mgmt`, 8006 from `ci`, 9100 and 10250 from `platform` (`t08`), plus 443
+  from the internet for Traefik (`t11`) until the CI runner exists. All of it
+  generated from the matrix. Admin access to the node is over WARP only, to
+  `10.10.0.1`; the Hetzner Rescue system is the way back in.
+- `local_network` is overridden to loopback, so Proxmox grants no implicit
+  admin access to the network it detects. Never remove that alias.
+- A change to the node firewall is tested first by hand, with a rollback
+  scheduled on the node itself (systemd timer), before it goes into code.
 - `ci` reaches the node over 8006 (API), never over 22.
 - Private dashboards go through the `vm-access` tunnel, never through
   `vm-edge`.

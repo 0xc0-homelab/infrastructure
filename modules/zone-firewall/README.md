@@ -45,8 +45,10 @@ No modules.
 | [proxmox_node_firewall.main](https://registry.terraform.io/providers/bpg/proxmox/0.114.0/docs/resources/node_firewall) | resource |
 | [proxmox_virtual_environment_cluster_firewall.main](https://registry.terraform.io/providers/bpg/proxmox/0.114.0/docs/resources/virtual_environment_cluster_firewall) | resource |
 | [proxmox_virtual_environment_cluster_firewall_security_group.main](https://registry.terraform.io/providers/bpg/proxmox/0.114.0/docs/resources/virtual_environment_cluster_firewall_security_group) | resource |
+| [proxmox_virtual_environment_firewall_alias.local_network](https://registry.terraform.io/providers/bpg/proxmox/0.114.0/docs/resources/virtual_environment_firewall_alias) | resource |
 | [proxmox_virtual_environment_firewall_options.main](https://registry.terraform.io/providers/bpg/proxmox/0.114.0/docs/resources/virtual_environment_firewall_options) | resource |
 | [proxmox_virtual_environment_firewall_rules.main](https://registry.terraform.io/providers/bpg/proxmox/0.114.0/docs/resources/virtual_environment_firewall_rules) | resource |
+| [proxmox_virtual_environment_firewall_rules.node](https://registry.terraform.io/providers/bpg/proxmox/0.114.0/docs/resources/virtual_environment_firewall_rules) | resource |
 
 ## Inputs
 
@@ -54,7 +56,9 @@ No modules.
 | ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_enabled"></a> [enabled](#input\_enabled) | The datacenter firewall's master switch. Nothing below is enforced while it is false. | `bool` | n/a | yes |
 | <a name="input_no_egress"></a> [no\_egress](#input\_no\_egress) | VNets whose VMs initiate nothing: outbound policy DROP. | `list(string)` | n/a | yes |
+| <a name="input_node_enabled"></a> [node\_enabled](#input\_node\_enabled) | The node's own firewall: DROP on everything but node\_rules. Needs `enabled` too. | `bool` | n/a | yes |
 | <a name="input_node_name"></a> [node\_name](#input\_node\_name) | Proxmox node. | `string` | n/a | yes |
+| <a name="input_node_rules"></a> [node\_rules](#input\_node\_rules) | Inbound rules of the node, generated from docs/zones.md into firewall.tf. An empty source is any. | <pre>list(object({<br/>    source  = string<br/>    dport   = string<br/>    comment = string<br/>  }))</pre> | n/a | yes |
 | <a name="input_rules"></a> [rules](#input\_rules) | Inbound rules per zone, keyed by VNet — generated from docs/zones.md into firewall.tf. | <pre>map(list(object({<br/>    source  = string<br/>    dport   = string<br/>    comment = string<br/>  })))</pre> | n/a | yes |
 | <a name="input_vms"></a> [vms](#input\_vms) | Every VM, with its VMID and VNet. | <pre>map(object({<br/>    vm_id = number<br/>    vnet  = string<br/>  }))</pre> | n/a | yes |
 

@@ -86,3 +86,7 @@ vms = {
 # Enforces every VM's firewall. Needs Docker on the node with
 # `ip-forward-no-drop` (docs/architecture.md, The node).
 datacenter_firewall_enabled = true
+
+# The node's DROP. Admin access to the node is then only over WARP, to
+# 10.10.0.1, and the Hetzner Rescue system is the way back in.
+node_firewall_enabled = true
