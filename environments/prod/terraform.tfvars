@@ -79,6 +79,7 @@ vms = {
   # Second connector of the same tunnel, for HA: one can be rebuilt while the
   # other keeps admin access.
   "vm-access-02" = {
+    rebuild   = 1
     template  = "debian-13-base"
     vnet      = "mgmt"
     ip        = "10.10.0.20"
