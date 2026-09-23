@@ -55,7 +55,7 @@ reserved:
 
 ```yaml
 vms:
-  vm-access:   { zone: mgmt,      ip: 10.10.0.10,  vcpu: 1, ram_gb: 1,  phase: 1 }
+  vm-access-01: { zone: mgmt,     ip: 10.10.0.10,  vcpu: 1, ram_gb: 1,  phase: 1 }
   vm-access-02: { zone: mgmt,     ip: 10.10.0.20,  vcpu: 1, ram_gb: 1,  phase: 1 }
   vm-edge:     { zone: edge,      ip: 10.10.8.10,  vcpu: 2, ram_gb: 4,  phase: 2 }
   vm-ci:       { zone: ci,        ip: 10.10.1.10,  vcpu: 2, ram_gb: 4,  phase: 1 }

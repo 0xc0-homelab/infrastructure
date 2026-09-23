@@ -69,8 +69,8 @@ vm_dns_servers    = ["1.1.1.1", "1.0.0.1"]
 
 # Mirrors the vms block of docs/zones.md. Only phase 1 VMs.
 vms = {
-  "vm-access" = {
-    vm_id     = 100
+  "vm-access-01" = {
+    vm_id     = 103
     template  = "debian-13-base"
     vnet      = "mgmt"
     ip        = "10.10.0.10"
