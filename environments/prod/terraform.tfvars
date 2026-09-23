@@ -53,6 +53,12 @@ templates = {
   }
 }
 
+# Baked by packer/<name>, one entry per version still in use. A new version is
+# added here before any VM moves to it, and the old one removed only after.
+baked_templates = {
+  "debian-13-runner-1" = 9001
+}
+
 cloudflare_account_id = "ca1599ae7852d5b4718cba351adad927"
 zero_trust_team       = "0xc0"
 homelab_network       = "10.10.0.0/16"
@@ -85,7 +91,7 @@ vms = {
   # the runner, the tools mise installs per job and the providers.
   "vm-ci" = {
     vm_id        = 102
-    template     = "debian-13-base"
+    template     = "debian-13-runner-1"
     vnet         = "ci"
     ip           = "10.10.1.10"
     cores        = 2
