@@ -7,7 +7,7 @@ Wants=network-online.target
 [Service]
 # systemd reads the token as root, then drops to a throwaway user.
 EnvironmentFile=/etc/cloudflared/tunnel.env
-ExecStart=/usr/bin/cloudflared --no-autoupdate tunnel run
+ExecStart=/usr/bin/cloudflared --no-autoupdate tunnel --protocol {{ cloudflared_protocol }} run
 Restart=on-failure
 RestartSec=5s
 DynamicUser=yes
