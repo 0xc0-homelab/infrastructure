@@ -18,7 +18,7 @@ resource "proxmox_virtual_environment_cluster_firewall" "main" {
 # node rules below. An empty `management` ipset does not do it: the detected
 # network is added regardless.
 resource "proxmox_virtual_environment_firewall_alias" "local_network" {
-  name    = "local_network"
+  name = "local_network"
   # A single address, as the API returns it: "/32" would diff on every plan.
   cidr    = "127.0.0.1"
   comment = "Overrides the detected network: no implicit admin access"
