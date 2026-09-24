@@ -101,6 +101,9 @@ variable "vms" {
     disk_size_gb = optional(number, 8)
     # Bump to recreate the VM from its template.
     rebuild = optional(number, 0)
+    # The QEMU guest agent. False only until the VM is rebuilt from a baked
+    # template: switching it on in place reboots the VM.
+    guest_agent = optional(bool, true)
   }))
 
   # The address must sit inside its zone, and never on the host's .1.
