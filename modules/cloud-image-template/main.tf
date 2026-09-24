@@ -12,9 +12,9 @@ resource "proxmox_download_file" "main" {
   checksum_algorithm = "sha512"
 }
 
+# No vm_id: Proxmox assigns one, and everything finds the template by name.
 resource "proxmox_virtual_environment_vm" "main" {
   name        = var.name
-  vm_id       = var.vm_id
   node_name   = var.node_name
   description = "Built by OpenTofu from ${var.image_url}"
   tags        = ["opentofu", "template"]

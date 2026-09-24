@@ -15,3 +15,10 @@ moved {
   from = module.zone_firewall.proxmox_virtual_environment_firewall_rules.main["vm-access"]
   to   = module.zone_firewall.proxmox_virtual_environment_firewall_rules.main["vm-access-01"]
 }
+
+# The imported cloud image became debian-13-cloud: debian-13-base is now the
+# template Packer bakes from it.
+moved {
+  from = module.templates["debian-13-base"]
+  to   = module.templates["debian-13-cloud"]
+}

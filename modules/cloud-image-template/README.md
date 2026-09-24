@@ -51,7 +51,6 @@ No modules.
 | <a name="input_image_url"></a> [image\_url](#input\_image\_url) | URL of an uncompressed cloud image (qcow2). Pin a dated build, never a 'latest' link. | `string` | n/a | yes |
 | <a name="input_name"></a> [name](#input\_name) | Template name in Proxmox. | `string` | n/a | yes |
 | <a name="input_node_name"></a> [node\_name](#input\_node\_name) | Proxmox node that holds the template. | `string` | n/a | yes |
-| <a name="input_vm_id"></a> [vm\_id](#input\_vm\_id) | VMID of the template. Templates live in 9000-9099. | `number` | n/a | yes |
 
 ## Outputs
 
