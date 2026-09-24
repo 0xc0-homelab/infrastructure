@@ -80,6 +80,12 @@ resource "proxmox_virtual_environment_vm" "main" {
   }
 
   lifecycle {
+    # No VM is destroyed as a matter of course: any plan that deletes or
+    # replaces one fails, in CI and from the laptop alike. OpenTofu takes it
+    # only as a literal, so it covers every VM. A deliberate rebuild or removal
+    # lifts it in that same PR, and the next PR sets it back.
+    prevent_destroy = true
+
     replace_triggered_by = [terraform_data.rebuild]
     # A template only matters when the VM is created: a newer one, or one
     # rebuilt under a new VMID, must not recreate every VM cloned from it.
