@@ -67,10 +67,15 @@ module "vms" {
   source   = "../../modules/vm"
   for_each = var.vms
 
-  name           = each.key
-  rebuild        = each.value.rebuild
-  node_name      = var.nodes[0]
-  template_vm_id = local.template_ids[each.value.template]
+  name      = each.key
+  rebuild   = each.value.rebuild
+  node_name = var.nodes[0]
+  # A template is missing for a while when Packer rebuilds it (it deletes it
+  # first). Existing VMs ignore their template, so their plan must not fail
+  # then. The fallback is the highest valid VMID, which never exists: a new VM
+  # created in that window fails to find its template instead of cloning
+  # another one.
+  template_vm_id = lookup(local.template_ids, each.value.template, 2147483647)
   datastore_id   = var.template_datastore
 
   vnet         = each.value.vnet
