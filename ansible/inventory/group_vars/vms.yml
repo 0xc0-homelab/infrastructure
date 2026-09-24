@@ -2,12 +2,8 @@
 ansible_user: ops
 ansible_ssh_private_key_file: ~/.ssh/0xc0-homelab
 
-# Jumping through the node (`hetzner`) was the way in before WARP worked. Off:
-# a jump leaves the node from its .1 in each zone, which only mgmt admits.
-bootstrap_via_host: false
 # Keepalives: a session cut underneath (a connector restarting) fails in 45s
 # instead of hanging.
 ansible_ssh_common_args: >-
   -o StrictHostKeyChecking=accept-new
   -o ServerAliveInterval=15 -o ServerAliveCountMax=3
-  {{ '-o ProxyJump=hetzner' if bootstrap_via_host else '' }}

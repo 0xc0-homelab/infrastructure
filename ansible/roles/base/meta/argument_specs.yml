@@ -2,8 +2,9 @@ argument_specs:
   main:
     short_description: Baseline for every homelab VM
     description:
-      - Installs the guest agent and hardens SSH. Everything a VM needs beyond
-        its cloud image, before its own role.
+      - Installs the guest agent and hardens SSH. This is the baseline
+        debian-13-base bakes on top of the cloud image, re-applied by the
+        playbooks.
     options:
       base_packages:
         type: list

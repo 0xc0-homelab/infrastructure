@@ -35,8 +35,7 @@ resource "proxmox_virtual_environment_vm" "main" {
     dedicated = 1024
   }
 
-  # The cloud image ships no guest agent. It is installed on each VM after
-  # first boot, and enabled here once that is in place.
+  # Raw image with no guest agent: Packer bakes it into debian-13-base.
   agent {
     enabled = false
   }

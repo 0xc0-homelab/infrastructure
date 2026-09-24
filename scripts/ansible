@@ -9,10 +9,8 @@ cd "$(dirname "$0")/.."
 token="$(sops exec-env secrets/tofu.sops.yaml 'tofu -chdir=environments/prod output -raw vm_access_tunnel_token')"
 export CLOUDFLARED_TUNNEL_TOKEN="$token"
 
-if [ -f secrets/ansible.sops.yaml ]; then
-  GITHUB_RUNNER_APP_PRIVATE_KEY="$(sops decrypt --extract '["github_runner_app_private_key"]' secrets/ansible.sops.yaml)"
-  export GITHUB_RUNNER_APP_PRIVATE_KEY
-fi
+GITHUB_RUNNER_APP_PRIVATE_KEY="$(sops decrypt --extract '["github_runner_app_private_key"]' secrets/ansible.sops.yaml)"
+export GITHUB_RUNNER_APP_PRIVATE_KEY
 
 cd ansible
 exec ansible-playbook "$@"

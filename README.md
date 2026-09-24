@@ -8,13 +8,17 @@ firewall, and the VMs on it.
 - **Why it is this way:** [`workspace/docs/design.md`](https://github.com/0xc0-homelab/workspace/blob/main/docs/design.md)
 
 ```
-environments/prod/     the root for the node — only calls modules
-modules/<name>/        the resources
-scripts/tofu           runs tofu on an environment, secrets decrypted in env
-scripts/ansible        runs ansible-playbook with the tunnel token in env
-ansible/               what runs inside the VMs: inventory, playbooks, roles
-secrets/               SOPS-encrypted, to the operator and this repo's CI key
-docs/                  architecture and the zone matrix
+environments/prod/      the root for the node — only calls modules
+modules/<name>/         the resources
+packer/<template>/      bakes the templates every VM clones
+scripts/tofu             runs tofu on an environment, secrets decrypted in env
+scripts/ansible          runs ansible-playbook with the tunnel token in env
+scripts/packer           validates or builds a template locally
+scripts/delete-template  deletes a template by name before it is rebuilt
+ansible/                 what runs inside the VMs: inventory, playbooks, roles
+.github/workflows/       plan, apply, packer and issue-check pipelines
+secrets/                 SOPS-encrypted, to the operator and this repo's CI key
+docs/                    architecture and the zone matrix
 ```
 
 ## Running it

@@ -24,8 +24,10 @@ roles/<role_name>/
   files/
   meta/main.yml             dependencies and supported platforms
   meta/argument_specs.yml   the validated public interface
-  README.md                 what it does, and the three variables that matter
 ```
+
+No README.md is required per role: `argument_specs.yml` is the documentation.
+Add one only where a role's shape genuinely needs more explaining than that.
 
 Create only the directories the role actually uses. An empty `files/` is noise.
 
@@ -72,14 +74,16 @@ validated by actually applying it, restructure it.
 
 ## Conventions
 
-- `tasks/main.yml` stays a dispatcher: `ansible.builtin.include_tasks` per
-  stage, with `tags`. Logic lives in the included files.
+- `tasks/main.yml` stays a dispatcher: `ansible.builtin.include_tasks` or
+  `ansible.builtin.import_tasks` per stage, with `tags`. Logic lives in the
+  included files.
 - Fully qualified module names everywhere (`ansible.builtin.template`, not
   `template`).
 - Handlers named for the effect, not the mechanism: `restart nginx`, not
   `handler_1`. Use `listen` when several tasks trigger the same one.
-- `become:` at task level where only some tasks need root. Role-wide `become`
-  hides which steps actually require it.
+- `become:` at play level, in the playbook — that is what this repo's
+  playbooks do. Override it at task level (`become_user`, or `become: false`)
+  only for the tasks that genuinely need something different.
 - Never `ignore_errors: true`. Use `failed_when:` with the real condition.
 - Templates carry `{{ ansible_managed }}` in a header comment, so anyone who
   finds the file on the box knows not to edit it.

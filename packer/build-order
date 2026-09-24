@@ -1,3 +1,5 @@
-# Templates in the order CI builds them: each clones the one before it.
+# Templates in the order CI builds them. The first entry clones
+# debian-13-cloud, imported by OpenTofu; each later one clones the one
+# before it.
 debian-13-base
 debian-13-runner

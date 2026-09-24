@@ -54,12 +54,6 @@ module "zero_trust" {
   private_hostnames_ip = cidrhost(var.zones["mgmt"].cidr, 1)
 }
 
-# The Default device profile exists as soon as Zero Trust is enabled: adopt it.
-import {
-  to = module.zero_trust.cloudflare_zero_trust_device_default_profile.main
-  id = var.cloudflare_account_id
-}
-
 # vm-access's tunnel: the admin path. WARP clients reach every zone through it.
 module "access_tunnel" {
   source = "../../modules/cloudflare-tunnel"
@@ -75,7 +69,6 @@ module "vms" {
 
   name           = each.key
   rebuild        = each.value.rebuild
-  guest_agent    = each.value.guest_agent
   node_name      = var.nodes[0]
   template_vm_id = local.template_ids[each.value.template]
   datastore_id   = var.template_datastore

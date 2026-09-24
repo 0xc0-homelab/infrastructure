@@ -8,8 +8,8 @@ The **network** is decided by the code, in
 [`zones.md`](zones.md). This document explains how it fits together; if it
 disagrees with the code or with `design.md`, they win.
 
-Most of what follows is the target of phase 1 and later. Each section says
-what exists **today** and what is **target**.
+Phase 1 is complete. This document covers every phase; each section says what
+exists **today** and what is **target** for a later one.
 
 ## The node
 
@@ -79,6 +79,29 @@ flowchart TB
 **Today:** Proxmox, Traefik, RustFS and PBS run, with the six VNets, the two
 `vm-access` connectors and the zone firewall on.
 
+## Templates
+
+```mermaid
+flowchart LR
+  cloud["debian-13-cloud<br/>raw image, imported by OpenTofu"]
+  base["debian-13-base<br/>Packer, base role"]
+  runner["debian-13-runner<br/>Packer, github_runner role"]
+
+  cloud -- "Packer" --> base
+  base -- "Packer" --> runner
+  base -- "clone" --> vmaccess["vm-access-01 / vm-access-02"]
+  runner -- "clone" --> vmci["vm-ci"]
+```
+
+OpenTofu imports the official `debian-13-cloud` image straight from Debian, as
+a raw template no VM ever clones. Packer bakes `debian-13-base` from it, with
+the `base` role, and `debian-13-runner` from `debian-13-base`, with the
+`github_runner` role (`packer/build-order`). Every merge to `main` that
+touches `packer/` or those roles rebuilds both templates in CI, after
+approval: each one deleted by name and built again. VMs are full clones and
+ignore later changes to their template; moving one onto a new build is
+bumping its `rebuild` counter.
+
 ## Zones
 
 Each zone is a VNet in one SDN Simple zone, with a subnet whose gateway `.1` is
@@ -88,11 +111,11 @@ not listed in the transit matrix is denied.
 ```mermaid
 flowchart LR
   subgraph control["control — 10.10.0.0/22"]
-    mgmt["mgmt<br/>10.10.0.0/24<br/>vm-access .10<br/>vm-access-02 .20"]
-    ci["ci<br/>10.10.1.0/24<br/>vm-ci .10 · phase 2"]
+    mgmt["mgmt<br/>10.10.0.0/24<br/>vm-access-01 .10<br/>vm-access-02 .20"]
+    ci["ci<br/>10.10.1.0/24<br/>vm-ci .10"]
   end
   platform["platform<br/>10.10.4.0/24<br/>vm-vault .10 · phase 3<br/>vm-platform .20 · phase 3"]
-  edge["edge<br/>10.10.8.0/24<br/>vm-edge .10"]
+  edge["edge<br/>10.10.8.0/24<br/>vm-edge .10 · phase 2"]
   workloads["workloads<br/>10.10.16.0/20<br/>vm-apps .10 · phase 2<br/>vm-rke2 .20 · phase 6"]
   data["data<br/>10.10.32.0/24<br/>vm-data .10 · phase 2"]
   node["node<br/>pve-1"]
@@ -114,7 +137,8 @@ The arrows are the entries of the transit matrix (`transit` in
 `terraform.tfvars`), with their ports. Two things the diagram shows by what is
 missing:
 
-- **Nothing points at `mgmt`.** Nobody initiates towards the management zone.
+- **Nothing points at `mgmt` from another zone.** Only SSH between the two
+  `vm-access` connectors stays inside it.
 - **Nothing leaves `data`**. It initiates no connection, and its
   subnet has no SNAT either.
 
@@ -142,7 +166,7 @@ No inbound port is opened for web traffic: `cloudflared` on `vm-edge` dials out
 to Cloudflare. **No admin panel is ever published this way.** From phase 6 the
 WAF moves to the cluster ingress, and is never duplicated.
 
-**Today:** not built. **Target:** phase 1 for `vm-edge`, phase 2 for `vm-apps`.
+**Today:** not built. **Target:** phase 2, for both `vm-edge` and `vm-apps`.
 
 ## Admin access
 
@@ -162,8 +186,7 @@ The operator reaches every zone and the node's internal address directly,
 without a jump host, as if on the network. Private dashboards — Grafana, Vault
 UI, Proxmox — are reached this way, never through the edge.
 
-The **way back in** if this breaks is the Hetzner Rescue system. Both paths
-were tested before the node's firewall went to DROP.
+The **way back in** if this breaks is the Hetzner Rescue system.
 
 **Today:** WARP through the two `vm-access` connectors. The node's own
 firewall is on DROP: SSH, the Proxmox UI on 8006 and Traefik on 443 answer
@@ -194,10 +217,9 @@ flowchart LR
   Plans and applies wait for the lock instead of failing.
 
 **Today:** plans and applies run on two ephemeral runners on `vm-ci`, inside
-the network (#44). The runner group admits only the reusable tofu workflows
-from `main`, and fork PRs go to GitHub's runners, where they get no secrets.
-RustFS, like the rest of Traefik, is no longer reachable from the internet
-([`.github#13`](https://github.com/0xc0-homelab/.github/issues/13)).
+the network. The runner group admits only the reusable tofu workflows from
+`main`, and fork PRs go to GitHub's runners, where they get no secrets.
+RustFS and the rest of Traefik are not reachable from the internet.
 
 ## Secrets
 

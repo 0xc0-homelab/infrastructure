@@ -7,7 +7,7 @@
 
 # No start task for qemu-guest-agent: its unit binds to the virtio port that
 # Proxmox only adds once the agent is enabled in the VM config. systemd starts
-# it as soon as that device appears.
+# it when the virtio port appears; no start task needed.
 
 - name: Harden SSH
   ansible.builtin.template:

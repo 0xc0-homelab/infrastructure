@@ -1,7 +1,9 @@
 # cloud-image-template
 
 A Proxmox VM template made straight from a distribution's official cloud image,
-entirely through the Proxmox API: no SSH to the node, and no build VM.
+entirely through the Proxmox API: no SSH to the node, and no build VM. This is
+the raw `debian-13-cloud`: no VM clones it, only Packer, which bakes
+`debian-13-base` from it.
 
 - Proxmox downloads the image and verifies its SHA-512 itself. The URL must be
   a pinned, dated build; `latest` links are rejected, because they change under
@@ -9,11 +11,10 @@ entirely through the Proxmox API: no SSH to the node, and no build VM.
 - The disk is imported with `import_from`, which needs the `import` content type
   on the datastore. The alternative, `file_id`, makes the provider SSH into the
   node, which this repo does not allow.
-- No guest agent in the image: it is installed on each VM after first boot.
+- No guest agent in the raw image; Packer bakes it into `debian-13-base`.
 - Everything per VM — user, SSH key, address — comes from cloud-init on each
   clone.
-
-Templates use VMIDs 9000-9099.
+- Proxmox assigns the VMID; nobody picks one. Templates are found by name.
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
@@ -54,8 +55,5 @@ No modules.
 
 ## Outputs
 
-| Name | Description |
-| ---- | ----------- |
-| <a name="output_name"></a> [name](#output\_name) | Template name. |
-| <a name="output_vm_id"></a> [vm\_id](#output\_vm\_id) | VMID of the template, for clones. |
+No outputs.
 <!-- END_TF_DOCS -->
