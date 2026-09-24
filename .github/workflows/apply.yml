@@ -2,9 +2,17 @@
 # the production environment.
 name: apply
 
+# Only when OpenTofu could change something: a merge that touches no root,
+# module or tool version asks for no approval. Run it by hand otherwise.
 on:
   push:
     branches: [main]
+    paths:
+      - 'environments/**'
+      - 'modules/**'
+      - 'mise.toml'
+      - '.github/workflows/plan.yml'
+      - '.github/workflows/apply.yml'
   workflow_dispatch:
 
 permissions:
