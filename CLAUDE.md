@@ -25,12 +25,16 @@ Cloudflare — tunnels, Zero Trust, DNS — lives in the same root,
 `prod` is the one environment, with everything that makes it up. Split by
 service only if the coupling ever gets in the way.
 
-## CURRENT PHASE: 1 (Base)
+## CURRENT PHASE: 2 (Cluster)
 
 Phase 1 is complete: Proxmox, zones, NAT, the Packer templates, `vm-access-01`,
-`vm-access-02` and `vm-ci` with the self-hosted runners. SOPS works, Rescue
-and WARP are tested. `vm-edge` and `vm-apps` are phase 2: there is nothing to
-publish yet (operator decision, 2026-09-23).
+`vm-access-02` and `vm-ci` with the self-hosted runners, the zone and node
+firewalls. SOPS works, Rescue and WARP are tested.
+
+Phase 2 builds the cluster (workspace `docs/design.md`): the Rocky template
+chain, one RKE2 cluster in `platform`, the HAProxy load balancer with the public
+tunnel, ArgoCD, the ingress with open-appsec, and backups to B2 with a timed
+restore.
 
 Do not implement VMs or services from later phases even if they fit. The phase
 of each VM is in `docs/zones.md`, Machines. If something requires a future phase, say so
