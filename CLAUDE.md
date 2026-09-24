@@ -75,12 +75,13 @@ Every role follows the `ansible-role` skill and passes `ansible-lint` on the
 
 ## Packer
 
-`packer/<template>/` bakes templates that must not wait for first boot: today
-`debian-13-runner`, the base with the GitHub Actions runner installed. It clones
-the base template and runs the roles' `install` entry points; secrets and
-per-VM settings stay in Ansible. `scripts/packer <template> validate` locally;
-builds run in CI on a merge to `main`, after approval, and only for a version
-that does not exist yet. Skill `packer-template`.
+`packer/<template>/` bakes the templates every VM clones, in
+`packer/build-order`: `debian-13-base` from the raw `debian-13-cloud`, with the
+`base` role, and `debian-13-runner` from `debian-13-base`, with the runner.
+Secrets and per-VM settings stay in Ansible. `scripts/packer <template>
+validate` locally. Every merge to `main` that touches `packer/` or the roles
+rebuilds them all in CI, after approval: each one deleted by name and built
+again. Skill `packer-template`.
 
 ## Network source of truth
 

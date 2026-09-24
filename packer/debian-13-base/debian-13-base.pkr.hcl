@@ -1,7 +1,6 @@
-# The runner template: debian-13-base with the GitHub Actions runner baked in
-# (the github_runner role's install entry point). What makes a VM a runner,
-# the App key and the units, stays in Ansible: a secret baked into a template
-# cannot be rotated.
+# The base template every VM clones: the official Debian cloud image
+# (debian-13-cloud, imported raw by OpenTofu) with the base role baked in, the
+# guest agent among it. Per-VM settings stay with cloud-init and Ansible.
 #
 # No VMID and no version: Proxmox assigns the VMID, and everything finds the
 # template by name. CI deletes the previous one by name before building it
@@ -22,22 +21,22 @@ packer {
   }
 }
 
-source "proxmox-clone" "runner" {
+source "proxmox-clone" "base" {
   proxmox_url  = var.proxmox_url
   username     = var.proxmox_username
   token        = var.proxmox_token
   node         = var.node
   task_timeout = "10m"
 
-  clone_vm   = "debian-13-base"
+  clone_vm   = "debian-13-cloud"
   full_clone = true
 
-  vm_name              = "debian-13-runner"
-  template_name        = "debian-13-runner"
-  template_description = "Debian 13 base with the GitHub Actions runner. Built by Packer from packer/debian-13-runner, commit ${var.commit}."
+  vm_name              = "debian-13-base"
+  template_name        = "debian-13-base"
+  template_description = "Debian 13, the official cloud image with the homelab base role. Built by Packer from packer/debian-13-base, commit ${var.commit}."
 
-  cores           = 2
-  memory          = 2048
+  cores           = 1
+  memory          = 1024
   scsi_controller = "virtio-scsi-single"
   qemu_agent      = true
 
@@ -66,7 +65,7 @@ source "proxmox-clone" "runner" {
 }
 
 build {
-  sources = ["source.proxmox-clone.runner"]
+  sources = ["source.proxmox-clone.base"]
 
   # apt must not race cloud-init. Exit 2 is "done, with recoverable errors"
   # (deprecation warnings, typically): shown in the log, and not a failure.
@@ -74,7 +73,7 @@ build {
     inline = ["cloud-init status --wait --long || { rc=$?; [ $rc -eq 2 ] && exit 0; exit $rc; }"]
   }
 
-  # The runner's install entry point. The base role is already in debian-13-base.
+  # The baseline every VM needs: the guest agent, SSH hardening.
   provisioner "ansible" {
     playbook_file = "${path.root}/playbook.yml"
     user          = "debian"

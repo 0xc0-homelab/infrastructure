@@ -1,10 +1,8 @@
-# Run by Packer on the build VM: the baseline and the runner's install entry
-# point. Nothing here is per VM or secret.
+# Run by Packer on the build VM, cloned from debian-13-base: the runner's
+# install entry point. Nothing here is per VM or secret.
 - name: Bake the runner template
   hosts: all
   become: true
-  roles:
-    - role: base
   tasks:
     - name: Install the runner
       ansible.builtin.include_role:

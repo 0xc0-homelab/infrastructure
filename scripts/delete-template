@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# Deletes the Proxmox template with this name, so Packer can build it again.
+# A VM with that name that is not a template is refused, never deleted. No
+# template by that name is not an error: there is nothing to delete.
+# Usage: scripts/delete-template <name>
+set -euo pipefail
+cd "$(dirname "$0")/.."
+name="${1:?usage: scripts/delete-template <name>}"
+
+exec sops exec-env secrets/tofu.sops.yaml "bash -s -- $(printf '%q' "$name")" <<'SCRIPT'
+set -euo pipefail
+name="$1"
+api="${PROXMOX_VE_ENDPOINT%/}/api2/json"
+auth="Authorization: PVEAPIToken=$PROXMOX_VE_API_TOKEN"
+
+matches="$(curl -fsS -H "$auth" "$api/cluster/resources?type=vm" |
+  jq -c --arg n "$name" '[.data[] | select(.name == $n)]')"
+case "$(jq length <<<"$matches")" in
+  0) echo "$name: no template by that name, nothing to delete"; exit 0 ;;
+  1) ;;
+  *) echo "$name: more than one VM has this name, refusing" >&2; exit 1 ;;
+esac
+[ "$(jq -r '.[0].template' <<<"$matches")" = 1 ] ||
+  { echo "$name: $(jq -r '.[0].vmid' <<<"$matches") is not a template, refusing" >&2; exit 1; }
+
+node="$(jq -r '.[0].node' <<<"$matches")"
+vmid="$(jq -r '.[0].vmid' <<<"$matches")"
+upid="$(curl -fsS -X DELETE -H "$auth" "$api/nodes/$node/qemu/$vmid?purge=1&destroy-unreferenced-disks=1" | jq -r .data)"
+for _ in $(seq 1 60); do
+  status="$(curl -fsS -H "$auth" "$api/nodes/$node/tasks/$(jq -rn --arg u "$upid" '$u|@uri')/status" | jq -r '.data | "\(.status) \(.exitstatus // "")"')"
+  case "$status" in
+    "stopped OK") echo "$name: template $vmid deleted"; exit 0 ;;
+    stopped*) echo "$name: deleting $vmid failed: $status" >&2; exit 1 ;;
+  esac
+  sleep 2
+done
+echo "$name: deleting $vmid timed out" >&2; exit 1
+SCRIPT

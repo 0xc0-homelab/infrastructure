@@ -1,0 +1,3 @@
+# Templates in the order CI builds them: each clones the one before it.
+debian-13-base
+debian-13-runner
