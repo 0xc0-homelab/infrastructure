@@ -52,12 +52,6 @@ templates = {
   }
 }
 
-# Baked by packer/<name>, one entry per version still in use. A new version is
-# added here before any VM moves to it, and the old one removed only after.
-baked_templates = {
-  "debian-13-runner-1" = 9001
-}
-
 cloudflare_account_id = "ca1599ae7852d5b4718cba351adad927"
 zero_trust_team       = "0xc0"
 homelab_network       = "10.10.0.0/16"
@@ -70,7 +64,7 @@ vm_dns_servers    = ["1.1.1.1", "1.0.0.1"]
 # docs/zones.md.
 vms = {
   "vm-access-01" = {
-    template  = "debian-13-cloud"
+    template  = "debian-13-base"
     vnet      = "mgmt"
     ip        = "10.10.0.10"
     cores     = 1
@@ -80,7 +74,7 @@ vms = {
   # other keeps admin access.
   "vm-access-02" = {
     rebuild   = 1
-    template  = "debian-13-cloud"
+    template  = "debian-13-base"
     vnet      = "mgmt"
     ip        = "10.10.0.20"
     cores     = 1
@@ -89,7 +83,7 @@ vms = {
   # The self-hosted GitHub Actions runners (infrastructure#44). The disk holds
   # the runner, the tools mise installs per job and the providers.
   "vm-ci" = {
-    template     = "debian-13-runner-1"
+    template     = "debian-13-runner"
     vnet         = "ci"
     ip           = "10.10.1.10"
     cores        = 2

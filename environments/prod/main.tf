@@ -9,13 +9,22 @@ module "sdn" {
   vnets   = var.zones
 }
 
-# Every template a VM can be cloned from: the ones imported here from cloud
-# images, and the ones Packer bakes.
+# Every template on the node, by name: the raw images imported here and the
+# ones Packer bakes (packer/build-order). Packer rebuilds give a template a new
+# VMID, so it is read from Proxmox, never written down.
+data "proxmox_virtual_environment_vms" "templates" {
+  node_name = var.nodes[0]
+
+  filter {
+    name   = "template"
+    values = [true]
+  }
+
+  depends_on = [module.templates]
+}
+
 locals {
-  template_ids = merge(
-    { for name, t in module.templates : name => t.vm_id },
-    var.baked_templates,
-  )
+  template_ids = { for vm in data.proxmox_virtual_environment_vms.templates.vms : vm.name => vm.vm_id }
 }
 
 module "templates" {

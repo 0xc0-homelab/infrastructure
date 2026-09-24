@@ -47,17 +47,6 @@ variable "templates" {
   }))
 }
 
-variable "baked_templates" {
-  description = "Templates built by Packer (packer/<name>), keyed by template name, with their VMID. OpenTofu clones them but does not manage them."
-  type        = map(number)
-  default     = {}
-
-  validation {
-    condition     = alltrue([for id in values(var.baked_templates) : id >= 9000 && id <= 9099])
-    error_message = "Templates use VMIDs 9000-9099."
-  }
-}
-
 variable "cloudflare_account_id" {
   description = "Cloudflare account holding the tunnels and Zero Trust."
   type        = string
