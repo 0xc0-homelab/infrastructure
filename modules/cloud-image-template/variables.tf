@@ -3,15 +3,6 @@ variable "name" {
   type        = string
 }
 
-variable "vm_id" {
-  description = "VMID of the template. Templates live in 9000-9099."
-  type        = number
-
-  validation {
-    condition     = var.vm_id >= 9000 && var.vm_id <= 9099
-    error_message = "Templates use VMIDs 9000-9099."
-  }
-}
 
 variable "node_name" {
   description = "Proxmox node that holds the template."

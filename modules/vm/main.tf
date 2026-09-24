@@ -79,5 +79,9 @@ resource "proxmox_virtual_environment_vm" "main" {
 
   lifecycle {
     replace_triggered_by = [terraform_data.rebuild]
+    # A template only matters when the VM is created: a newer one, or one
+    # rebuilt under a new VMID, must not recreate every VM cloned from it.
+    # Moving a VM onto the new template is bumping its rebuild.
+    ignore_changes = [clone]
   }
 }

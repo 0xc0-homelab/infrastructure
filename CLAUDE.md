@@ -11,10 +11,9 @@ Proxmox UI, PBS and RustFS; RustFS holds the OpenTofu state; PBS backs up to a
 Hetzner Storage Box. Any change here that could cut the host's public access —
 firewall rules on `eno1` above all — puts those three at risk.
 
-OpenTofu (templates from official cloud images, VMs, network, firewall) →
-Ansible (configuration). Packer arrives at the end of phase 1, right after
-`vm-ci`, for templates that must be baked (the CI runner, zones with no
-egress).
+OpenTofu (the official cloud image as a raw template, VMs, network, firewall)
+→ Packer (the templates VMs clone: `debian-13-base`, and the ones built on it)
+→ Ansible (configuration). No VM clones the raw image.
 Proxmox provider: `bpg/proxmox`. Zones are Proxmox SDN: one Simple zone, a
 VNet and a subnet per zone, with the host as gateway and SNAT for egress, all
 in OpenTofu. Use the `proxmox_sdn_*` resources — the
@@ -139,8 +138,10 @@ and services, lab).
   the state keeps it. To recreate a VM, bump its `rebuild` in
   `terraform.tfvars`. Every NIC has the Proxmox firewall on, or zone rules do
   not apply to it.
-- Templates use VMIDs 9000-9099, and their image is a pinned, dated build with
-  its published SHA-512 — never a `latest` link.
+- Templates are found by **name**, never by VMID: Proxmox assigns their VMIDs
+  too, and a rebuild gives a new one. The raw cloud image is a pinned, dated
+  build with its published SHA-512, never a `latest` link. A VM ignores later
+  changes to its template; moving it onto a new one is bumping its `rebuild`.
 - OpenTofu is **always** written as modules, with Google's layout:
   `modules/<name>/` holds the resources, `environments/<env>/` holds the roots,
   which only call modules. A VM, a firewall and a network are modules; the
