@@ -99,7 +99,8 @@ variable "vms" {
     cores        = optional(number, 1)
     memory_mb    = optional(number, 1024)
     disk_size_gb = optional(number, 8)
-    # Bump to recreate the VM from its template.
+    # Bump to recreate the VM from its template. prevent_destroy, in the vm
+    # module, has to be lifted in the same PR.
     rebuild = optional(number, 0)
     # The QEMU guest agent. False only until the VM is rebuilt from a baked
     # template: switching it on in place reboots the VM.

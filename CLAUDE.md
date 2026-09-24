@@ -138,9 +138,13 @@ RKE2 pods and services, lab).
   Both would make the provider SSH into the host. What a VM needs beyond its
   image is Ansible's job.
 - Nobody picks a VM's VMID: Proxmox assigns the next free one, from 100, and
-  the state keeps it. To recreate a VM, bump its `rebuild` in
-  `terraform.tfvars`. Every NIC has the Proxmox firewall on, or zone rules do
+  the state keeps it. Every NIC has the Proxmox firewall on, or zone rules do
   not apply to it.
+- **No VM is destroyed** as a matter of course: the `vm` module sets
+  `prevent_destroy`, so a plan that deletes or replaces one fails. A deliberate
+  rebuild bumps the VM's `rebuild` in `terraform.tfvars` **and** lifts
+  `prevent_destroy` in the same PR; the next PR sets it back. Rebuilding
+  `vm-ci` runs from the laptop: in CI it would destroy its own runner.
 - Templates are found by **name**, never by VMID: Proxmox assigns their VMIDs
   too, and a rebuild gives a new one. The raw cloud image is a pinned, dated
   build with its published SHA-512, never a `latest` link. A VM ignores later
