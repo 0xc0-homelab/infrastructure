@@ -86,9 +86,9 @@ vms = {
   # The self-hosted GitHub Actions runners (infrastructure#44). The disk holds
   # the runner, the tools mise installs per job and the providers.
   "vm-ci" = {
-    # Off until its rebuild, from the laptop: in place it would reboot the VM
-    # running the apply.
-    guest_agent  = false
+    # 1: recreated from debian-13-runner, with the guest agent on. Its apply
+    # runs from the laptop: in CI it would destroy the runner it runs on.
+    rebuild      = 1
     template     = "debian-13-runner"
     vnet         = "ci"
     ip           = "10.10.1.10"
