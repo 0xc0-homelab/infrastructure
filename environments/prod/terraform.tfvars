@@ -64,13 +64,13 @@ vm_dns_servers    = ["1.1.1.1", "1.0.0.1"]
 # docs/zones.md.
 vms = {
   "vm-access-01" = {
-    # Off until its rebuild: switching it on in place reboots the VM.
-    guest_agent = false
-    template    = "debian-13-base"
-    vnet        = "mgmt"
-    ip          = "10.10.0.10"
-    cores       = 1
-    memory_mb   = 1024
+    # 1: recreated from debian-13-base, with the guest agent on.
+    rebuild   = 1
+    template  = "debian-13-base"
+    vnet      = "mgmt"
+    ip        = "10.10.0.10"
+    cores     = 1
+    memory_mb = 1024
   }
   # Second connector of the same tunnel, for HA: one can be rebuilt while the
   # other keeps admin access.
