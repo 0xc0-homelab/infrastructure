@@ -7,10 +7,13 @@ The account-wide Zero Trust singletons.
   organization that exists once Zero Trust is enabled.
 - **Default device profile** — split tunnels in **Include** mode: WARP carries
   only `include_networks`. Managing it means owning the whole profile; anything
-  not declared keeps Cloudflare's default. The profile always exists, so the
-  root imports it rather than creating it.
+  not declared keeps Cloudflare's default. The profile always exists once Zero
+  Trust is enabled, so it is adopted into the state rather than created.
 - **Device enrollment** — the `warp` Access application, gated by one policy.
   Only `allowed_emails` can enroll a device, and so reach the private networks.
+- **Gateway DNS override** — resolves `private_hostnames` to
+  `private_hostnames_ip` for WARP devices, so the node's web front is reached
+  through the tunnel instead of its public record.
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
@@ -54,7 +57,5 @@ No modules.
 
 ## Outputs
 
-| Name | Description |
-| ---- | ----------- |
-| <a name="output_team_domain"></a> [team\_domain](#output\_team\_domain) | Zero Trust team domain, used when enrolling a WARP client. |
+No outputs.
 <!-- END_TF_DOCS -->

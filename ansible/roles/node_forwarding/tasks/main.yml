@@ -36,14 +36,14 @@
   check_mode: false
   failed_when: false
 
-# Two rules plus one per no-egress zone — exactly once each. More means the
-# script stopped removing its old rules.
+# One rule per no-egress zone — exactly once each. More means the script
+# stopped removing its old rules.
 - name: Check the rules are applied exactly once
   ansible.builtin.assert:
     that: >-
       (node_forwarding_rules.stdout_lines | select('search', 'homelab-forwarding') | list | length)
-      == 2 + (node_forwarding_no_egress_cidrs | length)
+      == node_forwarding_no_egress_cidrs | length
     fail_msg: >-
-      Expected {{ 2 + (node_forwarding_no_egress_cidrs | length) }} homelab-forwarding rules in DOCKER-USER,
+      Expected {{ node_forwarding_no_egress_cidrs | length }} homelab-forwarding rules in DOCKER-USER,
       found {{ node_forwarding_rules.stdout_lines | select('search', 'homelab-forwarding') | list | length }}.
   when: not ansible_check_mode

@@ -47,7 +47,7 @@ resource "cloudflare_zero_trust_access_application" "main" {
 
 # The node's web front (Traefik: Proxmox, PBS, RustFS) answers on the node's
 # address in mgmt too. For WARP devices, Gateway resolves those names to it, so
-# the operator reaches them through the tunnel and the public 443 can close.
+# the operator reaches them through the tunnel and the public 443 stays closed.
 resource "cloudflare_zero_trust_gateway_policy" "main" {
   account_id  = var.account_id
   name        = "${var.team_name} private hostnames"

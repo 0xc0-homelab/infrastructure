@@ -54,8 +54,5 @@ No modules.
 
 ## Outputs
 
-| Name | Description |
-| ---- | ----------- |
-| <a name="output_vnets"></a> [vnets](#output\_vnets) | Per VNet ID: its CIDR and gateway, for attaching guests. |
-| <a name="output_zone_id"></a> [zone\_id](#output\_zone\_id) | SDN zone ID. |
+No outputs.
 <!-- END_TF_DOCS -->

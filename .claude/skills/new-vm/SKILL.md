@@ -50,16 +50,19 @@ IP and size. No VMID: Proxmox assigns one. The `vm` module does the rest, and
 its firewall comes with it. Add the same VM to the addressing plan in
 `docs/zones.md`, with its phase.
 
-- Any disk holding data carries `lifecycle { prevent_destroy = true }`.
-- The VM clones a template (the imported base or one Packer baked), not an ISO.
-  Anything beyond the image is Ansible's job, after first boot.
+- Every VM already has `lifecycle { prevent_destroy = true }` through the `vm`
+  module — nothing to add by hand. Any disk holding data carries the same
+  lifecycle rule.
+- The VM clones a Packer template — `debian-13-base` or one built on it — by
+  name, never the raw image. Anything beyond the image is Ansible's job, after
+  first boot.
 
-## Step 4 — add it to the Ansible inventory
+## Step 3 — add it to the Ansible inventory
 
 One entry, in the group matching its zone, with the same IP. A duplicate IP in
 the inventory is a critical finding for `network-reviewer`.
 
-## Step 5 — traffic, only if it needs it
+## Step 4 — traffic, only if it needs it
 
 A new VM does **not** get firewall rules by default. Everything not in the
 transit matrix is denied, and that is the intended state.
@@ -70,10 +73,11 @@ entry in the `transit` matrix, with the `firewall-matrix` skill.
 Two invariants no new VM may break: nothing initiates towards `mgmt`, and
 `data` initiates nothing outbound.
 
-## Step 6 — verify and stop
+## Step 5 — verify and stop
 
 ```
-tofu fmt && tofu validate && tofu plan
+tofu fmt && tofu validate
+scripts/tofu prod plan
 ansible-inventory --list
 ```
 
@@ -84,6 +88,7 @@ apply is launched by the human.
 
 - The IP is inside its zone supernet, off every reserved range, and unique.
 - The `vms` map, the plan in `docs/zones.md` and the inventory all agree.
-- The VM's `phase:` is not later than the current phase.
+- The VM's phase, in the addressing plan of `docs/zones.md`, is not later than
+  the current phase.
 - Data disks carry `prevent_destroy`.
 - The transit matrix untouched unless the VM needs new traffic.

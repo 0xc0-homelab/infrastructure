@@ -64,7 +64,6 @@ vm_dns_servers    = ["1.1.1.1", "1.0.0.1"]
 # docs/zones.md.
 vms = {
   "vm-access-01" = {
-    # 1: recreated from debian-13-base, with the guest agent on.
     rebuild   = 1
     template  = "debian-13-base"
     vnet      = "mgmt"
@@ -75,7 +74,6 @@ vms = {
   # Second connector of the same tunnel, for HA: one can be rebuilt while the
   # other keeps admin access.
   "vm-access-02" = {
-    # 2: recreated from debian-13-base, with the guest agent on.
     rebuild   = 2
     template  = "debian-13-base"
     vnet      = "mgmt"
@@ -83,11 +81,11 @@ vms = {
     cores     = 1
     memory_mb = 1024
   }
-  # The self-hosted GitHub Actions runners (infrastructure#44). The disk holds
-  # the runner, the tools mise installs per job and the providers.
+  # The self-hosted GitHub Actions runners. The disk holds the runner, the
+  # tools mise installs per job and the providers.
   "vm-ci" = {
-    # 1: recreated from debian-13-runner, with the guest agent on. Its apply
-    # runs from the laptop: in CI it would destroy the runner it runs on.
+    # Its apply runs from the laptop: in CI it would destroy the runner it
+    # runs on.
     rebuild      = 1
     template     = "debian-13-runner"
     vnet         = "ci"
@@ -125,7 +123,7 @@ transit = [
   { from = "platform", to = ["workloads", "data", "node"], ports = [9100, 10250], note = "Prometheus scrape" },
   { from = "platform", to = ["internet"], ports = [443], note = "alerts to the phone" },
   { from = "data", to = [], ports = [], note = "data does NOT initiate connections. Explicit egress deny rule." },
-  { from = "mgmt", to = ["node"], ports = [443], note = "Traefik on the host (Proxmox UI, PBS, RustFS), over WARP. Closed to the internet since the CI runner exists" },
+  { from = "mgmt", to = ["node"], ports = [443], note = "Traefik on the host (Proxmox UI, PBS, RustFS), over WARP; never from the internet" },
   { from = "mgmt", to = ["mgmt"], ports = [22], note = "between the vm-access connectors; a WARP session can leave from either one" },
 ]
 

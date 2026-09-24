@@ -5,13 +5,17 @@ description: Builds and maintains the Proxmox VM templates with Packer's proxmox
 
 # Packer templates for Proxmox
 
-Every VM clones a template Packer baked. The chain, in `packer/build-order`:
+Every VM clones a template Packer baked. The chain:
 
 | Template | Clones | Adds |
 |---|---|---|
 | `debian-13-cloud` | — | the official cloud image, imported raw by OpenTofu (`modules/cloud-image-template`). No VM clones it |
 | `debian-13-base` | `debian-13-cloud` | the `base` role: guest agent, SSH hardening |
 | `debian-13-runner` | `debian-13-base` | the `github_runner` role's `install` entry point |
+
+`packer/build-order` starts at `debian-13-base`: `debian-13-cloud` is
+OpenTofu's, not Packer's, so it is not in that file. Each later entry clones
+the one before it.
 
 Packer produces the template; OpenTofu clones it. The split matters: anything
 that belongs to a specific VM (its address, its hostname, its role) is
@@ -65,10 +69,11 @@ packer/<template-name>/
 exactly — same rule as `mise.toml`, no ranges. An unpinned builder changes
 under you between builds.
 
-**`qemu_agent` must be enabled.** OpenTofu reads the VM's address back through
-the guest agent. Without it the agent is missing in every cloned VM and the
-`tofu plan` cannot resolve addresses. This is the single most common cause of a
-template that builds fine and is useless afterwards.
+**`qemu_agent` must be enabled.** The provider waits for the guest agent when
+a VM is created from the template. Without it every cloned VM is missing the
+agent too, and `tofu apply` hangs waiting for a start signal that never comes.
+This is the single most common cause of a template that builds fine and is
+useless afterwards.
 
 **Cloud-init must be enabled** on the template, so OpenTofu can inject the
 per-VM configuration at clone time.
@@ -97,7 +102,7 @@ one it clones.
 2. Write `variables.pkr.hcl` first: decide the inputs before the build.
 3. Write the source and build blocks, plugin version pinned.
 4. `packer fmt` and `packer validate`.
-5. Build, and watch the console during the autoinstall stage.
+5. Build, and watch the console during provisioning.
 6. Verify on the resulting template, before handing it to OpenTofu:
    qemu-guest-agent enabled, cloud-init enabled, no secret in the image, no
    leftover host keys or machine-id that would be cloned into every VM.
@@ -109,4 +114,3 @@ one it clones.
 - `qemu_agent` and cloud-init both enabled.
 - No secret, no per-VM value, no operator-specific key in the image.
 - `/etc/machine-id` and SSH host keys cleared so clones do not collide.
-- The old template still exists if anything references it.

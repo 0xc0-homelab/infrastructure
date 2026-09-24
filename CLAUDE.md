@@ -27,11 +27,10 @@ service only if the coupling ever gets in the way.
 
 ## CURRENT PHASE: 1 (Base)
 
-Scope of phase 1: Proxmox, zones, NAT, the Debian base template, `vm-access`,
-`vm-ci` with the self-hosted runners, then Packer for the templates that must
-be baked. SOPS working. Rescue and WARP tested. `vm-edge` moved to phase 2,
-with `vm-apps`: until then there is nothing to publish (operator decision,
-2026-09-23).
+Phase 1 is complete: Proxmox, zones, NAT, the Packer templates, `vm-access-01`,
+`vm-access-02` and `vm-ci` with the self-hosted runners. SOPS works, Rescue
+and WARP are tested. `vm-edge` and `vm-apps` are phase 2: there is nothing to
+publish yet (operator decision, 2026-09-23).
 
 Do not implement VMs or services from later phases even if they fit. The phase
 of each VM is in `docs/zones.md`, Machines. If something requires a future phase, say so
@@ -55,15 +54,13 @@ scripts/ansible playbooks/vm-access.yml --check --diff
 ```
 
 The node itself is touched by Ansible **only** for what the SDN needs:
-`playbooks/node.yml` keeps `data` from egressing, in `DOCKER-USER`, and accepts
-the other zones' egress and its replies there. Traefik, RustFS, PBS and Docker
-itself are never touched from this repo. Docker carries one setting by hand,
-`ip-forward-no-drop`, that the zone firewall needs (`docs/architecture.md`,
-The node).
+`playbooks/node.yml` keeps `data` from egressing, with a DROP rule in
+`DOCKER-USER`. The other zones need no rule of their own: Docker carries one
+setting by hand, `ip-forward-no-drop`, that keeps the `FORWARD` policy ACCEPT
+(`docs/architecture.md`, The node). Traefik, RustFS, PBS and Docker itself are
+never touched from this repo.
 
-Ansible reaches every VM directly over WARP. `bootstrap_via_host` in
-`inventory/group_vars/vms.yml` stays false: a jump through the node leaves from
-its `.1` in each zone, which only `mgmt` admits.
+Ansible reaches every VM directly over WARP.
 
 `playbooks/vm-ci.yml` runs the `github_runner` role: ephemeral runners, each
 fetching a just-in-time config from a GitHub App of their own before every
@@ -112,12 +109,14 @@ RKE2 pods and services, lab).
   without one is not filtered at all.
 - `data` does not initiate connections anywhere. Never add an egress rule from
   `data`.
-- Nobody initiates towards `mgmt`.
+- No other zone initiates towards `mgmt`. SSH between the `vm-access`
+  connectors, inside `mgmt`, is the only way in.
 - The node has a DROP policy (`node_firewall_enabled`): 22, 443 and 8006
   from `mgmt`, 443 and 8006 from `ci`, 9100 and 10250 from `platform`,
-  and nothing from the internet. All of it from the matrix. Admin access to the node, Traefik included, is over WARP only, to
-  `10.10.0.1`: Gateway resolves `node_web_hostnames` there. The Hetzner Rescue
-  system is the way back in.
+  and nothing from the internet. All of it from the matrix. Admin access to
+  the node, Traefik included, is over WARP only, to `10.10.0.1`: Gateway
+  resolves `node_web_hostnames` there. The Hetzner Rescue system is the way
+  back in.
 - `local_network` is overridden to loopback, so Proxmox grants no implicit
   admin access to the network it detects. Never remove that alias.
 - A change to the node firewall is tested first by hand, with a rollback
@@ -135,8 +134,8 @@ RKE2 pods and services, lab).
 - Disks and volumes holding data carry `lifecycle { prevent_destroy = true }`.
 - The provider **never** gets SSH to the node. Everything goes through the API:
   import disks with `import_from`, never `file_id`; no cloud-init snippets.
-  Both would make the provider SSH into the host. What a VM needs beyond its
-  image is Ansible's job.
+  Both would make the provider SSH into the host. Packer bakes the shared
+  baseline into the template; Ansible configures each VM from there.
 - Nobody picks a VM's VMID: Proxmox assigns the next free one, from 100, and
   the state keeps it. Every NIC has the Proxmox firewall on, or zone rules do
   not apply to it.
@@ -187,7 +186,7 @@ Under `.claude/skills/`, for the operations that repeat here:
 |-------------------|------------------------------------------------------|
 | `new-vm`          | adding, moving or re-addressing a VM                 |
 | `firewall-matrix` | opening, closing or reviewing a port between zones   |
-| `packer-template` | a baked template — once `vm-ci` runs                 |
+| `packer-template` | a baked template                                     |
 | `ansible-role`    | creating, restructuring or reviewing a role          |
 
 `new-vm` and `firewall-matrix` both edit `environments/prod/terraform.tfvars`,

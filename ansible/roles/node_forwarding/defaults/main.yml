@@ -1,6 +1,4 @@
-# Every homelab zone, as one CIDR.
-node_forwarding_zones_cidr: 10.10.0.0/16
-# Zones that must never reach the internet (data initiates nothing: t10).
+# Zones that must never reach the internet (data initiates nothing).
 node_forwarding_no_egress_cidrs:
   - 10.10.32.0/24
 # The node's public interface.

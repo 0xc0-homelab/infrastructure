@@ -8,10 +8,10 @@ name: packer
 on:
   pull_request:
     branches: [main]
-    paths: ['packer/**', 'ansible/roles/**', 'scripts/packer', 'scripts/delete-template', '.github/workflows/packer.yml']
+    paths: ['packer/**', 'ansible/roles/base/**', 'ansible/roles/github_runner/**', 'scripts/packer', 'scripts/delete-template', '.github/workflows/packer.yml']
   push:
     branches: [main]
-    paths: ['packer/**', 'ansible/roles/**', 'scripts/packer', 'scripts/delete-template', '.github/workflows/packer.yml']
+    paths: ['packer/**', 'ansible/roles/base/**', 'ansible/roles/github_runner/**', 'scripts/packer', 'scripts/delete-template', '.github/workflows/packer.yml']
 
 permissions:
   contents: read

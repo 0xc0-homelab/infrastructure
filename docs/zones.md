@@ -58,12 +58,13 @@ phases included, so that no address is handed out twice:
 | `vm-platform` | platform | 10.10.4.20 | 3 |
 | `vm-rke2` | workloads | 10.10.16.20 | 6 |
 
-Packer builds a template on a throwaway VM, cloned from the base template,
-which becomes the new template when the build ends: it takes the template's
-VMID. It lives in `ci` at **10.10.1.250**, where the runner that drives it can
-reach it over SSH, and no machine may take that address. Packer cannot set a
-VM's firewall options, so the build VM is the one NIC without zone filtering,
-for the minutes the build lasts.
+Packer builds a template on a throwaway VM, cloned from the previous template
+in the chain (`packer/build-order`), which becomes the new template when the
+build ends: the old template is deleted by name first, and Proxmox assigns
+the new one its VMID. It lives in `ci` at **10.10.1.250**, where the runner
+that drives it can reach it over SSH, and no machine may take that address.
+Packer cannot set a VM's firewall options, so the build VM is the one NIC
+without zone filtering, for the minutes the build lasts.
 
 ## Transit matrix
 

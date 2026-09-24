@@ -73,7 +73,5 @@ No modules.
 
 ## Outputs
 
-| Name | Description |
-| ---- | ----------- |
-| <a name="output_groups"></a> [groups](#output\_groups) | Security group per zone. |
+No outputs.
 <!-- END_TF_DOCS -->

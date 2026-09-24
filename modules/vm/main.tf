@@ -35,11 +35,10 @@ resource "proxmox_virtual_environment_vm" "main" {
     dedicated = var.memory_mb
   }
 
-
-  # The baked templates ship the guest agent. Switching it on for an existing
-  # VM reboots it, so the flag is per VM while each one is rebuilt.
+  # The templates are baked with the guest agent: the provider waits for it
+  # when the VM is created.
   agent {
-    enabled = var.guest_agent
+    enabled = true
   }
 
   disk {

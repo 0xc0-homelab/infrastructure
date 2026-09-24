@@ -49,5 +49,4 @@ No modules.
 | Name | Description |
 | ---- | ----------- |
 | <a name="output_token"></a> [token](#output\_token) | Connector token for cloudflared on the VM. Never write it to disk in plaintext. |
-| <a name="output_tunnel_id"></a> [tunnel\_id](#output\_tunnel\_id) | Tunnel UUID. |
 <!-- END_TF_DOCS -->

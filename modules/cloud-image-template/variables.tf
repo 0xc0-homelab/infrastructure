@@ -3,7 +3,6 @@ variable "name" {
   type        = string
 }
 
-
 variable "node_name" {
   description = "Proxmox node that holds the template."
   type        = string

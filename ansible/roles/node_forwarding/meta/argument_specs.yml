@@ -1,17 +1,14 @@
 argument_specs:
   main:
-    short_description: Let the SDN zones egress through the node despite Docker
+    short_description: Keep data off the internet at the node, in DOCKER-USER
     description:
-      - Docker on the node sets the iptables FORWARD policy to DROP. This role
-        adds rules to DOCKER-USER, the chain Docker reserves for user rules and
-        never flushes, so the zones can reach the internet through SNAT, and
-        re-applies them every time Docker starts. Inter-zone traffic is not
-        opened here; that is the zone firewall's job.
+      - Docker on the node sets the iptables FORWARD policy to ACCEPT
+        (`ip-forward-no-drop`), so this role adds a DROP rule to DOCKER-USER,
+        the chain Docker reserves for user rules and never flushes, for every
+        zone that must never reach the internet. It re-applies the rule every
+        time Docker starts. Inter-zone traffic is not filtered here; that is
+        the zone firewall's job.
     options:
-      node_forwarding_zones_cidr:
-        type: str
-        default: 10.10.0.0/16
-        description: Every homelab zone, as one CIDR.
       node_forwarding_no_egress_cidrs:
         type: list
         elements: str
