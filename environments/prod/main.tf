@@ -88,17 +88,17 @@ module "vms" {
   depends_on = [module.sdn]
 }
 
-# The zone firewall. Its rules are generated from docs/zones.md into
-# firewall.tf by scripts/generate-firewall.
+# The zone firewall: the rules of every zone and of the node, computed from the
+# transit matrix in terraform.tfvars.
 module "zone_firewall" {
   source = "../../modules/zone-firewall"
 
   node_name    = var.nodes[0]
   enabled      = var.datacenter_firewall_enabled
   node_enabled = var.node_firewall_enabled
-  rules        = local.zone_firewall_rules
-  node_rules   = local.node_firewall_rules
-  no_egress    = local.zone_firewall_no_egress
+  zones        = { for vnet, z in var.zones : vnet => { alias = z.alias, cidr = z.cidr } }
+  transit      = var.transit
+  node_admin   = var.node_firewall
   vms = { for name, vm in var.vms : name => {
     vm_id = module.vms[name].vm_id
     vnet  = vm.vnet

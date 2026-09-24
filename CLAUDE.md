@@ -35,15 +35,15 @@ with `vm-apps`: until then there is nothing to publish (operator decision,
 2026-09-23).
 
 Do not implement VMs or services from later phases even if they fit. The phase
-of each VM is in `docs/zones.md`. If something requires a future phase, say so
+of each VM is in `docs/zones.md`, Machines. If something requires a future phase, say so
 and stop.
 
 ## Architecture
 
 `docs/architecture.md` explains how the node, the zones, the flows, CI and the
 secrets fit together, with diagrams. Read it before a change that touches more
-than one of them. It explains; `docs/zones.md` and the workspace
-`docs/design.md` decide.
+than one of them. It explains; the code and the workspace `docs/design.md`
+decide.
 
 ## Ansible
 
@@ -85,12 +85,17 @@ that does not exist yet. Skill `packer-template`.
 
 ## Network source of truth
 
-`docs/zones.md`. It holds the zones, the reserved ranges, the IP of each VM and
-the transit matrix.
+The code: `environments/prod/terraform.tfvars` holds the zones, the VMs, the
+transit matrix (`transit`) and the node's admin ports (`node_firewall`). The
+`zone-firewall` module turns the matrix into every zone's and the node's rules;
+nothing is generated into a file. Validations in `variables.tf` enforce the
+invariants they can.
 
-**Before proposing any IP or subnet, check it against that file.** There are
-five reserved ranges that can never be used (node 2, Hetzner Cloud, RKE2 pods
-and services, lab).
+`docs/zones.md` explains that data and keeps what cannot be code: the reserved
+ranges, the addressing plan for later phases, the Packer build address and the
+invariants. **Before proposing any IP or subnet, check it against that file.**
+There are five reserved ranges that can never be used (node 2, Hetzner Cloud,
+RKE2 pods and services, lab).
 
 ## Hard rules
 
@@ -99,11 +104,9 @@ and services, lab).
 - No work without an issue on the org project board. The PR links it
   (`Closes #N` / `Refs owner/repo#N`) or the `issue` check fails. See the
   workspace `CLAUDE.md`, section Tracking.
-- `environments/prod/firewall.tf` is **generated** from the matrix in
-  `docs/zones.md` by `scripts/generate-firewall`. Do not hand-edit it: change
-  the matrix and regenerate (skill `firewall-matrix`). Every generated rule
-  carries the `id` of its matrix line, and the `firewall-matrix` check fails a
-  PR whose `firewall.tf` does not match.
+- Every firewall rule comes from the `transit` matrix in `terraform.tfvars`
+  (skill `firewall-matrix`), never written as a resource by hand. Its comment
+  is `<from> -> <to>: <note>`, so any rule in Proxmox traces back to its line.
 - Zone filtering happens on each guest's NIC (`modules/zone-firewall`). Every
   VM has its own firewall on: the node's `FORWARD` policy is ACCEPT, so a VM
   without one is not filtered at all.
@@ -111,9 +114,8 @@ and services, lab).
   `data`.
 - Nobody initiates towards `mgmt`.
 - The node has a DROP policy (`node_firewall_enabled`): 22, 443 and 8006
-  from `mgmt`, 443 and 8006 from `ci`, 9100 and 10250 from `platform`
-  (`t08`), and nothing from the internet. All of it generated from the
-  matrix. Admin access to the node, Traefik included, is over WARP only, to
+  from `mgmt`, 443 and 8006 from `ci`, 9100 and 10250 from `platform`,
+  and nothing from the internet. All of it from the matrix. Admin access to the node, Traefik included, is over WARP only, to
   `10.10.0.1`: Gateway resolves `node_web_hostnames` there. The Hetzner Rescue
   system is the way back in.
 - `local_network` is overridden to loopback, so Proxmox grants no implicit
@@ -182,8 +184,8 @@ Under `.claude/skills/`, for the operations that repeat here:
 | `packer-template` | a baked template — once `vm-ci` runs                 |
 | `ansible-role`    | creating, restructuring or reviewing a role          |
 
-`new-vm` and `firewall-matrix` both write to `docs/zones.md`. That file is
-normative: it is edited first, and everything else is derived from it.
+`new-vm` and `firewall-matrix` both edit `environments/prod/terraform.tfvars`,
+which decides, and keep `docs/zones.md`, which explains, in step.
 
 ## Claude Code plugins enabled here
 

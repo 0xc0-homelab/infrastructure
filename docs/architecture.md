@@ -3,8 +3,10 @@
 How the pieces of the homelab fit together. The **decisions** behind them —
 and what was discarded, and why — live in
 [`workspace/docs/design.md`](https://github.com/0xc0-homelab/workspace/blob/main/docs/design.md).
-The **network** is normative in [`zones.md`](zones.md). This document explains;
-those two decide. If they disagree with this one, they win.
+The **network** is decided by the code, in
+[`terraform.tfvars`](../environments/prod/terraform.tfvars), and explained in
+[`zones.md`](zones.md). This document explains how it fits together; if it
+disagrees with the code or with `design.md`, they win.
 
 Most of what follows is the target of phase 1 and later. Each section says
 what exists **today** and what is **target**.
@@ -35,7 +37,7 @@ flowchart TB
 
   sbox[("Hetzner Storage Box<br/>PBS datastore")]
 
-  operator(("Operator, WARP")) -- "443 (t11), via vm-access" --> traefik
+  operator(("Operator, WARP")) -- "443, via vm-access" --> traefik
   traefik --> pveui
   traefik --> pbs
   traefik --> rustfs
@@ -96,27 +98,28 @@ flowchart LR
   node["node<br/>pve-1"]
   internet(("internet"))
 
-  mgmt -- "t01 · admin" --> ci & platform & edge & workloads & data & node
-  ci -- "t02 · 22" --> edge & platform & workloads & data
-  ci -- "t03 · 8006" --> node
-  ci -- "t04 · 8200" --> platform
-  edge -- "t05 · 8080, 30000-32767" --> workloads
-  workloads -- "t06 · 5432, 6379" --> data
-  workloads -- "t07 · 8200" --> platform
-  platform -- "t08 · 9100, 10250" --> workloads & data & node
-  platform -- "t09 · 443" --> internet
-  mgmt -- "t11 · 443" --> node
+  mgmt -- "admin" --> ci & platform & edge & workloads & data & node
+  ci -- "22" --> edge & platform & workloads & data
+  ci -- "443, 8006" --> node
+  ci -- "8200" --> platform
+  edge -- "8080, 30000-32767" --> workloads
+  workloads -- "5432, 6379" --> data
+  workloads -- "8200" --> platform
+  platform -- "9100, 10250" --> workloads & data & node
+  platform -- "443" --> internet
+  mgmt -- "443" --> node
 ```
 
-The arrows are the `id`s of the transit matrix in [`zones.md`](zones.md). Two
-things the diagram shows by what is missing:
+The arrows are the entries of the transit matrix (`transit` in
+`terraform.tfvars`), with their ports. Two things the diagram shows by what is
+missing:
 
 - **Nothing points at `mgmt`.** Nobody initiates towards the management zone.
-- **Nothing leaves `data`** (`t10`). It initiates no connection, and its
+- **Nothing leaves `data`**. It initiates no connection, and its
   subnet has no SNAT either.
 
 The node accepts 22, 443 and 8006 from `mgmt`, 443 and 8006 from `ci`, and
-the scrape ports from `platform` (`t08`). Nothing from the internet: Traefik
+the scrape ports from `platform`. Nothing from the internet: Traefik
 is reached over WARP, where Gateway resolves its hostnames to `10.10.0.1`.
 
 ## Web traffic
@@ -131,7 +134,7 @@ sequenceDiagram
   U->>CF: HTTPS
   CF->>E: Cloudflare Tunnel (outbound from vm-edge)
   Note over E: cloudflared → open-appsec → NGINX, routed by server_name
-  E->>A: t05 — 8080 or a NodePort
+  E->>A: 8080 or a NodePort
   A-->>U: response, back through the tunnel
 ```
 
@@ -152,7 +155,7 @@ sequenceDiagram
 
   O->>CF: WARP, authenticated by Access
   CF->>V: tunnel with WARP routing to 10.10.0.0/16
-  V->>Z: t01 — 22, 3389, 6443, 8006, 8200
+  V->>Z: 22, 3389, 6443, 8006, 8200
 ```
 
 The operator reaches every zone and the node's internal address directly,
@@ -230,7 +233,8 @@ RAID 0 on the node, that restore is the recovery plan.
 | Concern | Source of truth |
 |---|---|
 | Decisions, phases, discarded options | [`workspace/docs/design.md`](https://github.com/0xc0-homelab/workspace/blob/main/docs/design.md) |
-| Zones, addresses, transit, invariants | [`docs/zones.md`](zones.md) |
+| Zones, VMs, transit matrix | [`environments/prod/terraform.tfvars`](../environments/prod/terraform.tfvars) |
+| Reserved ranges, addressing plan, invariants | [`docs/zones.md`](zones.md) |
 | How it fits together | this document |
 | State of the work | [project board](https://github.com/orgs/0xc0-homelab/projects/1) |
 | Current phase | `CLAUDE.md` of each repo; `/phase` keeps them in sync |

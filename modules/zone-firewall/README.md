@@ -1,24 +1,31 @@
 # zone-firewall
 
-The zone firewall, filtered on each guest's NIC.
+The zone firewall, filtered on each guest's NIC, and the node's own firewall.
+Its input is the transit matrix (`transit` in `environments/prod/terraform.tfvars`);
+the module computes every rule from it, and none is written by hand.
 
-- One **security group per zone** (`zone-<vnet>`) with its inbound rules. The
-  rules come from `docs/zones.md` through `scripts/generate-firewall` into
-  `environments/prod/firewall.tf`; they are never written by hand.
+- One **security group per zone** (`zone-<vnet>`) with its inbound rules, one
+  per matrix entry towards that zone, commented `<from> -> <to>: <note>`.
 - Every VM gets its **own firewall on**: inbound DROP except its zone's group;
   outbound ACCEPT, except zones that initiate nothing (`data`), which get DROP.
-- `enabled` is the **datacenter master switch**. With it off, none of this is
-  enforced.
-- The **host's firewall stays off** — its default DROP would cut Traefik's 443.
-  Node-bound rules come with infrastructure#13.
+  A VM's options and rules are **recreated whenever the VM is**: Proxmox deletes
+  them with the VM, and the provider cannot move rules to a new VMID in place.
+  The trigger is the VM's NIC MAC, new on every creation.
+- The **node** gets the matrix entries towards `node`: from an admin zone only
+  its `admin_ports`, from elsewhere the entry's ports. Its DROP is switched on
+  only after its rules exist. `local_network` points at loopback, so Proxmox
+  grants no implicit admin access to the network it detects.
+- `enabled` is the **datacenter master switch**; `node_enabled`, the node's.
+  With the first off, nothing is enforced.
 
 Why on the NIC and not on the VNet: the node runs `pve-firewall` (iptables).
 VNet-level (forward) rules only exist in the nftables `proxmox-firewall`, which
-the Proxmox docs call a tech preview not suited for production.
+the Proxmox docs call a tech preview.
 
-Docker on the node sets iptables `FORWARD` to DROP. Once `pve-firewall` loads
-bridge netfilter, a VM **without** its own firewall has all its traffic dropped
-there — which is why every VM has one before the master switch is turned on.
+The node's `FORWARD` policy must be ACCEPT, as Proxmox expects: Docker on the
+node runs with `ip-forward-no-drop` (`docs/architecture.md`, The node). With
+Docker's default DROP, every VM loses its egress once the datacenter firewall
+is on.
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
@@ -57,12 +64,12 @@ No modules.
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_enabled"></a> [enabled](#input\_enabled) | The datacenter firewall's master switch. Nothing below is enforced while it is false. | `bool` | n/a | yes |
-| <a name="input_no_egress"></a> [no\_egress](#input\_no\_egress) | VNets whose VMs initiate nothing: outbound policy DROP. | `list(string)` | n/a | yes |
-| <a name="input_node_enabled"></a> [node\_enabled](#input\_node\_enabled) | The node's own firewall: DROP on everything but node\_rules. Needs `enabled` too. | `bool` | n/a | yes |
+| <a name="input_node_admin"></a> [node\_admin](#input\_node\_admin) | From admin\_zones the node admits only admin\_ports; from anywhere else, an entry's ports as written. | <pre>object({<br/>    admin_zones = list(string)<br/>    admin_ports = list(string)<br/>  })</pre> | n/a | yes |
+| <a name="input_node_enabled"></a> [node\_enabled](#input\_node\_enabled) | The node's own firewall: DROP on everything but its rules. Needs `enabled` too. | `bool` | n/a | yes |
 | <a name="input_node_name"></a> [node\_name](#input\_node\_name) | Proxmox node. | `string` | n/a | yes |
-| <a name="input_node_rules"></a> [node\_rules](#input\_node\_rules) | Inbound rules of the node, generated from docs/zones.md into firewall.tf. An empty source is any. | <pre>list(object({<br/>    source  = string<br/>    dport   = string<br/>    comment = string<br/>  }))</pre> | n/a | yes |
-| <a name="input_rules"></a> [rules](#input\_rules) | Inbound rules per zone, keyed by VNet — generated from docs/zones.md into firewall.tf. | <pre>map(list(object({<br/>    source  = string<br/>    dport   = string<br/>    comment = string<br/>  })))</pre> | n/a | yes |
+| <a name="input_transit"></a> [transit](#input\_transit) | The transit matrix, validated by the root. Each entry becomes rules commented "<from> -> <to>: <note>". | <pre>list(object({<br/>    from  = string<br/>    to    = list(string)<br/>    ports = list(string)<br/>    note  = string<br/>  }))</pre> | n/a | yes |
 | <a name="input_vms"></a> [vms](#input\_vms) | Every VM, with its VMID, VNet and NIC MAC. A new MAC means the VM was recreated. | <pre>map(object({<br/>    vm_id = number<br/>    vnet  = string<br/>    mac   = string<br/>  }))</pre> | n/a | yes |
+| <a name="input_zones"></a> [zones](#input\_zones) | Every zone, keyed by VNet ID: its alias (the name the transit matrix uses) and CIDR. | <pre>map(object({<br/>    alias = string<br/>    cidr  = string<br/>  }))</pre> | n/a | yes |
 
 ## Outputs
 

@@ -8,32 +8,35 @@ variable "enabled" {
   type        = bool
 }
 
-variable "rules" {
-  description = "Inbound rules per zone, keyed by VNet — generated from docs/zones.md into firewall.tf."
-  type = map(list(object({
-    source  = string
-    dport   = string
-    comment = string
-  })))
-}
-
-variable "node_enabled" {
-  description = "The node's own firewall: DROP on everything but node_rules. Needs `enabled` too."
-  type        = bool
-}
-
-variable "node_rules" {
-  description = "Inbound rules of the node, generated from docs/zones.md into firewall.tf. An empty source is any."
-  type = list(object({
-    source  = string
-    dport   = string
-    comment = string
+variable "zones" {
+  description = "Every zone, keyed by VNet ID: its alias (the name the transit matrix uses) and CIDR."
+  type = map(object({
+    alias = string
+    cidr  = string
   }))
 }
 
-variable "no_egress" {
-  description = "VNets whose VMs initiate nothing: outbound policy DROP."
-  type        = list(string)
+variable "transit" {
+  description = "The transit matrix, validated by the root. Each entry becomes rules commented \"<from> -> <to>: <note>\"."
+  type = list(object({
+    from  = string
+    to    = list(string)
+    ports = list(string)
+    note  = string
+  }))
+}
+
+variable "node_admin" {
+  description = "From admin_zones the node admits only admin_ports; from anywhere else, an entry's ports as written."
+  type = object({
+    admin_zones = list(string)
+    admin_ports = list(string)
+  })
+}
+
+variable "node_enabled" {
+  description = "The node's own firewall: DROP on everything but its rules. Needs `enabled` too."
+  type        = bool
 }
 
 variable "vms" {

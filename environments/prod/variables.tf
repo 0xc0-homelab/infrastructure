@@ -9,7 +9,7 @@ variable "sdn_zone_id" {
 }
 
 variable "zones" {
-  description = "The homelab zones, keyed by VNet ID. Must match docs/zones.md, which is normative."
+  description = "The homelab zones, keyed by VNet ID. docs/zones.md explains them."
   type = map(object({
     alias = string
     cidr  = string
@@ -26,10 +26,10 @@ variable "zones" {
     error_message = "Every zone CIDR must sit inside 10.10.0.0/16. The reserved ranges are listed in docs/zones.md."
   }
 
-  # data initiates nothing (t10): it must never get SNAT.
+  # data initiates nothing: it must never get SNAT.
   validation {
     condition     = alltrue([for id, z in var.zones : !(z.alias == "data" && z.snat)])
-    error_message = "The data zone must not have SNAT: it initiates no connection (t10 in docs/zones.md)."
+    error_message = "The data zone must not have SNAT: it initiates no connection."
   }
 }
 
@@ -75,7 +75,7 @@ variable "homelab_network" {
 
   validation {
     condition     = var.homelab_network == "10.10.0.0/16"
-    error_message = "homelab_network must be 10.10.0.0/16, the supernet of every zone in docs/zones.md."
+    error_message = "homelab_network must be 10.10.0.0/16, the supernet of every zone."
   }
 }
 
@@ -103,7 +103,7 @@ variable "vm_dns_servers" {
 }
 
 variable "vms" {
-  description = "VMs, keyed by name. Must match the vms block of docs/zones.md, which is normative."
+  description = "The VMs, keyed by name. Their addresses follow the plan in docs/zones.md."
   type = map(object({
     template     = string
     vnet         = string
@@ -133,7 +133,7 @@ variable "vms" {
 }
 
 variable "node_firewall_enabled" {
-  description = "The node's own firewall and its DROP policy. Only 22 and 8006 from control, and what docs/zones.md sends to the node."
+  description = "The node's own firewall and its DROP policy: it admits only what the transit matrix sends to the node."
   type        = bool
 }
 
@@ -145,4 +145,45 @@ variable "datacenter_firewall_enabled" {
 variable "node_web_hostnames" {
   description = "Hostnames Traefik serves on the node. WARP devices resolve them to the node's address in mgmt."
   type        = list(string)
+}
+
+variable "transit" {
+  description = "The transit matrix: every flow the firewall allows, all TCP. from/to are zone aliases, node or internet; an empty to means the zone initiates nothing."
+  type = list(object({
+    from  = string
+    to    = list(string)
+    ports = list(string)
+    note  = optional(string, "")
+  }))
+
+  validation {
+    condition     = alltrue([for e in var.transit : can(regex("^[ -~]*$", e.note))])
+    error_message = "Transit notes must be plain ASCII: they become Proxmox rule comments."
+  }
+
+  # Invariant: data initiates nothing.
+  validation {
+    condition     = alltrue([for e in var.transit : !(e.from == "data" && length(e.to) > 0)])
+    error_message = "data initiates nothing: no transit entry from data may have a destination."
+  }
+
+  # Invariant: nobody initiates towards mgmt, except from inside mgmt.
+  validation {
+    condition     = alltrue([for e in var.transit : !(contains(e.to, "mgmt") && e.from != "mgmt")])
+    error_message = "Nothing may initiate towards mgmt from another zone."
+  }
+
+  # Invariant: the node accepts nothing from the internet.
+  validation {
+    condition     = alltrue([for e in var.transit : !(e.from == "internet" && contains(e.to, "node"))])
+    error_message = "The node accepts nothing from the internet: Traefik is reached over WARP."
+  }
+}
+
+variable "node_firewall" {
+  description = "The node's DROP: from admin_zones it admits only admin_ports, whatever else an entry opens; from anywhere else, an entry's ports as written."
+  type = object({
+    admin_zones = list(string)
+    admin_ports = list(string)
+  })
 }

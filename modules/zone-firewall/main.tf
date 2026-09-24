@@ -4,8 +4,47 @@
 # VNet-level rules would need the nftables backend (a tech preview). The node
 # itself gets its own rules and DROP policy.
 
+# The transit matrix turned into rules. Each rule's comment is
+# "<from> -> <to>: <note>", so every rule in Proxmox traces back to its line of
+# terraform.tfvars.
 locals {
-  groups = { for vnet, rules in var.rules : vnet => rules if length(rules) > 0 }
+  vnet_of = { for vnet, z in var.zones : z.alias => vnet }
+  cidr_of = { for vnet, z in var.zones : z.alias => z.cidr }
+
+  # Proxmox writes port ranges as a:b.
+  dport = [for e in var.transit : join(",", [for p in e.ports : replace(p, "-", ":")])]
+
+  # Inbound rules of each zone, in matrix order.
+  rules = {
+    for vnet, z in var.zones : vnet => [
+      for i, e in var.transit : {
+        source  = local.cidr_of[e.from]
+        dport   = local.dport[i]
+        comment = e.note == "" ? "${e.from} -> ${z.alias}" : "${e.from} -> ${z.alias}: ${e.note}"
+      } if contains(e.to, z.alias)
+    ]
+  }
+  groups = { for vnet, rules in local.rules : vnet => rules if length(rules) > 0 }
+
+  # The node's rules. From an admin zone only the node's admin ports survive.
+  node_ports = [
+    for e in var.transit : (
+      contains(var.node_admin.admin_zones, e.from)
+      ? [for p in e.ports : p if contains(var.node_admin.admin_ports, p)]
+      : e.ports
+    )
+  ]
+  node_rules = [
+    for i, e in var.transit : {
+      source  = e.from == "internet" ? "" : local.cidr_of[e.from]
+      dport   = join(",", [for p in local.node_ports[i] : replace(p, "-", ":")])
+      comment = e.note == "" ? "${e.from} -> node" : "${e.from} -> node: ${e.note}"
+    } if contains(e.to, "node") && length(local.node_ports[i]) > 0
+  ]
+
+  # Zones that initiate nothing (an entry with an empty `to`): their VMs get an
+  # outbound DROP policy.
+  no_egress = [for e in var.transit : local.vnet_of[e.from] if length(e.to) == 0 && contains(keys(local.vnet_of), e.from)]
 }
 
 resource "proxmox_virtual_environment_cluster_firewall" "main" {
@@ -28,7 +67,7 @@ resource "proxmox_virtual_environment_firewall_rules" "node" {
   node_name = var.node_name
 
   dynamic "rule" {
-    for_each = var.node_rules
+    for_each = local.node_rules
     content {
       type    = "in"
       action  = "ACCEPT"
@@ -56,7 +95,7 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "main" {
   for_each = local.groups
 
   name    = "zone-${each.key}"
-  comment = "Inbound rules for the ${each.key} zone, from docs/zones.md"
+  comment = "Inbound rules for the ${each.key} zone, from the transit matrix"
 
   dynamic "rule" {
     for_each = each.value
@@ -87,7 +126,7 @@ resource "proxmox_virtual_environment_firewall_options" "main" {
 
   enabled       = true
   input_policy  = "DROP"
-  output_policy = contains(var.no_egress, each.value.vnet) ? "DROP" : "ACCEPT"
+  output_policy = contains(local.no_egress, each.value.vnet) ? "DROP" : "ACCEPT"
   macfilter     = true
 
   lifecycle {
