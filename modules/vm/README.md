@@ -45,6 +45,7 @@ No modules.
 | <a name="input_datastore_id"></a> [datastore\_id](#input\_datastore\_id) | Datastore for the disk and the cloud-init drive. | `string` | n/a | yes |
 | <a name="input_disk_size_gb"></a> [disk\_size\_gb](#input\_disk\_size\_gb) | Root disk size. It can grow from the template's, never shrink. | `number` | `8` | no |
 | <a name="input_dns_servers"></a> [dns\_servers](#input\_dns\_servers) | Resolvers written by cloud-init. | `list(string)` | n/a | yes |
+| <a name="input_guest_agent"></a> [guest\_agent](#input\_guest\_agent) | Enable the QEMU guest agent. The template must ship it: the provider waits for it when the VM is created. | `bool` | `true` | no |
 | <a name="input_ipv4_address"></a> [ipv4\_address](#input\_ipv4\_address) | Static address in CIDR notation, inside the zone, e.g. 10.10.0.10/24. | `string` | n/a | yes |
 | <a name="input_ipv4_gateway"></a> [ipv4\_gateway](#input\_ipv4\_gateway) | Gateway: the host, on the zone's .1. | `string` | n/a | yes |
 | <a name="input_memory_mb"></a> [memory\_mb](#input\_memory\_mb) | Memory in MB. | `number` | `1024` | no |

@@ -75,6 +75,7 @@ module "vms" {
 
   name           = each.key
   rebuild        = each.value.rebuild
+  guest_agent    = each.value.guest_agent
   node_name      = var.nodes[0]
   template_vm_id = local.template_ids[each.value.template]
   datastore_id   = var.template_datastore

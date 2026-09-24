@@ -35,9 +35,11 @@ resource "proxmox_virtual_environment_vm" "main" {
     dedicated = var.memory_mb
   }
 
-  # The image ships no guest agent; Ansible installs it, then this goes true.
+
+  # The baked templates ship the guest agent. Switching it on for an existing
+  # VM reboots it, so the flag is per VM while each one is rebuilt.
   agent {
-    enabled = false
+    enabled = var.guest_agent
   }
 
   disk {

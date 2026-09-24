@@ -77,3 +77,9 @@ variable "tags" {
   type        = list(string)
   default     = []
 }
+
+variable "guest_agent" {
+  description = "Enable the QEMU guest agent. The template must ship it: the provider waits for it when the VM is created."
+  type        = bool
+  default     = true
+}

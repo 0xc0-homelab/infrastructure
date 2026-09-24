@@ -64,16 +64,19 @@ vm_dns_servers    = ["1.1.1.1", "1.0.0.1"]
 # docs/zones.md.
 vms = {
   "vm-access-01" = {
-    template  = "debian-13-base"
-    vnet      = "mgmt"
-    ip        = "10.10.0.10"
-    cores     = 1
-    memory_mb = 1024
+    # Off until its rebuild: switching it on in place reboots the VM.
+    guest_agent = false
+    template    = "debian-13-base"
+    vnet        = "mgmt"
+    ip          = "10.10.0.10"
+    cores       = 1
+    memory_mb   = 1024
   }
   # Second connector of the same tunnel, for HA: one can be rebuilt while the
   # other keeps admin access.
   "vm-access-02" = {
-    rebuild   = 1
+    # 2: recreated from debian-13-base, with the guest agent on.
+    rebuild   = 2
     template  = "debian-13-base"
     vnet      = "mgmt"
     ip        = "10.10.0.20"
@@ -83,6 +86,9 @@ vms = {
   # The self-hosted GitHub Actions runners (infrastructure#44). The disk holds
   # the runner, the tools mise installs per job and the providers.
   "vm-ci" = {
+    # Off until its rebuild, from the laptop: in place it would reboot the VM
+    # running the apply.
+    guest_agent  = false
     template     = "debian-13-runner"
     vnet         = "ci"
     ip           = "10.10.1.10"
