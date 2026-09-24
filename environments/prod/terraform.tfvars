@@ -4,8 +4,7 @@ nodes = ["pve-1"]
 
 sdn_zone_id = "homelab"
 
-# Mirrors the zones block of docs/zones.md, which is normative: change that
-# file first. Keys are VNet IDs (Proxmox: up to 8 letters and digits), so
+# The homelab zones, explained in docs/zones.md. Keys are VNet IDs (Proxmox: up to 8 letters and digits), so
 # workloads is wklds; alias carries the full name.
 zones = {
   mgmt = {
@@ -67,7 +66,8 @@ vm_admin_user     = "ops"
 vm_admin_ssh_keys = ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO0Sq1ydjDPRC82QwtxDWSxk2ci/E2bChEJCwm665nzZ sergioaten@0xc0-homelab 2026-09-22"]
 vm_dns_servers    = ["1.1.1.1", "1.0.0.1"]
 
-# Mirrors the vms block of docs/zones.md. Only phase 1 VMs.
+# The VMs that exist. The addressing plan, later phases included, is in
+# docs/zones.md.
 vms = {
   "vm-access-01" = {
     template  = "debian-13-base"
@@ -108,3 +108,31 @@ node_firewall_enabled = true
 
 # Traefik on the node, outside IaC. WARP devices resolve these to 10.10.0.1.
 node_web_hostnames = ["pve.0xc0.cc", "pbs.0xc0.cc", "s3.0xc0.cc", "s3-console.0xc0.cc"]
+
+# The transit matrix: every flow the firewall allows. Anything not here is
+# denied. Every port is TCP. `from` and `to` are zone names (the `alias` of a
+# zone above), `node`, or `internet`; an empty `to` means the zone initiates
+# nothing. The zone-firewall module turns each entry into rules whose comment
+# is "<from> -> <to>: <note>". Notes are plain ASCII: Proxmox keeps them as is.
+transit = [
+  { from = "mgmt", to = ["ci", "platform", "edge", "workloads", "data", "node"], ports = [22, 3389, 6443, 8006, 8200], note = "admin access, arrives through the vm-access tunnel" },
+  { from = "ci", to = ["edge", "platform", "workloads", "data"], ports = [22], note = "deploy over SSH from the runner" },
+  { from = "ci", to = ["node"], ports = [443, 8006], note = "Proxmox API and RustFS, through Traefik on 443. NEVER 22 towards the node from ci" },
+  { from = "ci", to = ["platform"], ports = [8200], note = "Vault, from phase 3 onwards" },
+  { from = "edge", to = ["workloads"], ports = [8080, "30000-32767"], note = "NGINX towards apps and towards the cluster ingress" },
+  { from = "workloads", to = ["data"], ports = [5432, 6379] },
+  { from = "workloads", to = ["platform"], ports = [8200] },
+  { from = "platform", to = ["workloads", "data", "node"], ports = [9100, 10250], note = "Prometheus scrape" },
+  { from = "platform", to = ["internet"], ports = [443], note = "alerts to the phone" },
+  { from = "data", to = [], ports = [], note = "data does NOT initiate connections. Explicit egress deny rule." },
+  { from = "mgmt", to = ["node"], ports = [443], note = "Traefik on the host (Proxmox UI, PBS, RustFS), over WARP. Closed to the internet since the CI runner exists" },
+  { from = "mgmt", to = ["mgmt"], ports = [22], note = "between the vm-access connectors; a WARP session can leave from either one" },
+]
+
+# The node is the router, on DROP. From the admin zones it admits only these
+# ports, whatever else an entry opens towards the zones; from anywhere else, an
+# entry's ports as written.
+node_firewall = {
+  admin_zones = ["mgmt", "ci"]
+  admin_ports = [22, 443, 8006]
+}

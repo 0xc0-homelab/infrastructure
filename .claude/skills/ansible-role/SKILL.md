@@ -84,7 +84,8 @@ validated by actually applying it, restructure it.
 - Templates carry `{{ ansible_managed }}` in a header comment, so anyone who
   finds the file on the box knows not to edit it.
 - Bind addresses and IPs come from the inventory, never hardcoded in the role.
-  The zone layout is normative in `docs/zones.md`.
+  The zones and VMs are in `environments/prod/terraform.tfvars`, explained in
+  `docs/zones.md`.
 - Secrets never appear in `defaults/`. The role takes a variable; the value
   comes from a SOPS-encrypted file.
 

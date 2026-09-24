@@ -4,7 +4,7 @@ OpenTofu, Packer and Ansible for the 0xc0-homelab node: its SDN zones, its
 firewall, and the VMs on it.
 
 - **How it fits together:** [`docs/architecture.md`](docs/architecture.md)
-- **The network, normatively:** [`docs/zones.md`](docs/zones.md)
+- **The network:** decided in [`environments/prod/terraform.tfvars`](environments/prod/terraform.tfvars), explained in [`docs/zones.md`](docs/zones.md)
 - **Why it is this way:** [`workspace/docs/design.md`](https://github.com/0xc0-homelab/workspace/blob/main/docs/design.md)
 
 ```
