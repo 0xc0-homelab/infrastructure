@@ -1,34 +1,42 @@
 ---
 name: packer-template
-description: Builds and maintains Proxmox VM templates with Packer using the proxmox-iso builder — plugin pinning, cloud-init, qemu-guest-agent and the handoff to OpenTofu. Use when creating or updating a base image.
+description: Builds and maintains the Proxmox VM templates with Packer's proxmox-clone builder — the chain from the raw cloud image, plugin pinning, cloud-init, the guest agent, rebuilds by name and the handoff to OpenTofu. Use when creating or changing a template.
 ---
 
 # Packer templates for Proxmox
 
-> **Once `vm-ci` runs (end of phase 1).** The base template stays an official
-> cloud image imported by OpenTofu (`modules/cloud-image-template`). Use Packer only for a
-> template that must be baked: the CI runner, or a zone with no egress where a
-> VM cannot install packages at first boot.
+Every VM clones a template Packer baked. The chain, in `packer/build-order`:
+
+| Template | Clones | Adds |
+|---|---|---|
+| `debian-13-cloud` | — | the official cloud image, imported raw by OpenTofu (`modules/cloud-image-template`). No VM clones it |
+| `debian-13-base` | `debian-13-cloud` | the `base` role: guest agent, SSH hardening |
+| `debian-13-runner` | `debian-13-base` | the `github_runner` role's `install` entry point |
 
 Packer produces the template; OpenTofu clones it. The split matters: anything
 that belongs to a specific VM (its address, its hostname, its role) is
 OpenTofu's and Ansible's job, never baked into the image.
 
-A template derived from the Debian base uses the `proxmox-clone` builder, from
-`github.com/hashicorp/packer-plugin-proxmox`: it clones the base template
-(VMID 9000), and Ansible bakes the rest with the same roles the VMs use, through
-their `install` entry point. `proxmox-iso` is only for a template that cannot
-start from the base.
+Every template uses the `proxmox-clone` builder, from
+`github.com/hashicorp/packer-plugin-proxmox`: it clones the previous template
+**by name** (`clone_vm`), and Ansible bakes the rest with the same roles the
+VMs use. `proxmox-iso` is only for a template that cannot start from the chain.
 
-The build VM takes the address reserved under `build_vms` in `docs/zones.md`.
+**No VMID and no version.** A template is found by name. Proxmox assigns its
+VMID, and a rebuild gets a new one. VMs are full clones and ignore later
+changes to their template, so a rebuild touches none: moving a VM onto the new
+template is bumping its `rebuild`.
+
+The build VM takes the address reserved for it in `docs/zones.md`, Machines.
 Packer injects its throwaway SSH key through cloud-init and reaches that
 address directly, so the build does not wait on the guest agent.
 
 Builds run in CI (`.github/workflows/packer.yml`): `validate` on every PR, and
-`build` on a merge to `main`, on `vm-ci`, after the operator approves
-`production`. A template version that already exists is skipped: bumping
-`version` and `vm_id` in `<name>.auto.pkrvars.hcl` is what rebuilds.
-Locally: `scripts/packer <name> validate`.
+`build` on every merge to `main` that touches `packer/` or the roles, on
+`vm-ci`, after the operator approves `production`. For each template in
+`build-order`, `scripts/delete-template` deletes the old one by name (it
+refuses a name that is not a template), then Packer builds it again, recording
+the commit in its description. Locally: `scripts/packer <name> validate`.
 The HashiCorp Packer skills in this session target AWS, Azure and HCP — none of
 them applies here. Do not follow `amazon-ebs` patterns.
 
@@ -47,7 +55,6 @@ secret baked into it is a secret you cannot rotate.
 packer/<template-name>/
   <name>.pkr.hcl             sources and build
   variables.pkr.hcl          variable declarations, no secret values
-  <name>.auto.pkrvars.hcl    the version being built and its VMID
   playbook.yml               the roles baked in (install entry points)
   http/                      autoinstall / preseed, proxmox-iso only
 ```
@@ -77,14 +84,12 @@ Check every field name against the `packer-plugin-proxmox` documentation. The
 plugin's attribute names differ from the cloud builders and are easy to
 misremember. Do not invent syntax; if unsure, look it up and say so.
 
-## Versioning
+## Rebuilds
 
-The template name carries a version or a date, and the old template is not
-deleted while a VM still references it. Rolling a template that live VMs were
-cloned from is not reversible.
-
-A template version bump is its own commit: `chore(packer): bump debian base to
-<version>`.
+A rebuild deletes the old template first: there is no rolling back to it, and a
+failed build leaves no template until it is fixed. Running VMs are full clones
+and do not notice. A new template goes at the end of `build-order`, after the
+one it clones.
 
 ## Procedure
 

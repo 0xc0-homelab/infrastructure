@@ -1,17 +1,17 @@
-# Validates the Packer templates on every PR that touches them, and builds on
-# a merge to main, once the operator approves the production environment. A
-# build creates a new template; no VM changes until OpenTofu points at it.
+# Validates the Packer templates on every PR that touches them or the roles
+# they bake, and rebuilds them all on a merge to main, once the operator
+# approves the production environment. A rebuild deletes each template by name
+# and builds it again, in packer/build-order. VMs are full clones: none changes
+# until it is rebuilt with its `rebuild` counter.
 name: packer
 
 on:
   pull_request:
     branches: [main]
-    paths: ['packer/**', 'ansible/roles/**', 'scripts/packer', '.github/workflows/packer.yml']
-  # A build happens only for a template version that does not exist yet, so a
-  # role change alone rebuilds nothing until the version is bumped.
+    paths: ['packer/**', 'ansible/roles/**', 'scripts/packer', 'scripts/delete-template', '.github/workflows/packer.yml']
   push:
     branches: [main]
-    paths: ['packer/**', 'scripts/packer', '.github/workflows/packer.yml']
+    paths: ['packer/**', 'ansible/roles/**', 'scripts/packer', 'scripts/delete-template', '.github/workflows/packer.yml']
 
 permissions:
   contents: read
@@ -78,21 +78,16 @@ jobs:
           token="$(sops decrypt --extract '["PROXMOX_VE_API_TOKEN"]' secrets/tofu.sops.yaml)"
           echo "::add-mask::${token#*=}"
 
-      # Proxmox never overwrites a template: a version that already exists is
-      # skipped, not rebuilt.
+      # Each template clones the one before it in build-order. Proxmox never
+      # overwrites a template: the old one is deleted by name first.
       - name: build
         run: |
-          for t in packer/*/; do
-            name="$(basename "$t")"
-            vm_id="$(sed -nE 's/^vm_id *= *([0-9]+).*/\1/p' "$t$name.auto.pkrvars.hcl")"
-            status="$(sops exec-env secrets/tofu.sops.yaml \
-              "curl -s -o /dev/null -w '%{http_code}' -H \"Authorization: PVEAPIToken=\$PROXMOX_VE_API_TOKEN\" \
-              \"\${PROXMOX_VE_ENDPOINT%/}/api2/json/nodes/pve-1/qemu/$vm_id/config\"")"
-            case "$status" in
-              200) echo "$name: template $vm_id exists, skipped. Bump its version to rebuild."; continue ;;
-              500) ;;  # Proxmox answers 500 for a VMID that does not exist.
-              *) echo "$name: unexpected $status checking VMID $vm_id" >&2; exit 1 ;;
-            esac
+          # A for loop, not while-read: a command in the loop reading stdin
+          # would eat the rest of the list.
+          for name in $(grep -vE '^(#|$)' packer/build-order); do
+            echo "::group::$name"
+            scripts/delete-template "$name"
             scripts/packer "$name" init
-            scripts/packer "$name" build -color=false
+            scripts/packer "$name" build -color=false -var "commit=${GITHUB_SHA::12}"
+            echo "::endgroup::"
           done
