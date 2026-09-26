@@ -102,8 +102,9 @@ that breaks them fails.
 5. Nothing enters `mgmt` from another zone **(code)**. SSH between the two
    `vm-access` connectors, inside `mgmt`, is the only way in.
 6. The node stays on DROP, with only 22, 443 and 8006 from `10.10.0.0/22` (22
-   never from `ci`), and 9100 and 10250 from `platform`. Nothing
-   from the internet **(code)**. Any other ingress to the node is a
+   never from `ci`), 9100 and 10250 from `platform`, and from the internet
+   only SSH as break-glass, closed by the Hetzner firewall until opened
+   **(code)**. Any other ingress to the node is a
    **critical** finding, and so is implicit admin access: `local_network`
    stays pointed at loopback.
 7. No admin dashboard published through `vm-edge`: private ones go through the

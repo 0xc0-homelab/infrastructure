@@ -162,10 +162,11 @@ variable "transit" {
     error_message = "Nothing may initiate towards mgmt from another zone."
   }
 
-  # Invariant: the node accepts nothing from the internet.
+  # Invariant: from the internet the node accepts only break-glass SSH, which
+  # the Hetzner firewall keeps closed until the operator opens it.
   validation {
-    condition     = alltrue([for e in var.transit : !(e.from == "internet" && contains(e.to, "node"))])
-    error_message = "The node accepts nothing from the internet: Traefik is reached over WARP."
+    condition     = alltrue([for e in var.transit : !(e.from == "internet" && contains(e.to, "node")) || (length(e.ports) == 1 && e.ports[0] == "22")])
+    error_message = "From the internet the node accepts only SSH (22), as break-glass: Traefik and the API are reached over WARP."
   }
 }
 

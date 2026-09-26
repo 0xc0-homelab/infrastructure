@@ -124,6 +124,7 @@ transit = [
   { from = "platform", to = ["internet"], ports = [443], note = "alerts to the phone" },
   { from = "data", to = [], ports = [], note = "data does NOT initiate connections. Explicit egress deny rule." },
   { from = "mgmt", to = ["node"], ports = [443], note = "Traefik on the host (Proxmox UI, PBS, RustFS), over WARP; never from the internet" },
+  { from = "internet", to = ["node"], ports = [22], note = "break-glass SSH, key-only; the Hetzner firewall keeps it closed until opened" },
   { from = "mgmt", to = ["mgmt"], ports = [22], note = "between the vm-access connectors; a WARP session can leave from either one" },
 ]
 

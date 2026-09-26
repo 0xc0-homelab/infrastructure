@@ -143,8 +143,10 @@ missing:
   subnet has no SNAT either.
 
 The node accepts 22, 443 and 8006 from `mgmt`, 443 and 8006 from `ci`, and
-the scrape ports from `platform`. Nothing from the internet: Traefik
-is reached over WARP, where Gateway resolves its hostnames to `10.10.0.1`.
+the scrape ports from `platform`. From the internet it accepts only SSH, as
+break-glass for when WARP is down: the Hetzner firewall keeps it closed until
+the operator opens it. Traefik is reached over WARP, where Gateway resolves
+its hostnames to `10.10.0.1`.
 
 ## Web traffic
 
@@ -190,7 +192,8 @@ The **way back in** if this breaks is the Hetzner Rescue system.
 
 **Today:** WARP through the two `vm-access` connectors. The node's own
 firewall is on DROP: SSH, the Proxmox UI on 8006 and Traefik on 443 answer
-on `10.10.0.1` only. The public IP accepts nothing.
+on `10.10.0.1`. The public IP accepts only break-glass SSH, closed at the
+Hetzner firewall until it is needed.
 
 ## Changes, CI and state
 

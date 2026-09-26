@@ -116,11 +116,12 @@ RKE2 pods and services, lab).
 - No other zone initiates towards `mgmt`. SSH between the `vm-access`
   connectors, inside `mgmt`, is the only way in.
 - The node has a DROP policy (`node_firewall_enabled`): 22, 443 and 8006
-  from `mgmt`, 443 and 8006 from `ci`, 9100 and 10250 from `platform`,
-  and nothing from the internet. All of it from the matrix. Admin access to
-  the node, Traefik included, is over WARP only, to `10.10.0.1`: Gateway
-  resolves `node_web_hostnames` there. The Hetzner Rescue system is the way
-  back in.
+  from `mgmt`, 443 and 8006 from `ci`, 9100 and 10250 from `platform`, and
+  only SSH (22) from the internet, as break-glass: the Hetzner firewall keeps
+  it closed until the operator opens it, and sshd is key-only. All of it from
+  the matrix. Day-to-day admin access to the node, Traefik included, is over
+  WARP, to `10.10.0.1`: Gateway resolves `node_web_hostnames` there. The
+  Hetzner Rescue system is the last way back in.
 - `local_network` is overridden to loopback, so Proxmox grants no implicit
   admin access to the network it detects. Never remove that alias.
 - A change to the node firewall is tested first by hand, with a rollback
