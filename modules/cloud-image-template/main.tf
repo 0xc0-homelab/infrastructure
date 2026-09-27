@@ -9,7 +9,14 @@ resource "proxmox_download_file" "main" {
   content_type       = "import"
   url                = var.image_url
   checksum           = var.image_checksum
-  checksum_algorithm = "sha512"
+  checksum_algorithm = var.image_checksum_algorithm
+
+  lifecycle {
+    precondition {
+      condition     = can(regex(var.image_checksum_algorithm == "sha256" ? "^[0-9a-f]{64}$" : "^[0-9a-f]{128}$", var.image_checksum))
+      error_message = "image_checksum must be a lowercase hex digest of the length its algorithm gives."
+    }
+  }
 }
 
 # No vm_id: Proxmox assigns one, and everything finds the template by name.
