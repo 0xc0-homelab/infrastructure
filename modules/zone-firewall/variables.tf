@@ -21,6 +21,7 @@ variable "transit" {
   type = list(object({
     from  = string
     to    = list(string)
+    proto = string
     ports = list(string)
     note  = string
   }))

@@ -58,9 +58,11 @@ scripts/ansible playbooks/vm-access.yml --check --diff
 ```
 
 The node itself is touched by Ansible **only** for what the SDN needs:
-`playbooks/node.yml` keeps `data` from egressing, with a DROP rule in
-`DOCKER-USER`. The other zones need no rule of their own: Docker carries one
-setting by hand, `ip-forward-no-drop`, that keeps the `FORWARD` policy ACCEPT
+`playbooks/node.yml` runs `node_forwarding`, which keeps any zone listed in
+`node_forwarding_no_egress_cidrs` off the internet, with a DROP rule in
+`DOCKER-USER`. The list is empty today: no zone needs it. The other zones need
+no rule of their own: Docker carries one setting by hand,
+`ip-forward-no-drop`, that keeps the `FORWARD` policy ACCEPT
 (`docs/architecture.md`, The node). Traefik, RustFS, PBS and Docker itself are
 never touched from this repo.
 
@@ -111,12 +113,13 @@ RKE2 pods and services, lab).
 - Zone filtering happens on each guest's NIC (`modules/zone-firewall`). Every
   VM has its own firewall on: the node's `FORWARD` policy is ACCEPT, so a VM
   without one is not filtered at all.
-- `data` does not initiate connections anywhere. Never add an egress rule from
-  `data`.
+- No zone must initiate towards a destination that isn't in `transit`: an
+  entry with an empty `to` gives that zone's VMs an outbound DROP policy. None
+  today, but the mechanism stays for a zone that must never egress.
 - No other zone initiates towards `mgmt`. SSH between the `vm-access`
   connectors, inside `mgmt`, is the only way in.
 - The node has a DROP policy (`node_firewall_enabled`): 22, 443 and 8006
-  from `mgmt`, 443 and 8006 from `ci`, 9100 and 10250 from `platform`, and
+  from `mgmt`, 443 and 8006 from `ci`, 9100 from `platform`, and
   only SSH (22) from the internet, as break-glass: the Hetzner firewall keeps
   it closed until the operator opens it, and sshd is key-only. All of it from
   the matrix. Day-to-day admin access to the node, Traefik included, is over
@@ -127,8 +130,9 @@ RKE2 pods and services, lab).
 - A change to the node firewall is tested first by hand, with a rollback
   scheduled on the node itself (systemd timer), before it goes into code.
 - `ci` reaches the node over 8006 (API), never over 22.
-- Private dashboards go through the `vm-access` tunnel, never through
-  `vm-edge`.
+- No admin interface reaches the internet through the public tunnel: portals
+  sit behind Cloudflare Access, Vault and the Kubernetes API are reached only
+  over WARP, through the `vm-access` tunnel.
 - Secrets with SOPS+age. An unencrypted file holding sensitive material is a
   bug, not a TODO. From phase 3 onwards, progressive migration to Vault over
   OIDC.

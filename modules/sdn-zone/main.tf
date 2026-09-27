@@ -31,14 +31,22 @@ resource "proxmox_sdn_subnet" "main" {
   depends_on = [proxmox_sdn_applier.finalizer]
 }
 
+# The whole set of VNets. A VNet removed from it is a destroy, which does not
+# trigger a replace on its own; a change to this set does.
+resource "terraform_data" "vnets" {
+  input = var.vnets
+}
+
 # SDN changes stay pending in Proxmox until applied. This applier is replaced —
-# and so re-applies — whenever any zone, VNet or subnet changes.
+# and so re-applies — whenever any zone, VNet or subnet changes, or one is
+# removed.
 resource "proxmox_sdn_applier" "changes" {
   lifecycle {
     replace_triggered_by = [
       proxmox_sdn_zone_simple.main,
       proxmox_sdn_vnet.main,
       proxmox_sdn_subnet.main,
+      terraform_data.vnets,
     ]
   }
 

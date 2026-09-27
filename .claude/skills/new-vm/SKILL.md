@@ -24,15 +24,14 @@ stop**. Do not create it because it would fit technically.
 | mgmt      | 10.10.0.0/24  | 10.10.0.1   |
 | ci        | 10.10.1.0/24  | 10.10.1.1   |
 | platform  | 10.10.4.0/24  | 10.10.4.1   |
-| edge      | 10.10.8.0/24  | 10.10.8.1   |
-| workloads | 10.10.16.0/20 | 10.10.16.1  |
-| data      | 10.10.32.0/24 | 10.10.32.1  |
 
 Rules, in order:
 
-1. `.1` is the Proxmox host in every zone. Never allocate it.
-2. Hosts are numbered from `.10` upwards in steps of ten: `.10`, `.20`, `.30`.
-   Take the lowest free one in that sequence.
+1. `.1` is the Proxmox host in every zone. Never allocate it. In `platform`,
+   `.10` is also taken, by the keepalived VIP in front of HAProxy — never a VM.
+2. Hosts are numbered from `.10` upwards in steps of ten: `.10`, `.20`, `.30`
+   (`.11`, `.12` for the LB pair, since they share the `.10` VIP). Take the
+   lowest free one in that sequence.
 3. The address must fall inside its zone's supernet. Check it, do not assume.
 4. It must not land on a reserved range — `10.11.0.0/16`, `10.20.0.0/16`,
    `10.42.0.0/16`, `10.43.0.0/16`, `10.66.66.0/24`. These are never used, not
@@ -70,8 +69,7 @@ transit matrix is denied, and that is the intended state.
 If it genuinely needs to reach something new, that is a separate change: an
 entry in the `transit` matrix, with the `firewall-matrix` skill.
 
-Two invariants no new VM may break: nothing initiates towards `mgmt`, and
-`data` initiates nothing outbound.
+One invariant no new VM may break: nothing initiates towards `mgmt`.
 
 ## Step 5 — verify and stop
 

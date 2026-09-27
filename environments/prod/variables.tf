@@ -137,13 +137,25 @@ variable "node_web_hostnames" {
 }
 
 variable "transit" {
-  description = "The transit matrix: every flow the firewall allows, all TCP. from/to are zone aliases, node or internet; an empty to means the zone initiates nothing."
+  description = "The transit matrix: every flow the firewall allows. from/to are zone aliases, node or internet; an empty to means the zone initiates nothing. proto is tcp unless stated."
   type = list(object({
     from  = string
     to    = list(string)
+    proto = optional(string, "tcp")
     ports = list(string)
     note  = optional(string, "")
   }))
+
+  # TCP and UDP entries name their ports; a protocol without ports (vrrp) names
+  # none.
+  validation {
+    condition = alltrue([
+      for e in var.transit :
+      contains(["tcp", "udp", "vrrp"], e.proto)
+      && (contains(["tcp", "udp"], e.proto) ? (length(e.ports) > 0 || length(e.to) == 0) : length(e.ports) == 0)
+    ])
+    error_message = "Every transit entry is tcp, udp or vrrp; tcp and udp entries list their ports, vrrp entries list none."
+  }
 
   validation {
     condition     = alltrue([for e in var.transit : can(regex("^[ -~]*$", e.note))])

@@ -4,8 +4,9 @@ One Proxmox SDN **Simple** zone, with a VNet and a subnet per homelab zone.
 
 - The gateway of every subnet is the **host**, on the first address of its
   CIDR — computed, not an input, so it cannot drift from the design.
-- `snat` per VNet: egress through the node's public interface. Off for `data`,
-  which initiates nothing.
+- `snat` per VNet: egress through the node's public interface. On for every
+  zone today; the input stays per-VNet so a future zone that must initiate
+  nothing can turn it off, same as the retired `data` zone once did.
 - VNet IDs are limited by Proxmox to 8 letters and digits; the full zone name
   goes in `alias`.
 - Two appliers, as the provider recommends: `changes` is replaced — and so
@@ -29,6 +30,7 @@ ones are deprecated.
 | Name | Version |
 | ---- | ------- |
 | <a name="provider_proxmox"></a> [proxmox](#provider\_proxmox) | 0.114.0 |
+| <a name="provider_terraform"></a> [terraform](#provider\_terraform) | n/a |
 
 ## Modules
 
@@ -43,6 +45,7 @@ No modules.
 | [proxmox_sdn_subnet.main](https://registry.terraform.io/providers/bpg/proxmox/0.114.0/docs/resources/sdn_subnet) | resource |
 | [proxmox_sdn_vnet.main](https://registry.terraform.io/providers/bpg/proxmox/0.114.0/docs/resources/sdn_vnet) | resource |
 | [proxmox_sdn_zone_simple.main](https://registry.terraform.io/providers/bpg/proxmox/0.114.0/docs/resources/sdn_zone_simple) | resource |
+| [terraform_data.vnets](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) | resource |
 
 ## Inputs
 

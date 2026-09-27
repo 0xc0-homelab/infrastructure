@@ -8,7 +8,7 @@ so the VM running its connector needs no config file — only the token.
 - `token` is a sensitive output. It reaches the connector through Ansible,
   straight from `tofu output`, never through a file.
 
-Public hostnames (ingress) are added when the edge tunnel needs them.
+Public hostnames (ingress) are added when the public tunnel needs them.
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
