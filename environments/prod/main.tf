@@ -38,6 +38,7 @@ module "templates" {
   image_checksum = each.value.image_checksum
 
   image_checksum_algorithm = each.value.checksum_algorithm
+  disk_size_gb             = each.value.disk_size_gb
   bridge                   = each.value.bridge
 
   # The default bridge is one of the SDN VNets.

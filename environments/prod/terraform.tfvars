@@ -41,7 +41,9 @@ templates = {
     image_url          = "https://dl.rockylinux.org/pub/rocky/10/images/x86_64/Rocky-10-GenericCloud-Base-10.2-20260525.0.x86_64.qcow2"
     image_checksum     = "9fc9e9ff16888bb68ac39b0392e25c9c92684d50c85f1cce6ab549363bbc4b48"
     checksum_algorithm = "sha256"
-    bridge             = "mgmt"
+    # The image's virtual size is 10 GiB, and Proxmox never shrinks a disk.
+    disk_size_gb = 10
+    bridge       = "mgmt"
   }
 }
 

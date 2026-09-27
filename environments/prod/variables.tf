@@ -44,7 +44,9 @@ variable "templates" {
     image_url          = string
     image_checksum     = string
     checksum_algorithm = optional(string, "sha512")
-    bridge             = string
+    # At least the image's virtual size: Proxmox never shrinks a disk.
+    disk_size_gb = optional(number, 8)
+    bridge       = string
   }))
 }
 
