@@ -41,9 +41,10 @@ variable "template_datastore" {
 variable "templates" {
   description = "Official cloud images, imported as raw templates and keyed by template name. Packer bakes the templates VMs use from them."
   type = map(object({
-    image_url      = string
-    image_checksum = string
-    bridge         = string
+    image_url          = string
+    image_checksum     = string
+    checksum_algorithm = optional(string, "sha512")
+    bridge             = string
   }))
 }
 

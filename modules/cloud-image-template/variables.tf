@@ -24,12 +24,18 @@ variable "image_url" {
 }
 
 variable "image_checksum" {
-  description = "SHA-512 of the image, as published by the distribution."
+  description = "Checksum of the image, as published by the distribution, in image_checksum_algorithm."
   type        = string
+}
+
+variable "image_checksum_algorithm" {
+  description = "Algorithm of image_checksum: sha512 (Debian) or sha256 (Rocky publishes only this one)."
+  type        = string
+  default     = "sha512"
 
   validation {
-    condition     = can(regex("^[0-9a-f]{128}$", var.image_checksum))
-    error_message = "image_checksum must be a 128-character lowercase SHA-512."
+    condition     = contains(["sha256", "sha512"], var.image_checksum_algorithm)
+    error_message = "image_checksum_algorithm must be sha256 or sha512."
   }
 }
 

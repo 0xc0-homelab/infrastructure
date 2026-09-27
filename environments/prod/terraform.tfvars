@@ -35,6 +35,14 @@ templates = {
     image_checksum = "95e110dfcdbd0ed8a82a75ed9579802f9950cabf51a810dcc6388e81bc778188713878b9f28d583a0ea602fbf48b35996ae9ad37f584166d8fbd6489df248f53"
     bridge         = "mgmt"
   }
+  # Raw: no VM clones it. Packer bakes rocky-10-base from it, for the RKE2
+  # nodes. Rocky publishes only SHA-256.
+  "rocky-10-cloud" = {
+    image_url          = "https://dl.rockylinux.org/pub/rocky/10/images/x86_64/Rocky-10-GenericCloud-Base-10.2-20260525.0.x86_64.qcow2"
+    image_checksum     = "9fc9e9ff16888bb68ac39b0392e25c9c92684d50c85f1cce6ab549363bbc4b48"
+    checksum_algorithm = "sha256"
+    bridge             = "mgmt"
+  }
 }
 
 cloudflare_account_id = "ca1599ae7852d5b4718cba351adad927"

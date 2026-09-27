@@ -36,7 +36,9 @@ module "templates" {
   datastore_id   = var.template_datastore
   image_url      = each.value.image_url
   image_checksum = each.value.image_checksum
-  bridge         = each.value.bridge
+
+  image_checksum_algorithm = each.value.checksum_algorithm
+  bridge                   = each.value.bridge
 
   # The default bridge is one of the SDN VNets.
   depends_on = [module.sdn]

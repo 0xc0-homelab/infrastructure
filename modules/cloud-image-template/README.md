@@ -48,7 +48,8 @@ No modules.
 | <a name="input_bridge"></a> [bridge](#input\_bridge) | Default network for clones, which normally override it with their own zone VNet. | `string` | n/a | yes |
 | <a name="input_datastore_id"></a> [datastore\_id](#input\_datastore\_id) | Datastore for the downloaded image and the template disk. It must allow the import content type. | `string` | n/a | yes |
 | <a name="input_disk_size_gb"></a> [disk\_size\_gb](#input\_disk\_size\_gb) | Size of the template disk. Clones can grow it, never shrink it. | `number` | `8` | no |
-| <a name="input_image_checksum"></a> [image\_checksum](#input\_image\_checksum) | SHA-512 of the image, as published by the distribution. | `string` | n/a | yes |
+| <a name="input_image_checksum"></a> [image\_checksum](#input\_image\_checksum) | Checksum of the image, as published by the distribution, in image\_checksum\_algorithm. | `string` | n/a | yes |
+| <a name="input_image_checksum_algorithm"></a> [image\_checksum\_algorithm](#input\_image\_checksum\_algorithm) | Algorithm of image\_checksum: sha512 (Debian) or sha256 (Rocky publishes only this one). | `string` | `"sha512"` | no |
 | <a name="input_image_url"></a> [image\_url](#input\_image\_url) | URL of an uncompressed cloud image (qcow2). Pin a dated build, never a 'latest' link. | `string` | n/a | yes |
 | <a name="input_name"></a> [name](#input\_name) | Template name in Proxmox. | `string` | n/a | yes |
 | <a name="input_node_name"></a> [node\_name](#input\_node\_name) | Proxmox node that holds the template. | `string` | n/a | yes |
