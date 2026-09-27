@@ -1,6 +1,6 @@
 argument_specs:
   main:
-    short_description: Keep data off the internet at the node, in DOCKER-USER
+    short_description: Keep listed zones off the internet at the node, in DOCKER-USER
     description:
       - Docker on the node sets the iptables FORWARD policy to ACCEPT
         (`ip-forward-no-drop`), so this role adds a DROP rule to DOCKER-USER,
@@ -12,8 +12,8 @@ argument_specs:
       node_forwarding_no_egress_cidrs:
         type: list
         elements: str
-        default: [10.10.32.0/24]
-        description: Zones that must never reach the internet.
+        default: []
+        description: Zones that must never reach the internet. None today.
       node_forwarding_uplink:
         type: str
         default: eno1

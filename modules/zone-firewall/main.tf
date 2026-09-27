@@ -18,6 +18,7 @@ locals {
   rules = {
     for vnet, z in var.zones : vnet => [
       for i, e in var.transit : {
+        proto   = e.proto
         source  = local.cidr_of[e.from]
         dport   = local.dport[i]
         comment = e.note == "" ? "${e.from} -> ${z.alias}" : "${e.from} -> ${z.alias}: ${e.note}"
@@ -36,6 +37,7 @@ locals {
   ]
   node_rules = [
     for i, e in var.transit : {
+      proto   = e.proto
       source  = e.from == "internet" ? "" : local.cidr_of[e.from]
       dport   = join(",", [for p in local.node_ports[i] : replace(p, "-", ":")])
       comment = e.note == "" ? "${e.from} -> node" : "${e.from} -> node: ${e.note}"
@@ -71,7 +73,7 @@ resource "proxmox_virtual_environment_firewall_rules" "node" {
     content {
       type    = "in"
       action  = "ACCEPT"
-      proto   = "tcp"
+      proto   = rule.value.proto
       source  = rule.value.source == "" ? null : rule.value.source
       dport   = rule.value.dport
       comment = rule.value.comment
@@ -100,11 +102,12 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "main" {
   dynamic "rule" {
     for_each = each.value
     content {
-      type    = "in"
-      action  = "ACCEPT"
-      proto   = "tcp"
-      source  = rule.value.source
-      dport   = rule.value.dport
+      type   = "in"
+      action = "ACCEPT"
+      proto  = rule.value.proto
+      source = rule.value.source
+      # A protocol without ports (vrrp) takes none.
+      dport   = rule.value.dport == "" ? null : rule.value.dport
       comment = rule.value.comment
     }
   }

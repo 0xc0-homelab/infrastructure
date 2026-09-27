@@ -35,8 +35,8 @@ Create only the directories the role actually uses. An empty `files/` is noise.
 
 **1. Prefix every variable with the role name.** Ansible variables live in one
 flat global namespace: `port` from one role silently overwrites `port` from
-another. `edge_nginx_listen_port` cannot collide. No exceptions, including
-loop vars (`edge_nginx_vhosts`) and internal ones in `vars/`.
+another. `haproxy_listen_port` cannot collide. No exceptions, including
+loop vars (`haproxy_backends`) and internal ones in `vars/`.
 
 **2. `defaults/` and `vars/` are not interchangeable.** `defaults/` is the
 lowest precedence in Ansible: anything overrides it, which is what you want for
@@ -53,13 +53,13 @@ role's real documentation.
 ```yaml
 argument_specs:
   main:
-    short_description: Configure NGINX on the edge VM
+    short_description: Configure HAProxy on the LB VMs
     options:
-      edge_nginx_listen_address:
+      haproxy_listen_address:
         type: str
         required: true
         description: Zone IP to bind to. Never 0.0.0.0.
-      edge_nginx_vhosts:
+      haproxy_backends:
         type: list
         elements: dict
         default: []

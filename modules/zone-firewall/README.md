@@ -5,10 +5,13 @@ Its input is the transit matrix (`transit` in `environments/prod/terraform.tfvar
 the module computes every rule from it, and none is written by hand.
 
 - One **security group per zone** (`zone-<vnet>`) with its inbound rules, one
-  per matrix entry towards that zone, commented `<from> -> <to>: <note>`.
+  per matrix entry towards that zone, commented `<from> -> <to>: <note>`. Each
+  rule's protocol is the entry's `proto` (`tcp` by default, `udp` or `vrrp`);
+  a `vrrp` rule carries no ports.
 - Every VM gets its **own firewall on**: inbound DROP except its zone's group;
-  outbound ACCEPT, except zones that initiate nothing (`data`), which get DROP.
-  A VM's options and rules are **recreated whenever the VM is**: Proxmox deletes
+  outbound ACCEPT, except a zone with no destination in the matrix, which gets
+  DROP instead (none today). A VM's options and rules are **recreated whenever
+  the VM is**: Proxmox deletes
   them with the VM, and the provider cannot move rules to a new VMID in place.
   The trigger is the VM's NIC MAC, new on every creation.
 - The **node** gets the matrix entries towards `node`: from an admin zone only
@@ -67,7 +70,7 @@ No modules.
 | <a name="input_node_admin"></a> [node\_admin](#input\_node\_admin) | From admin\_zones the node admits only admin\_ports; from anywhere else, an entry's ports as written. | <pre>object({<br/>    admin_zones = list(string)<br/>    admin_ports = list(string)<br/>  })</pre> | n/a | yes |
 | <a name="input_node_enabled"></a> [node\_enabled](#input\_node\_enabled) | The node's own firewall: DROP on everything but its rules. Needs `enabled` too. | `bool` | n/a | yes |
 | <a name="input_node_name"></a> [node\_name](#input\_node\_name) | Proxmox node. | `string` | n/a | yes |
-| <a name="input_transit"></a> [transit](#input\_transit) | The transit matrix, validated by the root. Each entry becomes rules commented "<from> -> <to>: <note>". | <pre>list(object({<br/>    from  = string<br/>    to    = list(string)<br/>    ports = list(string)<br/>    note  = string<br/>  }))</pre> | n/a | yes |
+| <a name="input_transit"></a> [transit](#input\_transit) | The transit matrix, validated by the root. Each entry becomes rules commented "<from> -> <to>: <note>". | <pre>list(object({<br/>    from  = string<br/>    to    = list(string)<br/>    proto = string<br/>    ports = list(string)<br/>    note  = string<br/>  }))</pre> | n/a | yes |
 | <a name="input_vms"></a> [vms](#input\_vms) | Every VM, with its VMID, VNet and NIC MAC. A new MAC means the VM was recreated. | <pre>map(object({<br/>    vm_id = number<br/>    vnet  = string<br/>    mac   = string<br/>  }))</pre> | n/a | yes |
 | <a name="input_zones"></a> [zones](#input\_zones) | Every zone, keyed by VNet ID: its alias (the name the transit matrix uses) and CIDR. | <pre>map(object({<br/>    alias = string<br/>    cidr  = string<br/>  }))</pre> | n/a | yes |
 

@@ -4,8 +4,8 @@ nodes = ["pve-1"]
 
 sdn_zone_id = "homelab"
 
-# The homelab zones, explained in docs/zones.md. Keys are VNet IDs (Proxmox: up to 8 letters and digits), so
-# workloads is wklds; alias carries the full name.
+# The homelab zones, explained in docs/zones.md. Keys are VNet IDs (Proxmox: up
+# to 8 letters and digits); alias is the name everything else uses.
 zones = {
   mgmt = {
     alias = "mgmt"
@@ -21,21 +21,6 @@ zones = {
     alias = "platform"
     cidr  = "10.10.4.0/24"
     snat  = true
-  }
-  edge = {
-    alias = "edge"
-    cidr  = "10.10.8.0/24"
-    snat  = true
-  }
-  wklds = {
-    alias = "workloads"
-    cidr  = "10.10.16.0/20"
-    snat  = true
-  }
-  data = {
-    alias = "data"
-    cidr  = "10.10.32.0/24"
-    snat  = false
   }
 }
 
@@ -108,24 +93,25 @@ node_firewall_enabled = true
 node_web_hostnames = ["pve.0xc0.cc", "pbs.0xc0.cc", "s3.0xc0.cc", "s3-console.0xc0.cc"]
 
 # The transit matrix: every flow the firewall allows. Anything not here is
-# denied. Every port is TCP. `from` and `to` are zone names (the `alias` of a
+# denied. `proto` is tcp unless stated; an entry for a protocol without ports
+# (vrrp) has none. `from` and `to` are zone names (the `alias` of a
 # zone above), `node`, or `internet`; an empty `to` means the zone initiates
 # nothing. The zone-firewall module turns each entry into rules whose comment
 # is "<from> -> <to>: <note>". Notes are plain ASCII: Proxmox keeps them as is.
 transit = [
-  { from = "mgmt", to = ["ci", "platform", "edge", "workloads", "data", "node"], ports = [22, 3389, 6443, 8006, 8200], note = "admin access, arrives through the vm-access tunnel" },
-  { from = "ci", to = ["edge", "platform", "workloads", "data"], ports = [22], note = "deploy over SSH from the runner" },
-  { from = "ci", to = ["node"], ports = [443, 8006], note = "Proxmox API and RustFS, through Traefik on 443. NEVER 22 towards the node from ci" },
-  { from = "ci", to = ["platform"], ports = [8200], note = "Vault, from phase 3 onwards" },
-  { from = "edge", to = ["workloads"], ports = [8080, "30000-32767"], note = "NGINX towards apps and towards the cluster ingress" },
-  { from = "workloads", to = ["data"], ports = [5432, 6379] },
-  { from = "workloads", to = ["platform"], ports = [8200] },
-  { from = "platform", to = ["workloads", "data", "node"], ports = [9100, 10250], note = "Prometheus scrape" },
-  { from = "platform", to = ["internet"], ports = [443], note = "alerts to the phone" },
-  { from = "data", to = [], ports = [], note = "data does NOT initiate connections. Explicit egress deny rule." },
-  { from = "mgmt", to = ["node"], ports = [443], note = "Traefik on the host (Proxmox UI, PBS, RustFS), over WARP; never from the internet" },
-  { from = "internet", to = ["node"], ports = [22], note = "break-glass SSH, key-only; the Hetzner firewall keeps it closed until opened" },
   { from = "mgmt", to = ["mgmt"], ports = [22], note = "between the vm-access connectors; a WARP session can leave from either one" },
+  { from = "mgmt", to = ["ci"], ports = [22], note = "admin SSH, through the vm-access tunnel" },
+  { from = "mgmt", to = ["platform"], ports = [22, 443, 6443, 8200], note = "admin: SSH, the portals through the LB, the Kubernetes API, Vault" },
+  { from = "mgmt", to = ["node"], ports = [22, 8006], note = "admin: SSH and the Proxmox API, through the vm-access tunnel" },
+  { from = "mgmt", to = ["node"], ports = [443], note = "Traefik on the host (Proxmox UI, PBS, RustFS), over WARP; never from the internet" },
+  { from = "ci", to = ["platform"], ports = [22, 6443], note = "the runner: SSH to configure the VMs, and the Kubernetes API" },
+  { from = "ci", to = ["node"], ports = [443, 8006], note = "Proxmox API and RustFS, through Traefik on 443. NEVER 22 towards the node from ci" },
+  { from = "platform", to = ["platform"], ports = ["2379-2381", 6443, 9099, 9345, 10250, "30000-32767"], note = "the cluster: etcd, API, Canal health, supervisor, kubelet, NodePorts; the LB towards the nodes" },
+  { from = "platform", to = ["platform"], proto = "udp", ports = [8472], note = "Canal VXLAN between the cluster nodes" },
+  { from = "platform", to = ["platform"], proto = "vrrp", ports = [], note = "keepalived between the two LB VMs" },
+  { from = "platform", to = ["node"], ports = [9100], note = "node metrics" },
+  { from = "platform", to = ["internet"], ports = [443], note = "egress, alerts to the phone among it" },
+  { from = "internet", to = ["node"], ports = [22], note = "break-glass SSH, key-only; the Hetzner firewall keeps it closed until opened" },
 ]
 
 # The node is the router, on DROP. From the admin zones it admits only these

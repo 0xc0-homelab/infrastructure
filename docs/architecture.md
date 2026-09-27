@@ -31,7 +31,7 @@ flowchart TB
     end
 
     subgraph sdn["SDN Simple zone — managed by OpenTofu"]
-      zones["six VNets, one per zone<br/>host is .1 in each"]
+      zones["three VNets, one per zone<br/>host is .1 in each"]
     end
   end
 
@@ -76,7 +76,7 @@ flowchart TB
   ([`#37`](https://github.com/0xc0-homelab/infrastructure/issues/37)). IPv6
   is not filtered there.
 
-**Today:** Proxmox, Traefik, RustFS and PBS run, with the six VNets, the two
+**Today:** Proxmox, Traefik, RustFS and PBS run, with the three VNets, the two
 `vm-access` connectors and the zone firewall on.
 
 ## Templates
@@ -114,23 +114,19 @@ flowchart LR
     mgmt["mgmt<br/>10.10.0.0/24<br/>vm-access-01 .10<br/>vm-access-02 .20"]
     ci["ci<br/>10.10.1.0/24<br/>vm-ci .10"]
   end
-  platform["platform<br/>10.10.4.0/24<br/>vm-vault .10 · phase 3<br/>vm-platform .20 · phase 3"]
-  edge["edge<br/>10.10.8.0/24<br/>vm-edge .10 · phase 2"]
-  workloads["workloads<br/>10.10.16.0/20<br/>vm-apps .10 · phase 2<br/>vm-rke2 .20 · phase 6"]
-  data["data<br/>10.10.32.0/24<br/>vm-data .10 · phase 2"]
+  platform["platform<br/>10.10.4.0/24<br/>VIP .10<br/>vm-lb-01 .11 · vm-lb-02 .12<br/>vm-rke2-01/02/03 .21-.23"]
   node["node<br/>pve-1"]
   internet(("internet"))
 
-  mgmt -- "admin" --> ci & platform & edge & workloads & data & node
-  ci -- "22" --> edge & platform & workloads & data
-  ci -- "443, 8006" --> node
-  ci -- "8200" --> platform
-  edge -- "8080, 30000-32767" --> workloads
-  workloads -- "5432, 6379" --> data
-  workloads -- "8200" --> platform
-  platform -- "9100, 10250" --> workloads & data & node
-  platform -- "443" --> internet
+  mgmt -- "22" --> ci
+  mgmt -- "22, 443, 6443, 8200" --> platform
+  mgmt -- "22, 8006" --> node
   mgmt -- "443" --> node
+  ci -- "22, 6443" --> platform
+  ci -- "443, 8006" --> node
+  platform -- "9100" --> node
+  platform -- "443" --> internet
+  internet -- "22, break-glass" --> node
 ```
 
 The arrows are the entries of the transit matrix (`transit` in
@@ -139,14 +135,18 @@ missing:
 
 - **Nothing points at `mgmt` from another zone.** Only SSH between the two
   `vm-access` connectors stays inside it.
-- **Nothing leaves `data`**. It initiates no connection, and its
-  subnet has no SNAT either.
+- **`platform`'s internal traffic never leaves it.** The cluster's own ports —
+  etcd, the Kubernetes API, Canal's health check and its VXLAN overlay
+  (UDP 8472), the supervisor port, kubelet, the NodePort range, and keepalived
+  between the two LB VMs (VRRP, no ports) — stay inside the zone, so they are
+  self-loops the diagram does not draw. They are still entries of the matrix,
+  `platform -> platform`.
 
-The node accepts 22, 443 and 8006 from `mgmt`, 443 and 8006 from `ci`, and
-the scrape ports from `platform`. From the internet it accepts only SSH, as
-break-glass for when WARP is down: the Hetzner firewall keeps it closed until
-the operator opens it. Traefik is reached over WARP, where Gateway resolves
-its hostnames to `10.10.0.1`.
+The node accepts 22, 443 and 8006 from `mgmt`, 443 and 8006 from `ci`, and the
+node-metrics scrape (9100) from `platform`. From the internet it accepts only
+SSH, as break-glass for when WARP is down: the Hetzner firewall keeps it
+closed until the operator opens it. Traefik is reached over WARP, where
+Gateway resolves its hostnames to `10.10.0.1`.
 
 ## Web traffic
 
@@ -154,21 +154,24 @@ its hostnames to `10.10.0.1`.
 sequenceDiagram
   participant U as Visitor
   participant CF as Cloudflare
-  participant E as vm-edge
-  participant A as vm-apps / cluster ingress
+  participant LB as vm-lb-01 / vm-lb-02
+  participant K as RKE2 cluster
 
   U->>CF: HTTPS
-  CF->>E: Cloudflare Tunnel (outbound from vm-edge)
-  Note over E: cloudflared → open-appsec → NGINX, routed by server_name
-  E->>A: 8080 or a NodePort
-  A-->>U: response, back through the tunnel
+  CF->>LB: public tunnel (outbound from the LB VMs)
+  Note over LB: cloudflared → HAProxy
+  LB->>K: NodePort, across the three RKE2 nodes
+  Note over K: cluster ingress, with open-appsec
+  K-->>U: response, back through the tunnel
 ```
 
-No inbound port is opened for web traffic: `cloudflared` on `vm-edge` dials out
-to Cloudflare. **No admin panel is ever published this way.** From phase 6 the
-WAF moves to the cluster ingress, and is never duplicated.
+No inbound port is opened for web traffic: `cloudflared` on the LB VMs dials
+out to Cloudflare. **No admin panel is ever published this way**: portals sit
+behind Cloudflare Access, Vault and the Kubernetes API are reached only over
+WARP.
 
-**Today:** not built. **Target:** phase 2, for both `vm-edge` and `vm-apps`.
+**Today:** not built. **Target:** phase 2, the LB pair and the RKE2 cluster's
+ingress.
 
 ## Admin access
 
@@ -181,12 +184,12 @@ sequenceDiagram
 
   O->>CF: WARP, authenticated by Access
   CF->>V: tunnel with WARP routing to 10.10.0.0/16
-  V->>Z: 22, 3389, 6443, 8006, 8200
+  V->>Z: whatever mgmt's matrix entries allow towards it — SSH everywhere, the portals, the Kubernetes API and Vault towards platform, the Proxmox API towards the node
 ```
 
 The operator reaches every zone and the node's internal address directly,
 without a jump host, as if on the network. Private dashboards — Grafana, Vault
-UI, Proxmox — are reached this way, never through the edge.
+UI, Proxmox — are reached this way, never through the public tunnel.
 
 The **way back in** if this breaks is the Hetzner Rescue system.
 
