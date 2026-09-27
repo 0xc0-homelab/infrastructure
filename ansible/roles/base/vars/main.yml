@@ -1,0 +1,3 @@
+# The SSH daemon's unit is named after the distribution: ssh on Debian, sshd
+# on Rocky.
+base_ssh_service: "{{ 'ssh' if ansible_facts.os_family == 'Debian' else 'sshd' }}"

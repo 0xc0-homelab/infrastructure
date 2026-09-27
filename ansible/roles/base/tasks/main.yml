@@ -1,13 +1,19 @@
-- name: Install baseline packages
+- name: Install baseline packages (Debian)
   ansible.builtin.apt:
     name: "{{ base_packages }}"
     state: present
     update_cache: true
     cache_valid_time: 3600
+  when: ansible_facts.os_family == "Debian"
 
-# No start task for qemu-guest-agent: its unit binds to the virtio port that
-# Proxmox only adds once the agent is enabled in the VM config. systemd starts
-# it when the virtio port appears; no start task needed.
+- name: Install baseline packages (Rocky)
+  ansible.builtin.dnf:
+    name: "{{ base_packages }}"
+    state: present
+  when: ansible_facts.os_family == "RedHat"
+
+# No start task for qemu-guest-agent: systemd starts it when the virtio port
+# appears.
 
 - name: Harden SSH
   ansible.builtin.template:

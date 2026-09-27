@@ -6,4 +6,6 @@ galaxy_info:
   platforms:
     - name: Debian
       versions: [trixie]
+    - name: EL
+      versions: ["10"]
 dependencies: []

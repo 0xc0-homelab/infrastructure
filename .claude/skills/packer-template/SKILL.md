@@ -12,10 +12,12 @@ Every VM clones a template Packer baked. The chain:
 | `debian-13-cloud` | — | the official cloud image, imported raw by OpenTofu (`modules/cloud-image-template`). No VM clones it |
 | `debian-13-base` | `debian-13-cloud` | the `base` role: guest agent, SSH hardening |
 | `debian-13-runner` | `debian-13-base` | the `github_runner` role's `install` entry point |
+| `rocky-10-cloud` | — | the official Rocky Linux 10 cloud image, imported raw by OpenTofu. No VM clones it |
+| `rocky-10-base` | `rocky-10-cloud` | the `base` role, for the RKE2 nodes |
 
-`packer/build-order` starts at `debian-13-base`: `debian-13-cloud` is
-OpenTofu's, not Packer's, so it is not in that file. Each later entry clones
-the one before it.
+The raw images are OpenTofu's, not Packer's, so they are not in
+`packer/build-order`. Every entry there clones a raw image or a template listed
+above it. The `base` role serves both families: Debian and Rocky.
 
 Packer produces the template; OpenTofu clones it. The split matters: anything
 that belongs to a specific VM (its address, its hostname, its role) is
