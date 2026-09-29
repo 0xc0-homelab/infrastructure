@@ -17,6 +17,12 @@ resource "proxmox_virtual_environment_vm" "main" {
   started = true
   on_boot = true
 
+  # An apply never restarts a VM on its own: a change that needs one stays
+  # pending, and the VMs are restarted one at a time with
+  # scripts/rolling-reboot. Otherwise one apply could restart the CI VMs
+  # running it, both vm-access connectors, or etcd's whole quorum at once.
+  reboot_after_update = false
+
   clone {
     vm_id = var.template_vm_id
     full  = true
