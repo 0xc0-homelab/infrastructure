@@ -18,8 +18,16 @@ output "public_tunnel_token" {
   sensitive   = true
 }
 
+output "admin_tunnel_token" {
+  description = "Connector token for cloudflared on vm-access-01 and vm-access-02. Read it with tofu output -raw, straight into Ansible; never to a file."
+  value       = module.admin_tunnel.token
+  sensitive   = true
+}
+
+# The old name, for the wrapper script until it reads admin_tunnel_token
+# (#115). Goes with that PR.
 output "vm_access_tunnel_token" {
-  description = "Connector token for cloudflared on vm-access. Read it with tofu output -raw, straight into Ansible; never to a file."
-  value       = module.access_tunnel.token
+  description = "Deprecated: admin_tunnel_token."
+  value       = module.admin_tunnel.token
   sensitive   = true
 }

@@ -69,12 +69,13 @@ module "public_tunnel" {
   ingress    = []
 }
 
-# vm-access's tunnel: the admin path. WARP clients reach every zone through it.
-module "access_tunnel" {
+# The admin tunnel: the admin path. WARP clients reach every zone through it;
+# its connectors run on vm-access-01 and vm-access-02.
+module "admin_tunnel" {
   source = "../../modules/cloudflare-tunnel"
 
   account_id = var.cloudflare_account_id
-  name       = "vm-access"
+  name       = "admin"
   routes     = [var.homelab_network]
 }
 
