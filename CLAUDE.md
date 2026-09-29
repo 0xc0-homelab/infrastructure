@@ -58,14 +58,13 @@ into the environment, never onto disk:
 scripts/ansible playbooks/vm-access.yml --check --diff
 ```
 
-The node itself is touched by Ansible **only** for what the SDN needs:
-`playbooks/node.yml` runs `node_forwarding`, which keeps any zone listed in
-`node_forwarding_no_egress_cidrs` off the internet, with a DROP rule in
-`DOCKER-USER`. The list is empty today: no zone needs it. The other zones need
-no rule of their own: Docker carries one setting by hand,
+Ansible never touches the node. Every zone reaches the internet, so the node
+needs no forwarding rule of its own: Docker carries one setting by hand,
 `ip-forward-no-drop`, that keeps the `FORWARD` policy ACCEPT
-(`docs/architecture.md`, The node). Traefik, RustFS, PBS and Docker itself are
-never touched from this repo.
+(`docs/architecture.md`, The node). A zone that must never egress would need a
+DROP rule in `DOCKER-USER`; the role that wrote it, `node_forwarding`, was
+removed while unused (#101) and is in git history. Traefik, RustFS, PBS and
+Docker itself are never touched from this repo.
 
 Ansible reaches every VM directly over WARP.
 
