@@ -14,7 +14,9 @@ WorkingDirectory=/opt/actions-runner/%i
 ExecStartPre=+/usr/local/libexec/github-runner-prune %i
 ExecStartPre=+/usr/bin/rm -rf /opt/actions-runner/%i/_work
 ExecStartPre=+/usr/local/libexec/github-runner-jit %i
-ExecStart=/bin/bash -c 'config=$(cat /run/github-runner/%i.jit); rm -f /run/github-runner/%i.jit; exec ./run.sh --jitconfig "$config"'
+# From the copy's real path, not the link: the runner builds its paths from
+# where it starts, and a link that moves under a running job must not move them.
+ExecStart=/bin/bash -c 'cd "$(readlink -f /opt/actions-runner/%i)" && config=$(cat /run/github-runner/%i.jit); rm -f /run/github-runner/%i.jit; exec ./run.sh --jitconfig "$config"'
 # One job, then the runner exits and deregisters: start the next one.
 Restart=always
 RestartSec=10s

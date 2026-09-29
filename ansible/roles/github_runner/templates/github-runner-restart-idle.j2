@@ -7,9 +7,9 @@
 set -euo pipefail
 systemctl list-units --plain --no-legend --all 'github-runner@*.service' | awk '{print $1}' |
   while read -r unit; do
-    cgroup="/sys/fs/cgroup$(systemctl show -p ControlGroup --value "$unit")"
-    pids=$(paste -sd, "$cgroup/cgroup.procs" 2>/dev/null || true)
-    if [ -n "$pids" ] && ps -o comm= -p "$pids" | grep -qx Runner.Worker; then
+    instance="${unit#github-runner@}"
+    instance="${instance%.service}"
+    if /usr/local/libexec/github-runner-busy "$instance"; then
       echo "$unit busy: starts on the new config after its job"
     else
       systemctl restart "$unit"

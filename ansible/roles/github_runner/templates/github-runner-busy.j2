@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# {{ ansible_managed }}
+# Exits 0 if runner instance $1 is running a job, 1 if it is idle: a job runs
+# in a Runner.Worker process inside the instance's cgroup.
+set -euo pipefail
+cgroup="/sys/fs/cgroup$(systemctl show -p ControlGroup --value "github-runner@$1.service")"
+pids=$(paste -sd, "$cgroup/cgroup.procs" 2>/dev/null || true)
+[ -n "$pids" ] && ps -o comm= -p "$pids" | grep -qx Runner.Worker

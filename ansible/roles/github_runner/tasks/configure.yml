@@ -47,7 +47,8 @@
     owner: root
     group: root
     mode: "0700"
-  loop: [github-runner-prune, github-runner-restart-idle]
+  loop: [github-runner-busy, github-runner-prune, github-runner-restart-idle]
+  register: github_runner_helpers
 
 # One copy per instance and version: each keeps its own _work and _diag, and a
 # job running from one copy keeps it while the next version unpacks beside it.
@@ -86,6 +87,30 @@
   loop: "{{ range(1, github_runner_count + 1) | list }}"
   register: github_runner_legacy
 
+# A runner that started from such a directory built its paths from it: moved
+# under a running job, they would point into the new copy and break the rest of
+# the job, the one running this playbook among them. A busy one moves on the
+# next run, once idle.
+- name: Find the busy runners
+  ansible.builtin.command:
+    cmd: "/usr/local/libexec/github-runner-busy {{ item }}"
+  loop: "{{ range(1, github_runner_count + 1) | list }}"
+  register: github_runner_probe
+  changed_when: false
+  failed_when: github_runner_probe.rc not in [0, 1]
+  check_mode: false
+  # On a dry run before the first real one, the helper is not there yet.
+  when: not (ansible_check_mode and github_runner_helpers.changed)
+
+- name: Note the legacy directories held by a busy runner
+  ansible.builtin.set_fact:
+    github_runner_held: >-
+      {{ github_runner_legacy.results
+         | selectattr('stat.isdir', 'defined') | selectattr('stat.isdir') | rejectattr('stat.islnk')
+         | map(attribute='item')
+         | select('in', github_runner_probe.results | selectattr('rc', 'defined') | selectattr('rc', 'equalto', 0) | map(attribute='item') | list)
+         | list }}
+
 - name: Move it aside
   ansible.builtin.command:
     cmd: "mv /opt/actions-runner/{{ item.item }} /opt/actions-runner/{{ item.item }}-legacy"
@@ -93,7 +118,7 @@
   loop: "{{ github_runner_legacy.results }}"
   loop_control:
     label: "{{ item.item }}"
-  when: item.stat.isdir | default(false) and not item.stat.islnk
+  when: item.stat.isdir | default(false) and not item.stat.islnk and item.item not in github_runner_held
 
 # What each instance starts from: a running job keeps the copy it started in.
 - name: Point each runner at its copy
@@ -105,7 +130,9 @@
     group: runner
     force: true
   loop: "{{ range(1, github_runner_count + 1) | list }}"
-  when: not (ansible_check_mode and (github_runner_tarball.changed or github_runner_copies.changed))
+  when:
+    - item not in github_runner_held
+    - not (ansible_check_mode and (github_runner_tarball.changed or github_runner_copies.changed))
   notify: Restart idle runners
 
 - name: Install the systemd unit
