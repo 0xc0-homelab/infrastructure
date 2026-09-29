@@ -273,3 +273,18 @@ variable "cluster" {
     error_message = "A cluster machine shares a name or an address with another VM."
   }
 }
+
+variable "backup" {
+  description = "The daily backup of every VM to PBS: the PBS storage on the node, when it runs, and what PBS keeps."
+  type = object({
+    storage  = string
+    schedule = string
+    retention = object({
+      last    = optional(number, 0)
+      daily   = optional(number, 0)
+      weekly  = optional(number, 0)
+      monthly = optional(number, 0)
+      yearly  = optional(number, 0)
+    })
+  })
+}

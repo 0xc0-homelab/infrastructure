@@ -179,3 +179,15 @@ node_firewall = {
   admin_zones = ["mgmt", "ci"]
   admin_ports = [22, 443, 8006]
 }
+
+# Every VM, daily at 03:00, to PBS on the Storage Box (operator decision,
+# 2026-09-29). Half a year of history: 7 daily, 4 weekly, 6 monthly.
+backup = {
+  storage  = "sbox"
+  schedule = "03:00"
+  retention = {
+    daily   = 7
+    weekly  = 4
+    monthly = 6
+  }
+}

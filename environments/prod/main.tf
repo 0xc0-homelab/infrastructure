@@ -172,3 +172,19 @@ module "zone_firewall" {
 
   depends_on = [module.vms, module.cluster]
 }
+
+# Every VM to PBS, daily, data disks included: that covers the Longhorn volumes
+# on the RKE2 servers. Templates stay out; Packer rebuilds them.
+module "backup" {
+  source = "../../modules/backup-job"
+
+  id        = "vms-daily"
+  node_name = var.nodes[0]
+  storage   = var.backup.storage
+  schedule  = var.backup.schedule
+  vm_ids = concat(
+    [for name, vm in module.vms : vm.vm_id],
+    [for name, vm in module.cluster.vms : vm.vm_id],
+  )
+  retention = var.backup.retention
+}
