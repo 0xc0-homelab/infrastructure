@@ -34,8 +34,8 @@ firewalls. SOPS works, Rescue and WARP are tested.
 
 Phase 2 builds the cluster (workspace `docs/design.md`): the Rocky template
 chain, one RKE2 cluster in `platform`, the HAProxy load balancer with the public
-tunnel, ArgoCD, the ingress with open-appsec, and backups to B2 with a timed
-restore.
+tunnel, ArgoCD, Longhorn, the ingress (Traefik) with its WAF (CrowdSec), and
+backups through PBS with a timed restore.
 
 Do not implement VMs or services from later phases even if they fit. The phase
 of each VM is in `docs/zones.md`, Machines. If something requires a future phase, say so
@@ -211,12 +211,12 @@ firewall, addressing or inventory. Check the eight invariants in
 
 `main` only. PR required. The apply needs manual approval.
 
-## open-appsec
+## The cluster's ingress and WAF
 
-It is the least battle-tested piece of the stack and there is little reliable
-documentation in model training data. **Do not invent directives or policy
-names.** If you are unsure about the syntax, say so and check the official
-documentation.
+Traefik with the Gateway API, and CrowdSec in front of it, both deployed by
+ArgoCD from `gitops` (operator decision, 2026-09-29). This repo only gives
+them what the cluster boots with: the bouncer's key from SOPS. open-appsec is
+deferred to phase 6, and the load balancers stay layer 4.
 
 ## Skills in this repo
 
@@ -249,9 +249,10 @@ Caveats:
 
 ## Discarded — do not propose it
 
-WireGuard (Access+WARP covers it) · Traefik as ingress (with no containers
-alongside it adds nothing over NGINX; it only runs on the host as its reverse
-proxy, outside IaC) · Coraza (open-appsec avoids tuning the CRS) ·
+WireGuard (Access+WARP covers it) · Coraza (the CRS needs hand-tuning;
+CrowdSec's virtual patching does not) · open-appsec for now (its Kubernetes
+integrations run on retired or unmaintained pieces) · kube-vip and MetalLB
+(the load balancer VMs keep the VIP) ·
 BunkerWeb (config in SQLite) · OPNsense and VyOS (fragile hop, immature
 providers) · VLAN zones now (an SDN Simple zone covers one node) · Terraform Stacks
 (paid) · OpenBao (Vault's BSL does not affect this case) · Loki and Tempo now.
