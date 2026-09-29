@@ -76,9 +76,10 @@ by root on `vm-ci`; jobs run as the unprivileged `runner` user.
 `playbooks/cluster.yml` builds the cluster: `haproxy` and `keepalived` on the
 `lb` pair, holding the VIP, then `rke2_server` on each server, one at a time.
 The first server initialises the cluster; the others join through the VIP,
-with the token from `secrets/ansible.sops.yaml`. The last play writes the
-admin kubeconfig, pointed at the VIP, to `secrets/kubeconfig.sops.yaml`,
-encrypted and never in the clear on disk.
+with the token from `secrets/ansible.sops.yaml`. The admin kubeconfig is
+stored nowhere but on the servers (operator decision, 2026-09-29): whatever
+needs it, the pipeline or the laptop, reads it over SSH from a server, into
+memory.
 
 Every role follows the `ansible-role` skill and passes `ansible-lint` on the
 `production` profile.
@@ -125,8 +126,11 @@ RKE2 pods and services, lab).
 - No zone must initiate towards a destination that isn't in `transit`: an
   entry with an empty `to` gives that zone's VMs an outbound DROP policy. None
   today, but the mechanism stays for a zone that must never egress.
-- No other zone initiates towards `mgmt`. SSH between the `vm-access`
-  connectors, inside `mgmt`, is the only way in.
+- No other zone initiates towards `mgmt`, with one exception: SSH from the
+  CI VMs named in its `transit` entry (`sources`), never the whole `ci` zone,
+  so the pipeline can run the vm-access playbook (operator decision,
+  2026-09-29). Besides that, SSH between the `vm-access` connectors, inside
+  `mgmt`, is the only way in.
 - The node has a DROP policy (`node_firewall_enabled`): 22, 443 and 8006
   from `mgmt`, 443 and 8006 from `ci`, 9100 from `platform`, and
   only SSH (22) from the internet, as break-glass: the Hetzner firewall keeps

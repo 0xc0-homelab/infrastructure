@@ -23,3 +23,22 @@
     group: root
     mode: "0644"
   notify: Restart ssh
+
+- name: Find the admin user's home
+  ansible.builtin.getent:
+    database: passwd
+    key: "{{ base_admin_user }}"
+  when: base_admin_user | length > 0
+
+# Added, never removed: a key taken off the list is revoked by rebuilding the
+# VM, or by hand, deliberately.
+- name: Authorise the admin keys
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_facts.getent_passwd[base_admin_user][4] }}/.ssh/authorized_keys"
+    line: "{{ item }}"
+    create: false
+  loop: "{{ base_admin_ssh_keys }}"
+  loop_control:
+    # The key's comment, not the key.
+    label: "{{ item.split(' ')[2:] | join(' ') }}"
+  when: base_admin_user | length > 0

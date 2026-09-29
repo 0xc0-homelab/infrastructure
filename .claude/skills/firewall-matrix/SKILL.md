@@ -15,10 +15,12 @@ The flow is always: edit the matrix → plan → read every changed rule.
 ## Procedure
 
 1. Edit `transit`: change an entry, or add one. An entry is
-   `{ from, to, proto, ports, note }`. `from` and `to` are zone aliases,
-   `node` or `internet`. `proto` defaults to `tcp` when left out; set it to
-   `udp` for a UDP flow, or `vrrp` for one with no ports at all (keepalived) —
-   a `vrrp` entry's `ports` is `[]`. `note` is plain ASCII and says why.
+   `{ from, to, proto, ports, sources, note }`. `from` and `to` are zone
+   aliases, `node` or `internet`. `proto` defaults to `tcp` when left out; set
+   it to `udp` for a UDP flow, or `vrrp` for one with no ports at all
+   (keepalived) — a `vrrp` entry's `ports` is `[]`. `sources`, optional, names
+   VMs of the `from` zone: the entry then admits only their addresses, not the
+   whole zone. `note` is plain ASCII and says why.
 2. If the change is towards the node from `mgmt` or `ci`, check that its ports
    are in `node_firewall.admin_ports`: anything else is dropped from the node
    rule on purpose.
@@ -43,7 +45,9 @@ The flow is always: edit the matrix → plan → read every changed rule.
 ## Never
 
 - Write a firewall rule as a resource outside the module.
-- Add an entry towards `mgmt` from another zone. The plan refuses it.
+- Add an entry towards `mgmt` from another zone. The plan refuses it, except
+  SSH (22) from CI VMs named in `sources`, which exists once already: extend
+  its `sources` rather than add another.
 - Open the node to `internet`, beyond the break-glass SSH entry already there.
 - Give a `tcp` or `udp` entry an empty `ports` unless its `to` is also empty;
   give a `vrrp` entry any ports at all. The plan refuses both.

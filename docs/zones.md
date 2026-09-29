@@ -111,8 +111,11 @@ that breaks them fails.
    ports, `vrrp` entries list none **(code)**. No zone initiates towards an
    empty `to` today, but the mechanism — an explicit outbound DROP policy —
    stays available for one that must.
-5. Nothing enters `mgmt` from another zone **(code)**. SSH between the two
-   `vm-access` connectors, inside `mgmt`, is the only way in.
+5. Nothing enters `mgmt` from another zone **(code)**, except SSH from the CI
+   VMs the entry names in `sources`, never the whole `ci` zone: the pipeline
+   runs the vm-access playbook (operator decision, 2026-09-29). Besides that,
+   SSH between the two `vm-access` connectors, inside `mgmt`, is the only way
+   in.
 6. The node stays on DROP, with only 22, 443 and 8006 from `10.10.0.0/22` (22
    never from `ci`), 9100 from `platform`, and from the internet only SSH as
    break-glass, closed by the Hetzner firewall until opened **(code)**. Any

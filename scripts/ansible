@@ -1,13 +1,18 @@
 #!/usr/bin/env bash
-# Runs ansible-playbook with the vm-access tunnel token read from the OpenTofu
-# state, and the secrets of secrets/ansible.sops.yaml, straight into the
-# environment — never onto disk.
+# Runs ansible-playbook with the vm-access tunnel token and the admin SSH keys
+# read from the OpenTofu state, and the secrets of secrets/ansible.sops.yaml,
+# straight into the environment — never onto disk.
 # Usage: scripts/ansible playbooks/vm-access.yml --check --diff
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 token="$(sops exec-env secrets/tofu.sops.yaml 'tofu -chdir=environments/prod output -raw vm_access_tunnel_token')"
 export CLOUDFLARED_TUNNEL_TOKEN="$token"
+
+# The admin keys, as JSON: vm_admin_ssh_keys in terraform.tfvars is the one
+# list, for cloud-init and for the base role alike.
+HOMELAB_ADMIN_SSH_KEYS="$(sops exec-env secrets/tofu.sops.yaml 'tofu -chdir=environments/prod output -json vm_admin_ssh_keys')"
+export HOMELAB_ADMIN_SSH_KEYS
 
 GITHUB_RUNNER_APP_PRIVATE_KEY="$(sops decrypt --extract '["github_runner_app_private_key"]' secrets/ansible.sops.yaml)"
 export GITHUB_RUNNER_APP_PRIVATE_KEY

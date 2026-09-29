@@ -102,6 +102,11 @@ resource "proxmox_virtual_environment_vm" "main" {
     # A template only matters when the VM is created: a newer one, or one
     # rebuilt under a new VMID, must not recreate every VM cloned from it.
     # Moving a VM onto the new template is bumping its rebuild.
-    ignore_changes = [clone]
+    #
+    # The user and its keys, likewise: cloud-init applies them on a VM's first
+    # boot only, so a change later would never reach the guest, and updating a
+    # running VM's cloud-init drive may reboot it. The base role keeps the keys
+    # on every VM that exists.
+    ignore_changes = [clone, initialization[0].user_account]
   }
 }

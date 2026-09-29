@@ -2,7 +2,7 @@ argument_specs:
   main:
     short_description: Baseline for every homelab VM
     description:
-      - Installs the guest agent and hardens SSH. This is the baseline
+      - Installs the guest agent, hardens SSH, and keeps the admin user's keys. This is the baseline
         debian-13-base bakes on top of the cloud image, re-applied by the
         playbooks.
     options:
@@ -11,3 +11,12 @@ argument_specs:
         elements: str
         default: [qemu-guest-agent]
         description: Packages installed on every VM.
+      base_admin_user:
+        type: str
+        default: ""
+        description: Admin user whose authorized_keys the role keeps. Empty skips it, as on a Packer build.
+      base_admin_ssh_keys:
+        type: list
+        elements: str
+        default: []
+        description: Public keys the admin user accepts. Added, never removed.

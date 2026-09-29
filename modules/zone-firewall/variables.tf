@@ -17,13 +17,14 @@ variable "zones" {
 }
 
 variable "transit" {
-  description = "The transit matrix, validated by the root. Each entry becomes rules commented \"<from> -> <to>: <note>\"."
+  description = "The transit matrix, validated by the root. Each entry becomes rules commented \"<from> -> <to>: <note>\". sources, when not empty, narrows the source from the whole from zone to those addresses."
   type = list(object({
-    from  = string
-    to    = list(string)
-    proto = string
-    ports = list(string)
-    note  = string
+    from    = string
+    to      = list(string)
+    proto   = string
+    ports   = list(string)
+    sources = list(string)
+    note    = string
   }))
 }
 

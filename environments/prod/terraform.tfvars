@@ -53,9 +53,15 @@ cloudflare_account_id = "ca1599ae7852d5b4718cba351adad927"
 zero_trust_team       = "0xc0"
 homelab_network       = "10.10.0.0/16"
 
-vm_admin_user     = "ops"
-vm_admin_ssh_keys = ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO0Sq1ydjDPRC82QwtxDWSxk2ci/E2bChEJCwm665nzZ sergioaten@0xc0-homelab 2026-09-22"]
-vm_dns_servers    = ["1.1.1.1", "1.0.0.1"]
+vm_admin_user = "ops"
+# The operator's key, and CI's, whose private half is in
+# secrets/ansible.sops.yaml: the pipeline runs every playbook. cloud-init sets
+# them on a new VM; the base role keeps them on every VM.
+vm_admin_ssh_keys = [
+  "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO0Sq1ydjDPRC82QwtxDWSxk2ci/E2bChEJCwm665nzZ sergioaten@0xc0-homelab 2026-09-22",
+  "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBfmJpvE1msYS0+VYbfP2M8y0+w2DzuA7LLe5k8GvSlP ci@0xc0-homelab 2026-09-29",
+]
+vm_dns_servers = ["1.1.1.1", "1.0.0.1"]
 
 # The VMs that exist. The addressing plan, later phases included, is in
 # docs/zones.md.
@@ -142,6 +148,9 @@ transit = [
   { from = "mgmt", to = ["node"], ports = [22, 8006], note = "admin: SSH and the Proxmox API, through the vm-access tunnel" },
   { from = "mgmt", to = ["node"], ports = [443], note = "Traefik on the host (Proxmox UI, PBS, RustFS), over WARP; never from the internet" },
   { from = "ci", to = ["platform"], ports = [22, 6443], note = "the runner: SSH to configure the VMs, and the Kubernetes API" },
+  # The one way into mgmt from another zone (operator decision, 2026-09-29):
+  # the pipeline runs the vm-access playbook. Only the CI VMs, not the zone.
+  { from = "ci", to = ["mgmt"], ports = [22], sources = ["vm-ci"], note = "the pipeline's playbooks, from the CI VMs only" },
   { from = "ci", to = ["node"], ports = [443, 8006], note = "Proxmox API and RustFS, through Traefik on 443. NEVER 22 towards the node from ci" },
   { from = "platform", to = ["platform"], ports = ["2379-2381", 6443, 9099, 9345, 10250, "30000-32767"], note = "the cluster: etcd, API, Canal health, supervisor, kubelet, NodePorts; the LB towards the nodes" },
   { from = "platform", to = ["platform"], proto = "udp", ports = [8472], note = "Canal VXLAN between the cluster nodes" },
