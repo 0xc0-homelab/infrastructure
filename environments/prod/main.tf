@@ -69,8 +69,7 @@ module "public_tunnel" {
   account_id = var.cloudflare_account_id
   name       = "public"
   ingress = flatten([for d in var.public_domains : [
-    { hostname = "*.${d}", service = "https://${var.cluster.vip}:443" },
-    { hostname = d, service = "https://${var.cluster.vip}:443" },
+    for h in ["*.${d}", d] : { hostname = h, service = "https://${var.cluster.vip}:443" }
   ]])
 }
 

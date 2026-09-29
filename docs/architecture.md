@@ -170,7 +170,9 @@ out to Cloudflare. From there to Traefik the traffic is HTTPS again, checked
 against a Let's Encrypt wildcard issued by cert-manager (DNS-01 through
 Cloudflare), with the request's host as SNI. The tunnel serves every name of
 each domain in `public_domains`; a name is public only once external-dns gives
-it a record, which it does only for the routes marked public. **No admin panel is ever published this way**: the portals,
+it a record, which it does only for the routes marked public.
+
+**No admin panel is ever published this way**: the portals,
 Vault and the Kubernetes API are reached only over WARP (operator decision,
 2026-09-29; publishing a portal behind Cloudflare Access is deferred).
 
@@ -188,7 +190,7 @@ sequenceDiagram
 
   O->>CF: WARP, authenticated by Access
   CF->>V: tunnel with WARP routing to 10.10.0.0/16
-  V->>Z: whatever mgmt's matrix entries allow towards it — SSH everywhere, the portals (on the VIP's port 80), the Kubernetes API and Vault towards platform, the Proxmox API towards the node
+  V->>Z: whatever mgmt's matrix entries allow towards it — SSH everywhere, the portals (HTTPS on the VIP's 443; 80 only redirects), the Kubernetes API and Vault towards platform, the Proxmox API towards the node
 ```
 
 The operator reaches every zone and the node's internal address directly,
