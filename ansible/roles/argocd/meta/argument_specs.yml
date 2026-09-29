@@ -34,5 +34,5 @@ argument_specs:
         description: Branch the root Application follows.
       argocd_repo_path:
         type: str
-        default: clusters/prod
+        default: bootstrap/prod
         description: Directory the root Application syncs, recursively.

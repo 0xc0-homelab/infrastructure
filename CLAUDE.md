@@ -88,7 +88,7 @@ public tunnel's `cloudflared` on the `lb` pair, holding the VIP, then
 initialises the cluster; the others join through the VIP, with the token from
 `secrets/ansible.sops.yaml`. The `argocd` role writes ArgoCD's `HelmChart` and
 the root `Application` into RKE2's manifests directory: RKE2's helm-controller
-installs ArgoCD, and ArgoCD syncs `clusters/prod/` from `gitops` (operator
+installs ArgoCD, and ArgoCD syncs `bootstrap/prod/` from `gitops` (operator
 decision, 2026-09-29). There is no OpenTofu root for the cluster. The admin kubeconfig is
 stored nowhere but on the servers (operator decision, 2026-09-29): whatever
 needs it, the pipeline or the laptop, reads it over SSH from a server, into

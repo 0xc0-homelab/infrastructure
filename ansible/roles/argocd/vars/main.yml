@@ -14,3 +14,7 @@ argocd_values:
   configs:
     secret:
       argocdServerAdminPassword: "{{ argocd_admin_password_bcrypt }}"
+    # gitops lays each component out as a Kustomize directory whose
+    # helmCharts inflate its pinned charts: Kustomize needs Helm for that.
+    cm:
+      kustomize.buildOptions: --enable-helm
