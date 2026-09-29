@@ -1,0 +1,16 @@
+# Every RKE2 server applies what it finds here, and again whenever it changes.
+argocd_manifests_dir: /var/lib/rancher/rke2/server/manifests
+argocd_chart_repo: https://argoproj.github.io/argo-helm
+
+# The chart's values. Dex stays off: single sign-on comes with Vault and OIDC
+# in phase 3.
+argocd_values:
+  global:
+    image: "{{ argocd_image }}"
+  redis:
+    image: "{{ argocd_redis_image }}"
+  dex:
+    enabled: false
+  configs:
+    secret:
+      argocdServerAdminPassword: "{{ argocd_admin_password_bcrypt }}"

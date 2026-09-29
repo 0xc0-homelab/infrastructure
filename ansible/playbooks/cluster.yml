@@ -48,3 +48,10 @@
         rke2_server_bootstrap: "{{ inventory_hostname == groups['rke2_servers'][0] }}"
         rke2_server_tls_san:
           - "{{ platform_vip }}"
+    # ArgoCD, through RKE2's own helm-controller: the same manifests on every
+    # server. From there ArgoCD syncs everything else from gitops.
+    - role: argocd
+      vars:
+        # Decrypted from secrets/ansible.sops.yaml by the wrapper script, into
+        # the environment only.
+        argocd_admin_password_bcrypt: "{{ lookup('ansible.builtin.env', 'ARGOCD_ADMIN_PASSWORD_BCRYPT') }}"

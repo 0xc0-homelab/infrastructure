@@ -82,10 +82,14 @@ by root on the CI VMs, `vm-ci-01` and `vm-ci-02`; jobs run as the
 unprivileged `runner` user. Each runner carries the `homelab` label and its
 VM's name, so a job can pin itself to one VM.
 
-`playbooks/cluster.yml` builds the cluster: `haproxy` and `keepalived` on the
-`lb` pair, holding the VIP, then `rke2_server` on each server, one at a time.
-The first server initialises the cluster; the others join through the VIP,
-with the token from `secrets/ansible.sops.yaml`. The admin kubeconfig is
+`playbooks/cluster.yml` builds the cluster: `haproxy`, `keepalived` and the
+public tunnel's `cloudflared` on the `lb` pair, holding the VIP, then
+`rke2_server` and `argocd` on each server, one at a time. The first server
+initialises the cluster; the others join through the VIP, with the token from
+`secrets/ansible.sops.yaml`. The `argocd` role writes ArgoCD's `HelmChart` and
+the root `Application` into RKE2's manifests directory: RKE2's helm-controller
+installs ArgoCD, and ArgoCD syncs `clusters/prod/` from `gitops` (operator
+decision, 2026-09-29). There is no OpenTofu root for the cluster. The admin kubeconfig is
 stored nowhere but on the servers (operator decision, 2026-09-29): whatever
 needs it, the pipeline or the laptop, reads it over SSH from a server, into
 memory.
