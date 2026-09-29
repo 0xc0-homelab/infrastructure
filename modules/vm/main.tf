@@ -96,7 +96,8 @@ resource "proxmox_virtual_environment_vm" "main" {
     # replaces one fails, in CI and from the laptop alike. OpenTofu takes it
     # only as a literal, so it covers every VM. A deliberate rebuild or removal
     # lifts it in that same PR, and the next PR sets it back.
-    prevent_destroy = true
+    # Lifted for #120, the RKE2 servers' rebuild; the next PR sets it back.
+    prevent_destroy = false
 
     replace_triggered_by = [terraform_data.rebuild]
     # A template only matters when the VM is created: a newer one, or one
