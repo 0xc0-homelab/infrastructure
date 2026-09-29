@@ -100,6 +100,41 @@ module "vms" {
   depends_on = [module.sdn]
 }
 
+# The RKE2 cluster and its HAProxy + keepalived pair, created together.
+module "cluster" {
+  source = "../../modules/rke2-cluster"
+
+  node_name    = var.nodes[0]
+  datastore_id = var.template_datastore
+  vnet         = var.cluster.vnet
+  cidr         = var.zones[var.cluster.vnet].cidr
+  dns_servers  = var.vm_dns_servers
+
+  # The same fallback as the vms: a missing template must not fail the plan.
+  load_balancers = {
+    template_vm_id = lookup(local.template_ids, var.cluster.load_balancers.template, 2147483647)
+    cores          = var.cluster.load_balancers.cores
+    memory_mb      = var.cluster.load_balancers.memory_mb
+    disk_size_gb   = var.cluster.load_balancers.disk_size_gb
+    nodes          = var.cluster.load_balancers.nodes
+  }
+  servers = {
+    template_vm_id = lookup(local.template_ids, var.cluster.servers.template, 2147483647)
+    cpu_type       = var.cluster.servers.cpu_type
+    cores          = var.cluster.servers.cores
+    memory_mb      = var.cluster.servers.memory_mb
+    disk_size_gb   = var.cluster.servers.disk_size_gb
+    data_disks_gb  = var.cluster.servers.data_disks_gb
+    nodes          = var.cluster.servers.nodes
+  }
+
+  username        = var.vm_admin_user
+  ssh_public_keys = var.vm_admin_ssh_keys
+
+  # The VNets must exist before a VM can attach to one.
+  depends_on = [module.sdn]
+}
+
 # The zone firewall: the rules of every zone and of the node, computed from the
 # transit matrix in terraform.tfvars.
 module "zone_firewall" {
@@ -111,11 +146,14 @@ module "zone_firewall" {
   zones        = { for vnet, z in var.zones : vnet => { alias = z.alias, cidr = z.cidr } }
   transit      = var.transit
   node_admin   = var.node_firewall
-  vms = { for name, vm in var.vms : name => {
-    vm_id = module.vms[name].vm_id
-    vnet  = vm.vnet
-    mac   = module.vms[name].mac_address
-  } }
+  vms = merge(
+    { for name, vm in var.vms : name => {
+      vm_id = module.vms[name].vm_id
+      vnet  = vm.vnet
+      mac   = module.vms[name].mac_address
+    } },
+    module.cluster.vms,
+  )
 
-  depends_on = [module.vms]
+  depends_on = [module.vms, module.cluster]
 }

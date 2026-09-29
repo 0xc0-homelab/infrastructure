@@ -42,7 +42,8 @@ none of them touches.
 
 ## Machines
 
-What exists is the `vms` map in `terraform.tfvars`. This is the plan, later
+What exists is the `vms` map in `terraform.tfvars`, and `cluster` for the RKE2
+servers and their load balancers. This is the plan, later
 phases included, so that no address is handed out twice:
 
 | VM | Zone | IP | Phase |
@@ -60,7 +61,9 @@ The `platform` VIP, `10.10.4.10`, is not a VM: it is the keepalived address the
 two `vm-lb` VMs share, in front of HAProxy. `vm-lb-01` and `vm-lb-02` run
 HAProxy, keepalived and the public tunnel's cloudflared connectors; the three
 `vm-rke2` VMs are identical RKE2 servers — control plane, etcd and workloads
-together, no dedicated agent.
+together, no dedicated agent. `cluster` creates the five together
+(`modules/rke2-cluster`), so the load balancer is deployed with the cluster;
+each RKE2 server carries two blank data disks besides its root one.
 
 Packer builds a template on a throwaway VM, cloned from the previous template
 in the chain (`packer/build-order`), which becomes the new template when the
