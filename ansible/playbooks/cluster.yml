@@ -21,6 +21,13 @@
         keepalived_peers: "{{ groups['lb'] | difference([inventory_hostname]) | map('extract', hostvars, 'ansible_host') | list }}"
         # The first load balancer holds the VIP while its HAProxy is up.
         keepalived_priority: "{{ 150 if inventory_hostname == groups['lb'][0] else 100 }}"
+    # The public tunnel's connectors, one on each load balancer. The tunnel,
+    # remotely managed, sends each public hostname to HAProxy on the VIP.
+    - role: cloudflared
+      vars:
+        # Read from the OpenTofu state by the wrapper script, into the
+        # environment only.
+        cloudflared_tunnel_token: "{{ lookup('ansible.builtin.env', 'PUBLIC_TUNNEL_TOKEN') }}"
 
 - name: Configure the RKE2 servers
   hosts: rke2_servers
