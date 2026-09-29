@@ -1,0 +1,20 @@
+# {{ ansible_managed }}
+# RKE2's helm-controller installs and upgrades ArgoCD from this. It keeps
+# managing it: ArgoCD never manages itself, so the two never fight over it.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: argocd
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: argocd
+  namespace: kube-system
+spec:
+  repo: {{ argocd_chart_repo }}
+  chart: argo-cd
+  version: "{{ argocd_chart_version }}"
+  targetNamespace: argocd
+  valuesContent: |-
+    {{ argocd_values | to_nice_yaml(indent=2) | indent(4) }}

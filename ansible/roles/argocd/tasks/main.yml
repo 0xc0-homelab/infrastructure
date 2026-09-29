@@ -1,0 +1,19 @@
+# Holds the admin password's hash: root only.
+- name: Write ArgoCD's HelmChart
+  ansible.builtin.template:
+    src: argocd.yaml.j2
+    dest: "{{ argocd_manifests_dir }}/argocd.yaml"
+    owner: root
+    group: root
+    mode: "0600"
+  no_log: true
+
+# Its kind only exists once the chart has installed ArgoCD's CRDs: RKE2 keeps
+# retrying until then.
+- name: Write the root Application
+  ansible.builtin.template:
+    src: argocd-root.yaml.j2
+    dest: "{{ argocd_manifests_dir }}/argocd-root.yaml"
+    owner: root
+    group: root
+    mode: "0644"

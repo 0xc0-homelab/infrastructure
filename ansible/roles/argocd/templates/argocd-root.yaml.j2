@@ -1,0 +1,23 @@
+# {{ ansible_managed }}
+# The root Application (app of apps): everything in the cluster after ArgoCD
+# is a manifest under {{ argocd_repo_path }} in the gitops repo.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: {{ argocd_repo_url }}
+    targetRevision: {{ argocd_repo_revision }}
+    path: {{ argocd_repo_path }}
+    directory:
+      recurse: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

@@ -25,5 +25,8 @@ export GITHUB_RUNNER_APP_PRIVATE_KEY
 RKE2_TOKEN="$(sops decrypt --extract '["rke2_token"]' secrets/ansible.sops.yaml)"
 export RKE2_TOKEN
 
+ARGOCD_ADMIN_PASSWORD_BCRYPT="$(sops decrypt --extract '["argocd_admin_password_bcrypt"]' secrets/ansible.sops.yaml)"
+export ARGOCD_ADMIN_PASSWORD_BCRYPT
+
 cd ansible
 exec ansible-playbook "$@"

@@ -1,0 +1,38 @@
+argument_specs:
+  main:
+    short_description: ArgoCD, installed by RKE2's own helm-controller
+    description:
+      - Writes ArgoCD's HelmChart and its root Application into RKE2's
+        manifests directory, which every server watches and applies. RKE2's
+        helm-controller installs and upgrades ArgoCD; ArgoCD then syncs
+        everything else from the gitops repo. No kubeconfig ever leaves the
+        servers.
+      - Runs on every RKE2 server, with the same content on each.
+    options:
+      argocd_admin_password_bcrypt:
+        type: str
+        required: true
+        no_log: true
+        description: bcrypt hash of the admin password ($2a$), from secrets/ansible.sops.yaml.
+      argocd_chart_version:
+        type: str
+        default: "10.9.4"
+        description: Version of the argo-cd Helm chart.
+      argocd_image:
+        type: dict
+        description: ArgoCD's image, repository and tag, the tag pinned by digest.
+      argocd_redis_image:
+        type: dict
+        description: Redis's image, repository and tag, the tag pinned by digest.
+      argocd_repo_url:
+        type: str
+        default: https://github.com/0xc0-homelab/gitops.git
+        description: The gitops repo the root Application syncs. Public, so no credentials.
+      argocd_repo_revision:
+        type: str
+        default: main
+        description: Branch the root Application follows.
+      argocd_repo_path:
+        type: str
+        default: clusters/prod
+        description: Directory the root Application syncs, recursively.
