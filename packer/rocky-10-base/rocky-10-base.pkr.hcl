@@ -35,11 +35,14 @@ source "proxmox-clone" "rocky" {
   template_name        = "rocky-10-base"
   template_description = "Rocky Linux 10, the official cloud image with the homelab base role. Built by Packer from packer/rocky-10-base, commit ${var.commit}."
 
-  cores = 1
+  # The first boot runs a full dnf upgrade (Proxmox's cloud-init sets
+  # package_upgrade): with 1 GB dnf runs out of memory and cloud-init never
+  # finishes.
+  cores = 2
   # RHEL 10, and Rocky 10 with it, needs an x86-64-v3 CPU; left unset, Packer
   # uses kvm64 and the kernel never gets past GRUB.
   cpu_type        = "x86-64-v3"
-  memory          = 1024
+  memory          = 2048
   scsi_controller = "virtio-scsi-single"
   qemu_agent      = true
 
