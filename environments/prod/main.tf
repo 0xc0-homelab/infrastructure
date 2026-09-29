@@ -58,6 +58,17 @@ module "zero_trust" {
   private_hostnames_ip = cidrhost(var.zones["mgmt"].cidr, 1)
 }
 
+# The public tunnel: its connectors run on the load balancers, and it goes to
+# HAProxy on the VIP, then the ingress. Public traffic enters platform, never
+# mgmt. No public hostname yet: every portal adds its own, behind Access.
+module "public_tunnel" {
+  source = "../../modules/cloudflare-tunnel"
+
+  account_id = var.cloudflare_account_id
+  name       = "public"
+  ingress    = []
+}
+
 # vm-access's tunnel: the admin path. WARP clients reach every zone through it.
 module "access_tunnel" {
   source = "../../modules/cloudflare-tunnel"
