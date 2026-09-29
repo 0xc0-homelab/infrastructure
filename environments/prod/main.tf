@@ -60,7 +60,7 @@ module "zero_trust" {
 
 # The public tunnel: its connectors run on the load balancers, and it goes to
 # HAProxy on the VIP, then the ingress. Public traffic enters platform, never
-# mgmt. No public hostname yet: every portal adds its own, behind Access.
+# mgmt. No public hostname yet; the portals stay on WARP.
 module "public_tunnel" {
   source = "../../modules/cloudflare-tunnel"
 
