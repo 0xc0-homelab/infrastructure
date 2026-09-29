@@ -1,0 +1,27 @@
+argument_specs:
+  main:
+    short_description: The cluster's boot secrets, from SOPS into RKE2's manifests
+    description:
+      - Writes Kubernetes Secrets into RKE2's manifests directory, which every
+        server applies. They are what the cluster needs before Vault exists,
+        and never live in gitops, not even encrypted. The namespaces are
+        gitops's; RKE2 retries a Secret until its namespace exists.
+      - Runs on every RKE2 server, with the same content on each.
+    options:
+      cluster_secrets_items:
+        type: list
+        elements: dict
+        default: []
+        description: The Secrets, each a name, a namespace and its string data.
+        options:
+          name:
+            type: str
+            required: true
+          namespace:
+            type: str
+            required: true
+          data:
+            type: dict
+            required: true
+            no_log: true
+            description: Key to value; values from SOPS through the wrapper script, never literals.
