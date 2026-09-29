@@ -57,3 +57,24 @@
         # Decrypted from secrets/ansible.sops.yaml by the wrapper script, into
         # the environment only.
         argocd_admin_password_bcrypt: "{{ lookup('ansible.builtin.env', 'ARGOCD_ADMIN_PASSWORD_BCRYPT') }}"
+    # What the cluster boots with besides ArgoCD's password, from SOPS. The
+    # CrowdSec bouncer's key goes twice: crowdsec's LAPI registers the bouncer
+    # with it, and Traefik's plugin reads it as a file. crowdsec-lapi holds the
+    # LAPI's shared secret and AppSec's registration token, which the chart
+    # would otherwise regenerate on every render.
+    - role: cluster_secrets
+      vars:
+        cluster_secrets_items:
+          - name: crowdsec-lapi
+            namespace: crowdsec
+            data:
+              csLapiSecret: "{{ lookup('ansible.builtin.env', 'CROWDSEC_LAPI_SECRET') }}"
+              registrationToken: "{{ lookup('ansible.builtin.env', 'CROWDSEC_REGISTRATION_TOKEN') }}"
+          - name: crowdsec-bouncer-key
+            namespace: crowdsec
+            data:
+              key: "{{ lookup('ansible.builtin.env', 'CROWDSEC_BOUNCER_KEY') }}"
+          - name: crowdsec-bouncer-key
+            namespace: traefik
+            data:
+              key: "{{ lookup('ansible.builtin.env', 'CROWDSEC_BOUNCER_KEY') }}"
