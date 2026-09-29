@@ -35,9 +35,7 @@ source "proxmox-clone" "rocky" {
   template_name        = "rocky-10-base"
   template_description = "Rocky Linux 10, the official cloud image with the homelab base role. Built by Packer from packer/rocky-10-base, commit ${var.commit}."
 
-  # The first boot runs a full dnf upgrade (Proxmox's cloud-init sets
-  # package_upgrade): with 1 GB dnf runs out of memory and cloud-init never
-  # finishes.
+  # The same size as the runner build: dnf upgrades the whole image.
   cores = 2
   # RHEL 10, and Rocky 10 with it, needs an x86-64-v3 CPU; left unset, Packer
   # uses kvm64 and the kernel never gets past GRUB.
@@ -58,6 +56,11 @@ source "proxmox-clone" "rocky" {
   # so the build does not wait on the guest agent.
   cloud_init              = true
   cloud_init_storage_pool = "local"
+  # Proxmox's cloud-init upgrades every package on first boot, systemd and
+  # NetworkManager included, while Packer is already connected and waiting on
+  # cloud-init: the wait never returns. The upgrade runs as its own
+  # provisioner below instead, once cloud-init is done.
+  cloud_init_disable_upgrade_packages = true
   ipconfig {
     ip      = var.build_ip
     gateway = var.build_gateway
@@ -77,6 +80,13 @@ build {
   # (deprecation warnings, typically): shown in the log, and not a failure.
   provisioner "shell" {
     inline = ["cloud-init status --wait --long || { rc=$?; [ $rc -eq 2 ] && exit 0; exit $rc; }"]
+  }
+
+  # The template is baked up to date: the image is only rebuilt upstream now
+  # and then.
+  provisioner "shell" {
+    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+    inline          = ["dnf -y upgrade"]
   }
 
   # The baseline every VM needs: the guest agent, SSH hardening.
