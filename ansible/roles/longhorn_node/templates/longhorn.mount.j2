@@ -1,0 +1,13 @@
+# {{ ansible_managed }}
+[Unit]
+Description=Longhorn's data disks, at {{ longhorn_node_path }}
+Before=rke2-server.service
+
+[Mount]
+What={{ longhorn_node_device }}
+Where={{ longhorn_node_path }}
+Type=xfs
+Options=defaults,noatime
+
+[Install]
+WantedBy=local-fs.target

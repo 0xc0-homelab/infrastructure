@@ -1,0 +1,79 @@
+- name: Find the data disks
+  ansible.builtin.stat:
+    path: "{{ item }}"
+  loop: "{{ longhorn_node_disks }}"
+  register: longhorn_node_disk_stat
+
+- name: Refuse to go on without every data disk
+  ansible.builtin.assert:
+    that: longhorn_node_disk_stat.results | selectattr('stat.exists') | list | length == longhorn_node_disks | length
+    fail_msg: A data disk is missing. Check the VM's data_disks_gb in terraform.tfvars.
+
+- name: Look for the volume group
+  ansible.builtin.command:
+    cmd: "vgs {{ longhorn_node_vg }}"
+  register: longhorn_node_vgs
+  changed_when: false
+  failed_when: longhorn_node_vgs.rc not in [0, 5]
+  check_mode: false
+
+# Only a disk with nothing on it becomes Longhorn's: blkid -p exits 2 when it
+# finds no partition table, filesystem or LVM signature.
+- name: Check the data disks are blank
+  ansible.builtin.command:
+    cmd: "blkid -p {{ item }}"
+  loop: "{{ longhorn_node_disks }}"
+  register: longhorn_node_blkid
+  changed_when: false
+  failed_when: longhorn_node_blkid.rc not in [0, 2]
+  check_mode: false
+  when: longhorn_node_vgs.rc != 0
+
+- name: Refuse to format a disk that is not blank
+  ansible.builtin.assert:
+    that: longhorn_node_blkid.results | rejectattr('skipped', 'defined') | selectattr('rc', 'equalto', 0) | list | length == 0
+    fail_msg: A data disk already carries a signature. Nothing is formatted; wipe it by hand, deliberately, if it must go.
+  when: longhorn_node_vgs.rc != 0
+
+- name: Create the volume group over the data disks
+  ansible.builtin.command:
+    cmd: "vgcreate {{ longhorn_node_vg }} {{ longhorn_node_disks | join(' ') }}"
+  changed_when: true
+  when: longhorn_node_vgs.rc != 0
+
+- name: Create the logical volume
+  ansible.builtin.command:
+    cmd: "lvcreate --name {{ longhorn_node_lv }} --extents 100%FREE {{ longhorn_node_vg }}"
+    creates: "{{ longhorn_node_device }}"
+
+- name: Look for a filesystem on the volume
+  ansible.builtin.command:
+    cmd: "blkid -s TYPE -o value {{ longhorn_node_device }}"
+  register: longhorn_node_fs
+  changed_when: false
+  failed_when: longhorn_node_fs.rc not in [0, 2]
+  check_mode: false
+  when: not ansible_check_mode or longhorn_node_vgs.rc == 0
+
+- name: Format it XFS
+  ansible.builtin.command:
+    cmd: "mkfs.xfs {{ longhorn_node_device }}"
+  changed_when: true
+  when: longhorn_node_fs.stdout | default('') != 'xfs'
+
+- name: Install the mount unit
+  ansible.builtin.template:
+    src: longhorn.mount.j2
+    dest: "/etc/systemd/system/{{ longhorn_node_mount_unit }}"
+    owner: root
+    group: root
+    mode: "0644"
+  register: longhorn_node_unit
+
+- name: Mount it at {{ longhorn_node_path }}
+  ansible.builtin.systemd_service:
+    name: "{{ longhorn_node_mount_unit }}"
+    enabled: true
+    state: started
+    daemon_reload: "{{ longhorn_node_unit.changed }}"
+  when: not (ansible_check_mode and longhorn_node_vgs.rc != 0)

@@ -1,0 +1,12 @@
+# The data disks, by the serial Proxmox gives each one (its scsiN slot), so the
+# system disk can never be taken for one: the sdX names change between boots.
+longhorn_node_disks:
+  - /dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi1
+  - /dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi2
+
+longhorn_node_path: /var/lib/longhorn
+
+# Pinned, and excluded from updates afterwards: open-iscsi 2.1.12 (6.2.1.12 in
+# Rocky's numbering) breaks Longhorn. Bumping is its own commit, after checking
+# Longhorn's requirements.
+longhorn_node_iscsi_version: "6.2.1.11-1.git4b3e853.el10_2.2"

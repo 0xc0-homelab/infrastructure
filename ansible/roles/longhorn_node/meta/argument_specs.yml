@@ -1,0 +1,22 @@
+argument_specs:
+  main:
+    short_description: An RKE2 server ready for Longhorn
+    description:
+      - Installs what Longhorn needs on the host (open-iscsi, pinned, and
+        cryptsetup), loads its kernel modules and starts iscsid.
+      - Joins the VM's blank data disks into one LVM volume, formatted XFS and
+        mounted at Longhorn's data path. Refuses a disk that already carries
+        any signature rather than format it.
+    options:
+      longhorn_node_disks:
+        type: list
+        elements: str
+        description: The blank data disks, by a stable path. Never the system disk.
+      longhorn_node_path:
+        type: str
+        default: /var/lib/longhorn
+        description: Where the volume is mounted, Longhorn's default data path.
+      longhorn_node_iscsi_version:
+        type: str
+        default: "6.2.1.11-1.git4b3e853.el10_2.2"
+        description: iscsi-initiator-utils version-release. 6.2.1.11 is open-iscsi 2.1.11; Longhorn breaks on 2.1.12.

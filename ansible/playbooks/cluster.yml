@@ -37,6 +37,8 @@
   serial: 1
   roles:
     - role: base
+    # The data disks and what Longhorn needs on the host, before RKE2.
+    - role: longhorn_node
     - role: rke2_server
       vars:
         # Decrypted from secrets/ansible.sops.yaml by the wrapper script, into
