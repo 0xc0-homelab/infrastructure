@@ -3,3 +3,9 @@
 # comes from secrets/ansible.sops.yaml through scripts/ansible.
 github_runner_app_id: "5051391"
 github_runner_app_installation_id: "164149198"
+
+# homelab is what every workflow targets. The VM's own name lets a job pin
+# itself to one VM: rebuilding a CI VM runs its apply on the other one.
+github_runner_labels:
+  - homelab
+  - "{{ inventory_hostname }}"

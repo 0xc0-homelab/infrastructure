@@ -50,7 +50,8 @@ phases included, so that no address is handed out twice:
 |---|---|---|---|
 | `vm-access-01` | mgmt | 10.10.0.10 | 1 |
 | `vm-access-02` | mgmt | 10.10.0.20 | 1 |
-| `vm-ci` | ci | 10.10.1.10 | 1 |
+| `vm-ci-01` | ci | 10.10.1.10 | 1 |
+| `vm-ci-02` | ci | 10.10.1.20 | 2 |
 | `vm-lb-01` | platform | 10.10.4.11 | 2 |
 | `vm-lb-02` | platform | 10.10.4.12 | 2 |
 | `vm-rke2-01` | platform | 10.10.4.21 | 2 |
