@@ -28,8 +28,9 @@ Every template uses the `proxmox-clone` builder, from
 **by name** (`clone_vm`), and Ansible bakes the rest with the same roles the
 VMs use. `proxmox-iso` is only for a template that cannot start from the chain.
 
-**No VMID and no version.** A template is found by name. Proxmox assigns its
-VMID, and a rebuild gets a new one. VMs are full clones and ignore later
+**A fixed VMID, no version.** A template is found by name, but takes the next
+free VMID in 9100-9199 as `vm_id` (the raw images hold 9000-9099). A rebuild
+deletes the old template first, so it keeps the same one. VMs are full clones and ignore later
 changes to their template, so a rebuild touches none: moving a VM onto the new
 template is bumping its `rebuild`.
 

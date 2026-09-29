@@ -156,9 +156,11 @@ RKE2 pods and services, lab).
   rebuild bumps the VM's `rebuild` in `terraform.tfvars` **and** lifts
   `prevent_destroy` in the same PR; the next PR sets it back. Rebuilding
   `vm-ci` runs from the laptop: in CI it would destroy its own runner.
-- Templates are found by **name**, never by VMID: Proxmox assigns their VMIDs
-  too, and a rebuild gives a new one. The raw cloud image is a pinned, dated
-  build with its published SHA-512, never a `latest` link. A VM ignores later
+- Templates are found by **name**, never by VMID. Each still takes a fixed
+  VMID, so the ID says what it is: 9000-9099 for the raw images (`vm_id` in
+  `templates`), 9100-9199 for Packer's (`vm_id` in the template), kept across
+  rebuilds. The raw cloud image is a pinned, dated
+  build with its published checksum, never a `latest` link. A VM ignores later
   changes to its template; moving it onto a new one is bumping its `rebuild`.
 - OpenTofu is **always** written as modules, with Google's layout:
   `modules/<name>/` holds the resources, `environments/<env>/` holds the roots,
