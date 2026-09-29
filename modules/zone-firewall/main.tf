@@ -14,12 +14,15 @@ locals {
   # Proxmox writes port ranges as a:b.
   dport = [for e in var.transit : join(",", [for p in e.ports : replace(p, "-", ":")])]
 
+  # The whole from zone, or only the addresses an entry narrows it to.
+  source = [for e in var.transit : length(e.sources) > 0 ? join(",", e.sources) : lookup(local.cidr_of, e.from, "")]
+
   # Inbound rules of each zone, in matrix order.
   rules = {
     for vnet, z in var.zones : vnet => [
       for i, e in var.transit : {
         proto   = e.proto
-        source  = local.cidr_of[e.from]
+        source  = local.source[i]
         dport   = local.dport[i]
         comment = e.note == "" ? "${e.from} -> ${z.alias}" : "${e.from} -> ${z.alias}: ${e.note}"
       } if contains(e.to, z.alias)
@@ -38,7 +41,7 @@ locals {
   node_rules = [
     for i, e in var.transit : {
       proto   = e.proto
-      source  = e.from == "internet" ? "" : local.cidr_of[e.from]
+      source  = local.source[i]
       dport   = join(",", [for p in local.node_ports[i] : replace(p, "-", ":")])
       comment = e.note == "" ? "${e.from} -> node" : "${e.from} -> node: ${e.note}"
     } if contains(e.to, "node") && length(local.node_ports[i]) > 0

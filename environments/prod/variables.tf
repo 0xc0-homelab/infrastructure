@@ -150,7 +150,10 @@ variable "transit" {
     to    = list(string)
     proto = optional(string, "tcp")
     ports = list(string)
-    note  = optional(string, "")
+    # VM names in the from zone: the entry then admits only their addresses,
+    # not the whole zone.
+    sources = optional(list(string), [])
+    note    = optional(string, "")
   }))
 
   # TCP and UDP entries name their ports; a protocol without ports (vrrp) names
@@ -175,10 +178,24 @@ variable "transit" {
     error_message = "data initiates nothing: no transit entry from data may have a destination."
   }
 
-  # Invariant: nobody initiates towards mgmt, except from inside mgmt.
+  # Invariant: nobody initiates towards mgmt, except from inside mgmt and one
+  # exception: SSH from named CI VMs, for the pipeline's playbooks (operator
+  # decision, 2026-09-29).
   validation {
-    condition     = alltrue([for e in var.transit : !(contains(e.to, "mgmt") && e.from != "mgmt")])
-    error_message = "Nothing may initiate towards mgmt from another zone."
+    condition = alltrue([
+      for e in var.transit :
+      !(contains(e.to, "mgmt") && e.from != "mgmt")
+      || (e.from == "ci" && length(e.sources) > 0 && e.proto == "tcp" && length(e.ports) == 1 && tostring(e.ports[0]) == "22")
+    ])
+    error_message = "Nothing may initiate towards mgmt from another zone, except SSH (22) from named CI VMs (sources)."
+  }
+
+  # A source is a VM of the entry's own from zone.
+  validation {
+    condition = alltrue(flatten([
+      for e in var.transit : [for s in e.sources : contains(keys(var.vms), s) && try(var.vms[s].vnet, "") == e.from]
+    ]))
+    error_message = "Every transit source must be a VM in the vms map, in the entry's from zone."
   }
 
   # Invariant: from the internet the node accepts only break-glass SSH, which

@@ -7,6 +7,11 @@ output "cluster" {
   }
 }
 
+output "vm_admin_ssh_keys" {
+  description = "The public keys every VM's admin user accepts. cloud-init sets them on a new VM; Ansible's base role reads them here to keep them on every VM."
+  value       = var.vm_admin_ssh_keys
+}
+
 output "vm_access_tunnel_token" {
   description = "Connector token for cloudflared on vm-access. Read it with tofu output -raw, straight into Ansible; never to a file."
   value       = module.access_tunnel.token

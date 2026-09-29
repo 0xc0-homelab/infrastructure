@@ -69,7 +69,9 @@ transit matrix is denied, and that is the intended state.
 If it genuinely needs to reach something new, that is a separate change: an
 entry in the `transit` matrix, with the `firewall-matrix` skill.
 
-One invariant no new VM may break: nothing initiates towards `mgmt`.
+One invariant no new VM may break: nothing initiates towards `mgmt`. The one
+exception is SSH from the CI VMs listed in that entry's `sources`: a new CI
+VM joins that list.
 
 ## Step 5 — verify and stop
 

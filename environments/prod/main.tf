@@ -144,8 +144,11 @@ module "zone_firewall" {
   enabled      = var.datacenter_firewall_enabled
   node_enabled = var.node_firewall_enabled
   zones        = { for vnet, z in var.zones : vnet => { alias = z.alias, cidr = z.cidr } }
-  transit      = var.transit
-  node_admin   = var.node_firewall
+  # Sources are VM names in tfvars; the module takes their addresses.
+  transit = [for e in var.transit : merge(e, {
+    sources = [for s in e.sources : var.vms[s].ip]
+  })]
+  node_admin = var.node_firewall
   vms = merge(
     { for name, vm in var.vms : name => {
       vm_id = module.vms[name].vm_id
