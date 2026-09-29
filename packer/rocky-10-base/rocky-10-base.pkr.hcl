@@ -31,6 +31,10 @@ source "proxmox-clone" "rocky" {
   clone_vm   = "rocky-10-cloud"
   full_clone = true
 
+  # Packer's templates take 9100-9199 (the raw images, 9000-9099). The build
+  # VM gets the ID and keeps it as the template; a rebuild deletes the old
+  # template first, so the ID is free again.
+  vm_id                = 9102
   vm_name              = "rocky-10-base"
   template_name        = "rocky-10-base"
   template_description = "Rocky Linux 10, the official cloud image with the homelab base role. Built by Packer from packer/rocky-10-base, commit ${var.commit}."
