@@ -1,0 +1,7 @@
+# Run by Packer on the build VM: the baseline every VM shares. Nothing here is
+# per VM or secret.
+- name: Bake the base template
+  hosts: all
+  become: true
+  roles:
+    - role: base

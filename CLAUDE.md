@@ -12,7 +12,8 @@ Hetzner Storage Box. Any change here that could cut the host's public access —
 firewall rules on `eno1` above all — puts those three at risk.
 
 OpenTofu (the official cloud image as a raw template, VMs, network, firewall)
-→ Packer (the templates VMs clone: `debian-13-base`, and the ones built on it)
+→ Packer (the templates VMs clone: `debian-13-base`, `rocky-10-base`, and the
+ones built on them)
 → Ansible (configuration). No VM clones the raw image.
 Proxmox provider: `bpg/proxmox`. Zones are Proxmox SDN: one Simple zone, a
 VNet and a subnet per zone, with the host as gateway and SNAT for egress, all
@@ -80,7 +81,9 @@ Every role follows the `ansible-role` skill and passes `ansible-lint` on the
 
 `packer/<template>/` bakes the templates every VM clones, in
 `packer/build-order`: `debian-13-base` from the raw `debian-13-cloud`, with the
-`base` role, and `debian-13-runner` from `debian-13-base`, with the runner.
+`base` role, `debian-13-runner` from `debian-13-base`, with the runner, and
+`rocky-10-base` from the raw `rocky-10-cloud`, with the `base` role, for the
+RKE2 nodes.
 Secrets and per-VM settings stay in Ansible. `scripts/packer <template>
 validate` locally. Every merge to `main` that touches `packer/` or the roles
 rebuilds them all in CI, after approval: each one deleted by name and built

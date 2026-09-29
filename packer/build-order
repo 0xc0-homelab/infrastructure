@@ -1,5 +1,7 @@
-# Templates in the order CI builds them. The first entry clones
-# debian-13-cloud, imported by OpenTofu; each later one clones the one
-# before it.
+# Templates in the order CI builds them. Each clones either a raw image
+# OpenTofu imports (debian-13-cloud, rocky-10-cloud) or a template listed
+# above it: debian-13-base and rocky-10-base clone their raw images,
+# debian-13-runner clones debian-13-base.
 debian-13-base
 debian-13-runner
+rocky-10-base
