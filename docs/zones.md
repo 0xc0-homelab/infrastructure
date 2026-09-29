@@ -64,8 +64,8 @@ together, no dedicated agent.
 
 Packer builds a template on a throwaway VM, cloned from the previous template
 in the chain (`packer/build-order`), which becomes the new template when the
-build ends: the old template is deleted by name first, and Proxmox assigns
-the new one its VMID. It lives in `ci` at **10.10.1.250**, where the runner
+build ends: the old template is deleted by name first, and the new one takes
+the same fixed VMID. It lives in `ci` at **10.10.1.250**, where the runner
 that drives it can reach it over SSH, and no machine may take that address.
 Packer cannot set a VM's firewall options, so the build VM is the one NIC
 without zone filtering, for the minutes the build lasts.
