@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# {{ ansible_managed }}
+# Restarts every runner instance that is not running a job, so it starts again
+# on the new config. A busy one is left alone: it is ephemeral, and when its
+# job ends systemd starts it again (Restart=always), on the new config too.
+# That busy one may be running the very job that changed the config.
+set -euo pipefail
+systemctl list-units --plain --no-legend --all 'github-runner@*.service' | awk '{print $1}' |
+  while read -r unit; do
+    cgroup="/sys/fs/cgroup$(systemctl show -p ControlGroup --value "$unit")"
+    pids=$(paste -sd, "$cgroup/cgroup.procs" 2>/dev/null || true)
+    if [ -n "$pids" ] && ps -o comm= -p "$pids" | grep -qx Runner.Worker; then
+      echo "$unit busy: starts on the new config after its job"
+    else
+      systemctl restart "$unit"
+      echo "$unit restarted"
+    fi
+  done

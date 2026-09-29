@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# {{ ansible_managed }}
+# Removes every copy of runner instance $1 other than the one it is about to
+# start from. Runs as root before every start, when the instance runs nothing,
+# so a copy an older version left behind is no longer in use.
+set -euo pipefail
+instance="$1"
+current=$(readlink -f "/opt/actions-runner/$instance")
+for dir in /opt/actions-runner/"$instance"-*; do
+  [ -d "$dir" ] || continue
+  [ "$(readlink -f "$dir")" = "$current" ] && continue
+  rm -rf -- "$dir"
+done

@@ -8,8 +8,10 @@ Wants=network-online.target
 User=runner
 Group=runner
 WorkingDirectory=/opt/actions-runner/%i
-# "+" runs these as root: a clean work folder, then a fresh just-in-time
-# config fetched with the App key, which the runner user cannot read.
+# "+" runs these as root: the copies of older versions pruned, a clean work
+# folder, then a fresh just-in-time config fetched with the App key, which the
+# runner user cannot read.
+ExecStartPre=+/usr/local/libexec/github-runner-prune %i
 ExecStartPre=+/usr/bin/rm -rf /opt/actions-runner/%i/_work
 ExecStartPre=+/usr/local/libexec/github-runner-jit %i
 ExecStart=/bin/bash -c 'config=$(cat /run/github-runner/%i.jit); rm -f /run/github-runner/%i.jit; exec ./run.sh --jitconfig "$config"'
