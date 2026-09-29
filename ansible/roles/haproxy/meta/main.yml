@@ -1,0 +1,9 @@
+galaxy_info:
+  author: sergioaten
+  description: HAProxy in TCP mode in front of the RKE2 servers
+  license: MIT
+  min_ansible_version: "2.17"
+  platforms:
+    - name: Debian
+      versions: [trixie]
+dependencies: []

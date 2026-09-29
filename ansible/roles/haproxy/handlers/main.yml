@@ -1,0 +1,12 @@
+- name: Apply the sysctl settings
+  ansible.builtin.command:
+    cmd: sysctl --load /etc/sysctl.d/60-haproxy.conf
+  changed_when: true
+  when: not ansible_check_mode
+
+# A reload keeps the open connections: a restart would cut every watch.
+- name: Reload haproxy
+  ansible.builtin.systemd_service:
+    name: haproxy
+    state: reloaded
+  when: not (ansible_check_mode and haproxy_package.changed)

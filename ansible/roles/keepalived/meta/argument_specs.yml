@@ -1,0 +1,37 @@
+argument_specs:
+  main:
+    short_description: keepalived holding the VIP in front of HAProxy
+    description:
+      - Installs keepalived and runs one VRRP instance over unicast between
+        the load balancers. The VIP stays on the one with the highest priority
+        while its tracked service is up, and moves to its peer otherwise.
+    options:
+      keepalived_vip:
+        type: str
+        required: true
+        description: The VIP with its prefix length, e.g. 10.10.4.10/24.
+      keepalived_source_address:
+        type: str
+        required: true
+        description: This host's own address in the zone, where VRRP adverts leave from.
+      keepalived_peers:
+        type: list
+        elements: str
+        required: true
+        description: The other load balancers' addresses. Unicast, no multicast.
+      keepalived_priority:
+        type: int
+        required: true
+        description: VRRP priority, 1-254. The highest one holds the VIP.
+      keepalived_virtual_router_id:
+        type: int
+        default: 10
+        description: VRRP router ID, unique in the zone.
+      keepalived_interface:
+        type: str
+        default: "{{ ansible_facts.default_ipv4.interface }}"
+        description: Interface that carries the VIP.
+      keepalived_track_service:
+        type: str
+        default: haproxy
+        description: systemd unit that must be active for this host to hold the VIP.

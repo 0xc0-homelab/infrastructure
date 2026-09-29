@@ -1,0 +1,27 @@
+# RHEL 10 and its derivatives ship nf_conntrack in kernel-modules-extra
+# (docs.rke2.io, Requirements). Pinned to the running kernel, so the module
+# matches it.
+- name: Install kernel-modules-extra for the running kernel
+  ansible.builtin.dnf:
+    name: "kernel-modules-extra-{{ ansible_facts.kernel }}"
+    state: present
+
+- name: Gather the services
+  ansible.builtin.service_facts:
+
+- name: Disable the units that conflict with Canal
+  ansible.builtin.systemd_service:
+    name: "{{ item }}"
+    state: stopped
+    enabled: false
+  loop: "{{ rke2_server_conflicting_units }}"
+  when: item in ansible_facts.services
+
+- name: Keep NetworkManager off the CNI interfaces
+  ansible.builtin.copy:
+    src: rke2-canal.conf
+    dest: /etc/NetworkManager/conf.d/rke2-canal.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload NetworkManager

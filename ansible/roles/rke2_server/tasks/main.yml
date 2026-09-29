@@ -1,0 +1,15 @@
+- name: Prepare the host
+  ansible.builtin.import_tasks: prepare.yml
+  tags: [rke2_server, rke2_server_prepare]
+
+- name: Install RKE2
+  ansible.builtin.import_tasks: install.yml
+  tags: [rke2_server, rke2_server_install]
+
+- name: Configure RKE2
+  ansible.builtin.import_tasks: configure.yml
+  tags: [rke2_server, rke2_server_configure]
+
+- name: Start RKE2
+  ansible.builtin.import_tasks: service.yml
+  tags: [rke2_server, rke2_server_service]

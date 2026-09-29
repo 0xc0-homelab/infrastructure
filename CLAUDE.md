@@ -74,6 +74,13 @@ fetching a just-in-time config from a GitHub App of their own before every
 job. The App key comes from `secrets/ansible.sops.yaml` and is readable only
 by root on `vm-ci`; jobs run as the unprivileged `runner` user.
 
+`playbooks/cluster.yml` builds the cluster: `haproxy` and `keepalived` on the
+`lb` pair, holding the VIP, then `rke2_server` on each server, one at a time.
+The first server initialises the cluster; the others join through the VIP,
+with the token from `secrets/ansible.sops.yaml`. The last play writes the
+admin kubeconfig, pointed at the VIP, to `secrets/kubeconfig.sops.yaml`,
+encrypted and never in the clear on disk.
+
 Every role follows the `ansible-role` skill and passes `ansible-lint` on the
 `production` profile.
 

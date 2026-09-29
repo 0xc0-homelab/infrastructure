@@ -1,0 +1,5 @@
+# keepalived's VIP in front of HAProxy: the cluster's vip in
+# environments/prod/terraform.tfvars. The API, the supervisor and the ingress
+# are all reached there.
+platform_vip: 10.10.4.10
+platform_prefix_length: 24

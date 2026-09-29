@@ -1,0 +1,15 @@
+# {{ ansible_managed }}
+{% if rke2_server_join %}
+server: https://{{ rke2_server_registration_address }}:9345
+{% endif %}
+token: "{{ rke2_server_token }}"
+node-ip: {{ rke2_server_node_ip }}
+{% if rke2_server_tls_san %}
+tls-san:
+{% for san in rke2_server_tls_san %}
+  - {{ san }}
+{% endfor %}
+{% endif %}
+selinux: true
+ingress-controller: {{ rke2_server_ingress_controller }}
+write-kubeconfig-mode: "0600"
