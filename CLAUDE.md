@@ -177,7 +177,11 @@ RKE2 pods and services, lab).
 - **No VM is destroyed** as a matter of course: the `vm` module sets
   `prevent_destroy`, so a plan that deletes or replaces one fails. A deliberate
   rebuild bumps the VM's `rebuild` in `terraform.tfvars` **and** lifts
-  `prevent_destroy` in the same PR; the next PR sets it back. A CI VM is
+  `prevent_destroy` in the same PR; the next PR sets it back. No run ever
+  restarts a VM on its own either (`reboot_after_update = false`): a change
+  that needs one stays pending in Proxmox, and `scripts/rolling-reboot
+  <vm>...` restarts them one at a time, waiting for each (and, for an RKE2
+  server, its node Ready and Longhorn healthy) before the next. A CI VM is
   rebuilt from the pipeline too, one at a time: the same PR points
   `.github/workflows/apply.yml`'s `runs-on` at the **other** VM's label, so
   the apply never runs on the VM it destroys; the next PR points it back at
