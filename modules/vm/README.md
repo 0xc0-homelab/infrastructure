@@ -44,6 +44,7 @@ No modules.
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_cores"></a> [cores](#input\_cores) | vCPUs. | `number` | `1` | no |
+| <a name="input_cpu_type"></a> [cpu\_type](#input\_cpu\_type) | QEMU CPU model. Rocky 10 (RHEL 10) needs x86-64-v3; Debian runs on x86-64-v2-AES. | `string` | `"x86-64-v2-AES"` | no |
 | <a name="input_datastore_id"></a> [datastore\_id](#input\_datastore\_id) | Datastore for the disk and the cloud-init drive. | `string` | n/a | yes |
 | <a name="input_disk_size_gb"></a> [disk\_size\_gb](#input\_disk\_size\_gb) | Root disk size. It can grow from the template's, never shrink. | `number` | `8` | no |
 | <a name="input_dns_servers"></a> [dns\_servers](#input\_dns\_servers) | Resolvers written by cloud-init. | `list(string)` | n/a | yes |

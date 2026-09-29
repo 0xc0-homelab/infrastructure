@@ -77,3 +77,9 @@ variable "tags" {
   type        = list(string)
   default     = []
 }
+
+variable "cpu_type" {
+  description = "QEMU CPU model. Rocky 10 (RHEL 10) needs x86-64-v3; Debian runs on x86-64-v2-AES."
+  type        = string
+  default     = "x86-64-v2-AES"
+}
