@@ -32,6 +32,7 @@ module "templates" {
   for_each = var.templates
 
   name           = each.key
+  vm_id          = each.value.vm_id
   node_name      = var.nodes[0]
   datastore_id   = var.template_datastore
   image_url      = each.value.image_url
