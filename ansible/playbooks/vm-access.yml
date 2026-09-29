@@ -9,4 +9,4 @@
       vars:
         # Read from the OpenTofu state by scripts/ansible, into the
         # environment only.
-        cloudflared_tunnel_token: "{{ lookup('ansible.builtin.env', 'CLOUDFLARED_TUNNEL_TOKEN') }}"
+        cloudflared_tunnel_token: "{{ lookup('ansible.builtin.env', 'ADMIN_TUNNEL_TOKEN') }}"
