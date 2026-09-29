@@ -12,6 +12,12 @@ output "vm_admin_ssh_keys" {
   value       = var.vm_admin_ssh_keys
 }
 
+output "public_tunnel_token" {
+  description = "Connector token for cloudflared on the load balancers. Read it with tofu output -raw, straight into Ansible; never to a file."
+  value       = module.public_tunnel.token
+  sensitive   = true
+}
+
 output "vm_access_tunnel_token" {
   description = "Connector token for cloudflared on vm-access. Read it with tofu output -raw, straight into Ansible; never to a file."
   value       = module.access_tunnel.token

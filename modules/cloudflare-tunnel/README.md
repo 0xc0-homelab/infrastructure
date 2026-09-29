@@ -33,6 +33,7 @@ No modules.
 | Name | Type |
 | ---- | ---- |
 | [cloudflare_zero_trust_tunnel_cloudflared.main](https://registry.terraform.io/providers/cloudflare/cloudflare/5.25.0/docs/resources/zero_trust_tunnel_cloudflared) | resource |
+| [cloudflare_zero_trust_tunnel_cloudflared_config.main](https://registry.terraform.io/providers/cloudflare/cloudflare/5.25.0/docs/resources/zero_trust_tunnel_cloudflared_config) | resource |
 | [cloudflare_zero_trust_tunnel_cloudflared_route.main](https://registry.terraform.io/providers/cloudflare/cloudflare/5.25.0/docs/resources/zero_trust_tunnel_cloudflared_route) | resource |
 | [cloudflare_zero_trust_tunnel_cloudflared_token.main](https://registry.terraform.io/providers/cloudflare/cloudflare/5.25.0/docs/data-sources/zero_trust_tunnel_cloudflared_token) | data source |
 
@@ -41,6 +42,7 @@ No modules.
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_account_id"></a> [account\_id](#input\_account\_id) | Cloudflare account ID. | `string` | n/a | yes |
+| <a name="input_ingress"></a> [ingress](#input\_ingress) | Public hostnames the tunnel serves, each with the origin it goes to (e.g. http://10.10.4.10:80), before a catch-all 404. null for a tunnel with no public side; [] for one that exposes nothing yet. | <pre>list(object({<br/>    hostname = string<br/>    service  = string<br/>  }))</pre> | `null` | no |
 | <a name="input_name"></a> [name](#input\_name) | Tunnel name, usually the VM that runs its connector. | `string` | n/a | yes |
 | <a name="input_routes"></a> [routes](#input\_routes) | Private networks, in CIDR notation, routed through this tunnel for WARP clients. | `list(string)` | `[]` | no |
 
