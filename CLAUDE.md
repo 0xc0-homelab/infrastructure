@@ -156,9 +156,9 @@ RKE2 pods and services, lab).
 - A change to the node firewall is tested first by hand, with a rollback
   scheduled on the node itself (systemd timer), before it goes into code.
 - `ci` reaches the node over 8006 (API), never over 22.
-- No admin interface reaches the internet through the public tunnel: portals
-  sit behind Cloudflare Access, Vault and the Kubernetes API are reached only
-  over WARP, through the `vm-access` tunnel.
+- No admin interface reaches the internet through the public tunnel: the
+  portals, Vault and the Kubernetes API are reached only over WARP, through
+  the admin tunnel. Publishing a portal behind Cloudflare Access is deferred.
 - Secrets with SOPS+age. An unencrypted file holding sensitive material is a
   bug, not a TODO. From phase 3 onwards, progressive migration to Vault over
   OIDC.

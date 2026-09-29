@@ -122,7 +122,6 @@ that breaks them fails.
    break-glass, closed by the Hetzner firewall until opened **(code)**. Any
    other ingress to the node is a **critical** finding, and so is implicit
    admin access: `local_network` stays pointed at loopback.
-7. No admin interface reaches the internet through the public tunnel: portals
-   sit behind Cloudflare Access, Vault and the Kubernetes API are reached only
-   over WARP.
+7. No admin interface reaches the internet through the public tunnel: the
+   portals, Vault and the Kubernetes API are reached only over WARP.
 8. No VM from a phase later than the one declared in `CLAUDE.md`.
