@@ -19,8 +19,10 @@ resource "proxmox_download_file" "main" {
   }
 }
 
-# No vm_id: Proxmox assigns one, and everything finds the template by name.
+# Templates take fixed VMIDs, so the ID says what it is; VMs keep the ones
+# Proxmox assigns. Everything still finds a template by name.
 resource "proxmox_virtual_environment_vm" "main" {
+  vm_id       = var.vm_id
   name        = var.name
   node_name   = var.node_name
   description = "Built by OpenTofu from ${var.image_url}"

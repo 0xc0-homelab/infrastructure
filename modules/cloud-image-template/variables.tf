@@ -3,6 +3,16 @@ variable "name" {
   type        = string
 }
 
+variable "vm_id" {
+  description = "Fixed VMID of the template. Raw images take 9000-9099; Packer's templates, 9100-9199."
+  type        = number
+
+  validation {
+    condition     = var.vm_id >= 9000 && var.vm_id <= 9099
+    error_message = "A raw image template takes a VMID from 9000 to 9099."
+  }
+}
+
 variable "node_name" {
   description = "Proxmox node that holds the template."
   type        = string
