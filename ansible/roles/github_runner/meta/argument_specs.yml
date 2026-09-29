@@ -3,7 +3,9 @@ argument_specs:
     short_description: Ephemeral GitHub Actions runners registered just in time by a GitHub App
     description:
       - Installs the runner pinned by version and checksum, one copy per
-        instance, and runs each as a systemd service. Before every start, a
+        instance and version, and runs each as a systemd service from its
+        current copy. A change restarts only the idle runners; a busy one
+        starts on it when its job ends, so the job applying it is never cut. Before every start, a
         root-only step uses the GitHub App to fetch a just-in-time config, so
         each runner takes one job, deregisters and starts clean.
       - Jobs run as the unprivileged runner user, which cannot read the App key.

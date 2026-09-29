@@ -40,30 +40,73 @@
     group: root
     mode: "0700"
 
-- name: Create a directory per runner
+- name: Install the runner helpers
+  ansible.builtin.template:
+    src: "{{ item }}.j2"
+    dest: "/usr/local/libexec/{{ item }}"
+    owner: root
+    group: root
+    mode: "0700"
+  loop: [github-runner-prune, github-runner-restart-idle]
+
+# One copy per instance and version: each keeps its own _work and _diag, and a
+# job running from one copy keeps it while the next version unpacks beside it.
+- name: Create a directory per runner and version
   ansible.builtin.file:
-    path: "/opt/actions-runner/{{ item }}"
+    path: "/opt/actions-runner/{{ item }}-{{ github_runner_version }}"
     state: directory
     owner: runner
     group: runner
     mode: "0750"
   loop: "{{ range(1, github_runner_count + 1) | list }}"
+  register: github_runner_copies
 
-# One copy per instance: each keeps its own _work and _diag. The marker holds
-# the version, so a bump unpacks again; a runner that updated itself is left
-# alone until then.
+# The marker holds the version, so a runner that updated itself in place is
+# left alone until the next bump.
 - name: Unpack the runner
   ansible.builtin.command:
     cmd: >-
       sh -c 'tar -xzf /var/cache/actions-runner-{{ github_runner_version }}.tar.gz
       && touch .version-{{ github_runner_version }}'
-    chdir: "/opt/actions-runner/{{ item }}"
-    creates: "/opt/actions-runner/{{ item }}/.version-{{ github_runner_version }}"
+    chdir: "/opt/actions-runner/{{ item }}-{{ github_runner_version }}"
+    creates: "/opt/actions-runner/{{ item }}-{{ github_runner_version }}/.version-{{ github_runner_version }}"
   become: true
   become_user: runner
   loop: "{{ range(1, github_runner_count + 1) | list }}"
-  when: not (ansible_check_mode and github_runner_tarball.changed)
-  notify: Restart runners
+  # On a dry run the new copy's directory is not created, so there is nothing
+  # to unpack into.
+  when: not (ansible_check_mode and (github_runner_tarball.changed or github_runner_copies.changed))
+
+# Before copies were per version, each instance ran from a plain directory.
+# Renamed, it stays in use by a job running from it, and the next start of that
+# instance prunes it.
+- name: Look for a runner directory from before the versioned copies
+  ansible.builtin.stat:
+    path: "/opt/actions-runner/{{ item }}"
+  loop: "{{ range(1, github_runner_count + 1) | list }}"
+  register: github_runner_legacy
+
+- name: Move it aside
+  ansible.builtin.command:
+    cmd: "mv /opt/actions-runner/{{ item.item }} /opt/actions-runner/{{ item.item }}-legacy"
+    creates: "/opt/actions-runner/{{ item.item }}-legacy"
+  loop: "{{ github_runner_legacy.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+  when: item.stat.isdir | default(false) and not item.stat.islnk
+
+# What each instance starts from: a running job keeps the copy it started in.
+- name: Point each runner at its copy
+  ansible.builtin.file:
+    path: "/opt/actions-runner/{{ item }}"
+    src: "/opt/actions-runner/{{ item }}-{{ github_runner_version }}"
+    state: link
+    owner: runner
+    group: runner
+    force: true
+  loop: "{{ range(1, github_runner_count + 1) | list }}"
+  when: not (ansible_check_mode and (github_runner_tarball.changed or github_runner_copies.changed))
+  notify: Restart idle runners
 
 - name: Install the systemd unit
   ansible.builtin.template:
@@ -73,7 +116,7 @@
     group: root
     mode: "0644"
   register: github_runner_unit
-  notify: Restart runners
+  notify: Restart idle runners
 
 - name: Enable and start the runners
   ansible.builtin.systemd_service:
