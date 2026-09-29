@@ -1,6 +1,8 @@
 - name: Configure the CI runners
   hosts: ci
   become: true
+  # One at a time: the other VM's runners keep taking jobs meanwhile.
+  serial: 1
   roles:
     - role: base
     - role: github_runner

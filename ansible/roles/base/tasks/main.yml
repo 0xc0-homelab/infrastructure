@@ -42,3 +42,8 @@
     # The key's comment, not the key.
     label: "{{ item.split(' ')[2:] | join(' ') }}"
   when: base_admin_user | length > 0
+
+- name: Set the hostname
+  ansible.builtin.hostname:
+    name: "{{ base_hostname }}"
+  when: base_hostname | length > 0

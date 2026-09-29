@@ -15,6 +15,10 @@ argument_specs:
         type: str
         default: ""
         description: Admin user whose authorized_keys the role keeps. Empty skips it, as on a Packer build.
+      base_hostname:
+        type: str
+        default: ""
+        description: Hostname to set. Empty leaves it alone, as on a Packer build.
       base_admin_ssh_keys:
         type: list
         elements: str

@@ -22,8 +22,8 @@ jobs:
     with:
       # The wrapper reads the tunnel token and the admin keys from this root.
       tofu-root: environments/prod
-      # The cluster first; vm-ci last, since its runners run this job, and a
-      # busy one is left for its next start.
+      # The cluster first; the CI VMs last, one at a time, since their runners
+      # run this job, and a busy one is left for its next start.
       playbooks: |
         playbooks/cluster.yml
         playbooks/vm-access.yml

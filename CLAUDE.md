@@ -29,7 +29,7 @@ service only if the coupling ever gets in the way.
 ## CURRENT PHASE: 2 (Cluster)
 
 Phase 1 is complete: Proxmox, zones, NAT, the Packer templates, `vm-access-01`,
-`vm-access-02` and `vm-ci` with the self-hosted runners, the zone and node
+`vm-access-02` and `vm-ci-01` with the self-hosted runners, the zone and node
 firewalls. SOPS works, Rescue and WARP are tested.
 
 Phase 2 builds the cluster (workspace `docs/design.md`): the Rocky template
@@ -78,7 +78,9 @@ Ansible reaches every VM directly over WARP.
 `playbooks/vm-ci.yml` runs the `github_runner` role: ephemeral runners, each
 fetching a just-in-time config from a GitHub App of their own before every
 job. The App key comes from `secrets/ansible.sops.yaml` and is readable only
-by root on `vm-ci`; jobs run as the unprivileged `runner` user.
+by root on the CI VMs, `vm-ci-01` and `vm-ci-02`; jobs run as the
+unprivileged `runner` user. Each runner carries the `homelab` label and its
+VM's name, so a job can pin itself to one VM.
 
 `playbooks/cluster.yml` builds the cluster: `haproxy` and `keepalived` on the
 `lb` pair, holding the VIP, then `rke2_server` on each server, one at a time.
@@ -171,8 +173,11 @@ RKE2 pods and services, lab).
 - **No VM is destroyed** as a matter of course: the `vm` module sets
   `prevent_destroy`, so a plan that deletes or replaces one fails. A deliberate
   rebuild bumps the VM's `rebuild` in `terraform.tfvars` **and** lifts
-  `prevent_destroy` in the same PR; the next PR sets it back. Rebuilding
-  `vm-ci` runs from the laptop: in CI it would destroy its own runner.
+  `prevent_destroy` in the same PR; the next PR sets it back. A CI VM is
+  rebuilt from the pipeline too, one at a time: the same PR points
+  `.github/workflows/apply.yml`'s `runs-on` at the **other** VM's label, so
+  the apply never runs on the VM it destroys; the next PR points it back at
+  `homelab`.
 - Templates are found by **name**, never by VMID. Each still takes a fixed
   VMID, so the ID says what it is: 9000-9099 for the raw images (`vm_id` in
   `templates`), 9100-9199 for Packer's (`vm_id` in the template), kept across

@@ -38,9 +38,10 @@ The build VM takes the address reserved for it in `docs/zones.md`, Machines.
 Packer injects its throwaway SSH key through cloud-init and reaches that
 address directly, so the build does not wait on the guest agent.
 
-Builds run in CI (`.github/workflows/packer.yml`): `validate` on every PR, and
-`build` on every merge to `main` that touches `packer/` or the roles, on
-`vm-ci`, after the operator approves `production`. For each template in
+Builds run in CI (`.github/workflows/packer.yml`, which calls the reusable
+workflow in `0xc0-homelab/.github`): `validate` on every PR, and `build` on
+every merge to `main` that touches `packer/` or the roles, on the CI VMs,
+after the operator approves `production`. For each template in
 `build-order`, `scripts/delete-template` deletes the old one by name (it
 refuses a name that is not a template), then Packer builds it again, recording
 the commit in its description. Locally: `scripts/packer <name> validate`.

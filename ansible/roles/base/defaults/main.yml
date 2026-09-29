@@ -8,3 +8,8 @@ base_packages:
 # a template.
 base_admin_user: ""
 base_admin_ssh_keys: []
+
+# The VM's hostname. cloud-init sets it from the VM's name when the VM is
+# created; this keeps it in step when the name changes. Empty on a Packer
+# build, which leaves the template's alone.
+base_hostname: ""

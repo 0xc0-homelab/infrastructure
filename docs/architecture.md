@@ -90,7 +90,7 @@ flowchart LR
   cloud -- "Packer" --> base
   base -- "Packer" --> runner
   base -- "clone" --> vmaccess["vm-access-01 / vm-access-02"]
-  runner -- "clone" --> vmci["vm-ci"]
+  runner -- "clone" --> vmci["vm-ci-01 / vm-ci-02"]
 ```
 
 OpenTofu imports the official `debian-13-cloud` image straight from Debian, as
@@ -112,7 +112,7 @@ not listed in the transit matrix is denied.
 flowchart LR
   subgraph control["control — 10.10.0.0/22"]
     mgmt["mgmt<br/>10.10.0.0/24<br/>vm-access-01 .10<br/>vm-access-02 .20"]
-    ci["ci<br/>10.10.1.0/24<br/>vm-ci .10"]
+    ci["ci<br/>10.10.1.0/24<br/>vm-ci-01 .10<br/>vm-ci-02 .20"]
   end
   platform["platform<br/>10.10.4.0/24<br/>VIP .10<br/>vm-lb-01 .11 · vm-lb-02 .12<br/>vm-rke2-01/02/03 .21-.23"]
   node["node<br/>pve-1"]
@@ -222,9 +222,10 @@ flowchart LR
 - Every OpenTofu root has its own state key in RustFS, locked with a lockfile.
   Plans and applies wait for the lock instead of failing.
 
-**Today:** plans and applies run on two ephemeral runners on `vm-ci`, inside
-the network. The runner group admits only the reusable tofu workflows from
-`main`, and fork PRs go to GitHub's runners, where they get no secrets.
+**Today:** plans, applies, Packer builds and every playbook run on ephemeral
+runners, two on each CI VM (`vm-ci-01`, `vm-ci-02`), inside the network. The
+runner group admits only the reusable workflows from `0xc0-homelab/.github`,
+as they are on `main`, and fork PRs go to GitHub's runners, where they get no secrets.
 RustFS and the rest of Traefik are not reachable from the internet.
 
 ## Secrets
@@ -246,7 +247,7 @@ flowchart LR
 - `scripts/tofu` decrypts into the environment for one command; plaintext
   never reaches disk. Saved plan files are never kept, because they contain
   the variables.
-- From phase 2, the CI keys live on `vm-ci` and the Actions secrets go away. From phase 3, secrets move
+- From phase 2, the CI keys live on the CI VMs and the Actions secrets go away. From phase 3, secrets move
   progressively to Vault over OIDC.
 
 ## Backups

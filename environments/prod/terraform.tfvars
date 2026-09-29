@@ -84,15 +84,22 @@ vms = {
     cores     = 1
     memory_mb = 1024
   }
-  # The self-hosted GitHub Actions runners. The disk holds the runner, the
-  # tools mise installs per job and the providers.
-  "vm-ci" = {
-    # Its apply runs from the laptop: in CI it would destroy the runner it
-    # runs on.
+  # The self-hosted GitHub Actions runners, two identical VMs: CI keeps running
+  # while one is down, and a job on one can rebuild the other. The disk holds
+  # the runner, the tools mise installs per job and the providers.
+  "vm-ci-01" = {
     rebuild      = 1
     template     = "debian-13-runner"
     vnet         = "ci"
     ip           = "10.10.1.10"
+    cores        = 2
+    memory_mb    = 4096
+    disk_size_gb = 32
+  }
+  "vm-ci-02" = {
+    template     = "debian-13-runner"
+    vnet         = "ci"
+    ip           = "10.10.1.20"
     cores        = 2
     memory_mb    = 4096
     disk_size_gb = 32
@@ -150,7 +157,9 @@ transit = [
   { from = "ci", to = ["platform"], ports = [22, 6443], note = "the runner: SSH to configure the VMs, and the Kubernetes API" },
   # The one way into mgmt from another zone (operator decision, 2026-09-29):
   # the pipeline runs the vm-access playbook. Only the CI VMs, not the zone.
-  { from = "ci", to = ["mgmt"], ports = [22], sources = ["vm-ci"], note = "the pipeline's playbooks, from the CI VMs only" },
+  { from = "ci", to = ["mgmt"], ports = [22], sources = ["vm-ci-01", "vm-ci-02"], note = "the pipeline's playbooks, from the CI VMs only" },
+  # A job on either CI VM configures both.
+  { from = "ci", to = ["ci"], ports = [22], sources = ["vm-ci-01", "vm-ci-02"], note = "the pipeline's playbooks, between the CI VMs" },
   { from = "ci", to = ["node"], ports = [443, 8006], note = "Proxmox API and RustFS, through Traefik on 443. NEVER 22 towards the node from ci" },
   { from = "platform", to = ["platform"], ports = ["2379-2381", 6443, 9099, 9345, 10250, "30000-32767"], note = "the cluster: etcd, API, Canal health, supervisor, kubelet, NodePorts; the LB towards the nodes" },
   { from = "platform", to = ["platform"], proto = "udp", ports = [8472], note = "Canal VXLAN between the cluster nodes" },
