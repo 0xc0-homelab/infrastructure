@@ -23,11 +23,3 @@ output "admin_tunnel_token" {
   value       = module.admin_tunnel.token
   sensitive   = true
 }
-
-# The old name, for the wrapper script until it reads admin_tunnel_token
-# (#115). Goes with that PR.
-output "vm_access_tunnel_token" {
-  description = "Deprecated: admin_tunnel_token."
-  value       = module.admin_tunnel.token
-  sensitive   = true
-}
