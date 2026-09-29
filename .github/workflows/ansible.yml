@@ -1,0 +1,32 @@
+# Runs every playbook from the pipeline (operator decision, 2026-09-29): with
+# --check --diff on every PR that touches Ansible, for real on a merge to main,
+# once the operator approves the production environment. The steps live in the
+# reusable workflow in 0xc0-homelab/.github; this repo keeps the triggers and
+# the order.
+name: ansible
+
+on:
+  pull_request:
+    branches: [main]
+    paths: ['ansible/**', 'scripts/ansible', '.github/workflows/ansible.yml']
+  push:
+    branches: [main]
+    paths: ['ansible/**', 'scripts/ansible', '.github/workflows/ansible.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  ansible:
+    uses: 0xc0-homelab/.github/.github/workflows/ansible.yml@main
+    with:
+      # The wrapper reads the tunnel token and the admin keys from this root.
+      tofu-root: environments/prod
+      # The cluster first; vm-ci last, since its runners run this job, and a
+      # busy one is left for its next start.
+      playbooks: |
+        playbooks/cluster.yml
+        playbooks/vm-access.yml
+        playbooks/vm-ci.yml
+    secrets:
+      SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
