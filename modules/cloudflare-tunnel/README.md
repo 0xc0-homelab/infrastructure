@@ -50,5 +50,6 @@ No modules.
 
 | Name | Description |
 | ---- | ----------- |
+| <a name="output_id"></a> [id](#output\_id) | Tunnel ID. A public hostname is a CNAME to <id>.cfargotunnel.com. |
 | <a name="output_token"></a> [token](#output\_token) | Connector token for cloudflared on the VM. Never write it to disk in plaintext. |
 <!-- END_TF_DOCS -->

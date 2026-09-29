@@ -28,7 +28,12 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "main" {
 
   config = {
     ingress = concat(
-      [for rule in var.ingress : { hostname = rule.hostname, service = rule.service }],
+      # An https origin is checked against its real certificate, with the
+      # request's host as SNI: one rule serves every name under a wildcard.
+      [for rule in var.ingress : merge(
+        { hostname = rule.hostname, service = rule.service },
+        startswith(rule.service, "https://") ? { origin_request = { match_sn_ito_host = true } } : {},
+      )],
       [{ service = "http_status:404" }],
     )
   }

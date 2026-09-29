@@ -288,3 +288,9 @@ variable "backup" {
     })
   })
 }
+
+variable "public_domains" {
+  description = "Domains whose names the public tunnel serves. Each must be a zone in the tunnel's own Cloudflare account: a CNAME to the tunnel from another account's zone fails at the edge (1014)."
+  type        = list(string)
+  default     = []
+}

@@ -37,5 +37,10 @@ export CROWDSEC_LAPI_SECRET
 CROWDSEC_REGISTRATION_TOKEN="$(sops decrypt --extract '["crowdsec_registration_token"]' secrets/ansible.sops.yaml)"
 export CROWDSEC_REGISTRATION_TOKEN
 
+# OpenTofu's Cloudflare token, reused by cert-manager and external-dns for the
+# DNS (an accepted risk until Vault: .github#6).
+CLOUDFLARE_DNS_TOKEN="$(sops decrypt --extract '["CLOUDFLARE_API_TOKEN"]' secrets/tofu.sops.yaml)"
+export CLOUDFLARE_DNS_TOKEN
+
 cd ansible
 exec ansible-playbook "$@"
