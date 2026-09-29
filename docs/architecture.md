@@ -161,7 +161,7 @@ sequenceDiagram
   CF->>LB: public tunnel (outbound from the LB VMs)
   Note over LB: cloudflared → HAProxy
   LB->>K: NodePort, across the three RKE2 nodes
-  Note over K: cluster ingress, with open-appsec
+  Note over K: Traefik, with CrowdSec's bouncer
   K-->>U: response, back through the tunnel
 ```
 

@@ -4,9 +4,9 @@ rke2_server_version: "1.36.4~rke2r1"
 rke2_server_selinux_version: "0.23"
 rke2_server_channel: stable
 
-# RKE2 packages Traefik as its ingress from v1.36. The cluster's ingress, with
-# open-appsec, comes from gitops instead, and Traefik as ingress is discarded
-# (docs/design.md): none.
+# RKE2 packages Traefik as its ingress from v1.36. The cluster's ingress, also
+# Traefik but with CrowdSec, comes from gitops, pinned and managed by ArgoCD:
+# none here.
 rke2_server_ingress_controller: none
 
 # Names and addresses the API certificate carries besides the node's own.
