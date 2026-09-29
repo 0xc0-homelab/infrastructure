@@ -72,6 +72,7 @@ module "vms" {
 
   name      = each.key
   rebuild   = each.value.rebuild
+  cpu_type  = each.value.cpu_type
   node_name = var.nodes[0]
   # A template is missing for a while when Packer rebuilds it (it deletes it
   # first). Existing VMs ignore their template, so their plan must not fail

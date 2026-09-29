@@ -102,6 +102,8 @@ variable "vms" {
     cores        = optional(number, 1)
     memory_mb    = optional(number, 1024)
     disk_size_gb = optional(number, 8)
+    # The QEMU CPU model. Rocky 10 needs x86-64-v3.
+    cpu_type = optional(string, "x86-64-v2-AES")
     # Bump to recreate the VM from its template. prevent_destroy, in the vm
     # module, has to be lifted in the same PR.
     rebuild = optional(number, 0)
