@@ -50,9 +50,16 @@ decide.
 
 ## Ansible
 
-`ansible/` configures what runs inside the VMs, after cloud-init. Run it
-through `scripts/ansible`, which reads the tunnel token from the OpenTofu state
-into the environment, never onto disk:
+`ansible/` configures what runs inside the VMs, after cloud-init. **Every
+playbook runs from the pipeline** (operator decision, 2026-09-29):
+`.github/workflows/ansible.yml` calls the reusable workflow in
+`0xc0-homelab/.github`, which runs them in order with `--check --diff` on a
+PR, and for real on a merge to `main` once the operator approves. Nothing is
+applied from the laptop.
+
+Locally, only the dry run, through `scripts/ansible`, which reads the tunnel
+token and the admin keys from the OpenTofu state into the environment, never
+onto disk:
 
 ```
 scripts/ansible playbooks/vm-access.yml --check --diff
