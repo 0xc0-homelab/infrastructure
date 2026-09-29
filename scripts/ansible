@@ -9,6 +9,10 @@ cd "$(dirname "$0")/.."
 token="$(sops exec-env secrets/tofu.sops.yaml 'tofu -chdir=environments/prod output -raw vm_access_tunnel_token')"
 export CLOUDFLARED_TUNNEL_TOKEN="$token"
 
+# The public tunnel's, for its connectors on the load balancers.
+PUBLIC_TUNNEL_TOKEN="$(sops exec-env secrets/tofu.sops.yaml 'tofu -chdir=environments/prod output -raw public_tunnel_token')"
+export PUBLIC_TUNNEL_TOKEN
+
 # The admin keys, as JSON: vm_admin_ssh_keys in terraform.tfvars is the one
 # list, for cloud-init and for the base role alike.
 HOMELAB_ADMIN_SSH_KEYS="$(sops exec-env secrets/tofu.sops.yaml 'tofu -chdir=environments/prod output -json vm_admin_ssh_keys')"
