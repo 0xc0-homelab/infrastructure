@@ -31,6 +31,10 @@ source "proxmox-clone" "base" {
   clone_vm   = "debian-13-cloud"
   full_clone = true
 
+  # Packer's templates take 9100-9199 (the raw images, 9000-9099). The build
+  # VM gets the ID and keeps it as the template; a rebuild deletes the old
+  # template first, so the ID is free again.
+  vm_id                = 9100
   vm_name              = "debian-13-base"
   template_name        = "debian-13-base"
   template_description = "Debian 13, the official cloud image with the homelab base role. Built by Packer from packer/debian-13-base, commit ${var.commit}."
