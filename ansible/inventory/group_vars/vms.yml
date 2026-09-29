@@ -13,4 +13,5 @@ base_admin_ssh_keys: "{{ lookup('ansible.builtin.env', 'HOMELAB_ADMIN_SSH_KEYS')
 # instead of hanging.
 ansible_ssh_common_args: >-
   -o StrictHostKeyChecking=accept-new
+  -o UserKnownHostsFile={{ lookup('ansible.builtin.env', 'HOMELAB_KNOWN_HOSTS', default='~/.ssh/known_hosts') }}
   -o ServerAliveInterval=15 -o ServerAliveCountMax=3

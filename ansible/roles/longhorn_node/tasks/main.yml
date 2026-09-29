@@ -1,0 +1,7 @@
+- name: Prepare the host
+  ansible.builtin.import_tasks: host.yml
+  tags: [longhorn_node, longhorn_node_host]
+
+- name: Prepare the data disks
+  ansible.builtin.import_tasks: disks.yml
+  tags: [longhorn_node, longhorn_node_disks]

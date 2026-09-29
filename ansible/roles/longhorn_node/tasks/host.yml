@@ -1,0 +1,49 @@
+# disable_excludes: the package is excluded from updates below, and bumping the
+# pin must still install the new version.
+- name: Install cryptsetup and open-iscsi {{ longhorn_node_iscsi_version }}
+  ansible.builtin.dnf:
+    name:
+      - "iscsi-initiator-utils-{{ longhorn_node_iscsi_version }}"
+      - cryptsetup
+    state: present
+    disable_excludes: main
+  register: longhorn_node_packages
+
+- name: Keep open-iscsi off updates
+  ansible.builtin.lineinfile:
+    path: /etc/dnf/dnf.conf
+    insertafter: '^\[main\]'
+    regexp: '^excludepkgs='
+    line: excludepkgs=iscsi-initiator-utils*
+
+- name: Load the kernel modules on boot
+  ansible.builtin.copy:
+    dest: /etc/modules-load.d/longhorn.conf
+    content: |
+      # Managed by Ansible (longhorn_node).
+      {{ longhorn_node_modules | join('\n') }}
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Look for the kernel modules
+  ansible.builtin.stat:
+    path: "/sys/module/{{ item }}"
+  loop: "{{ longhorn_node_modules }}"
+  register: longhorn_node_loaded
+
+- name: Load the kernel modules now
+  ansible.builtin.command:
+    cmd: "modprobe {{ item.item }}"
+  loop: "{{ longhorn_node_loaded.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+  changed_when: true
+  when: not item.stat.exists
+
+- name: Enable and start iscsid
+  ansible.builtin.systemd_service:
+    name: iscsid
+    enabled: true
+    state: started
+  when: not (ansible_check_mode and longhorn_node_packages.changed)

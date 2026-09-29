@@ -1,0 +1,8 @@
+longhorn_node_vg: longhorn
+longhorn_node_lv: data
+longhorn_node_device: "/dev/{{ longhorn_node_vg }}/{{ longhorn_node_lv }}"
+# iscsi_tcp before iscsid starts; dm_crypt for encrypted volumes.
+longhorn_node_modules: [iscsi_tcp, dm_crypt]
+# A mount unit is named after its path: /var/lib/longhorn -> var-lib-longhorn.
+# A path with a dash in it would need escaping; this one has none.
+longhorn_node_mount_unit: "{{ longhorn_node_path.strip('/') | replace('/', '-') }}.mount"
