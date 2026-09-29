@@ -6,6 +6,36 @@
     cache_valid_time: 3600
   when: ansible_facts.os_family == "Debian"
 
+# Rocky's mirror list sends Hetzner's network to a mirror serving at ~40 KB/s,
+# and every dnf run crawls. Rocky's own CDN serves the same at full speed; the
+# repo files already carry its baseurl, commented out.
+- name: Find the Rocky repo files
+  ansible.builtin.find:
+    paths: /etc/yum.repos.d
+    patterns: "rocky*.repo"
+  register: base_rocky_repos
+  when: ansible_facts.os_family == "RedHat"
+
+- name: Drop the mirror list
+  ansible.builtin.replace:
+    path: "{{ item.path }}"
+    regexp: '^mirrorlist='
+    replace: '#mirrorlist='
+  loop: "{{ base_rocky_repos.files | default([]) }}"
+  loop_control:
+    label: "{{ item.path }}"
+  when: ansible_facts.os_family == "RedHat"
+
+- name: Use Rocky's CDN, over HTTPS
+  ansible.builtin.replace:
+    path: "{{ item.path }}"
+    regexp: '^#baseurl=http://dl\.rockylinux\.org/'
+    replace: 'baseurl=https://dl.rockylinux.org/'
+  loop: "{{ base_rocky_repos.files | default([]) }}"
+  loop_control:
+    label: "{{ item.path }}"
+  when: ansible_facts.os_family == "RedHat"
+
 - name: Install baseline packages (Rocky)
   ansible.builtin.dnf:
     name: "{{ base_packages }}"
