@@ -62,6 +62,17 @@ variable "disk_size_gb" {
   default     = 8
 }
 
+variable "data_disks_gb" {
+  description = "Sizes of blank data disks, attached as scsi1 onwards in list order. None by default. Only append: removing or reordering an entry moves the disks after it onto other interfaces."
+  type        = list(number)
+  default     = []
+
+  validation {
+    condition     = alltrue([for s in var.data_disks_gb : s >= 1 && floor(s) == s])
+    error_message = "Every data disk size is a whole number of GB, at least 1."
+  }
+}
+
 variable "username" {
   description = "Admin user created by cloud-init; SSH keys only, no password."
   type        = string

@@ -49,6 +49,19 @@ resource "proxmox_virtual_environment_vm" "main" {
     iothread     = true
   }
 
+  # Blank data disks, scsi1 onwards, left unformatted: what uses them sets
+  # them up. They live and die with the VM, so prevent_destroy covers them.
+  dynamic "disk" {
+    for_each = var.data_disks_gb
+    content {
+      datastore_id = var.datastore_id
+      interface    = "scsi${disk.key + 1}"
+      size         = disk.value
+      discard      = "on"
+      iothread     = true
+    }
+  }
+
   # firewall = true: zone rules only apply to a NIC with the firewall on.
   network_device {
     bridge   = var.vnet

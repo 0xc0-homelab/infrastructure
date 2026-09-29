@@ -110,6 +110,31 @@ node_web_hostnames = ["pve.0xc0.cc", "pbs.0xc0.cc", "s3.0xc0.cc", "s3-console.0x
 # zone above), `node`, or `internet`; an empty `to` means the zone initiates
 # nothing. The zone-firewall module turns each entry into rules whose comment
 # is "<from> -> <to>: <note>". Notes are plain ASCII: Proxmox keeps them as is.
+# The RKE2 cluster and its load balancer, in platform (docs/zones.md). The
+# three servers are identical: control plane, etcd and workloads on each.
+cluster = {
+  vnet = "platform"
+  # keepalived's, in front of HAProxy; no VM takes it.
+  vip = "10.10.4.10"
+  load_balancers = {
+    template = "debian-13-base"
+    nodes = {
+      "vm-lb-01" = { ip = "10.10.4.11" }
+      "vm-lb-02" = { ip = "10.10.4.12" }
+    }
+  }
+  servers = {
+    template = "rocky-10-base"
+    # The root disk and two blank ones for the cluster's storage.
+    data_disks_gb = [100, 100]
+    nodes = {
+      "vm-rke2-01" = { ip = "10.10.4.21" }
+      "vm-rke2-02" = { ip = "10.10.4.22" }
+      "vm-rke2-03" = { ip = "10.10.4.23" }
+    }
+  }
+}
+
 transit = [
   { from = "mgmt", to = ["mgmt"], ports = [22], note = "between the vm-access connectors; a WARP session can leave from either one" },
   { from = "mgmt", to = ["ci"], ports = [22], note = "admin SSH, through the vm-access tunnel" },

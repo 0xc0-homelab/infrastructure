@@ -196,3 +196,63 @@ variable "node_firewall" {
     admin_ports = list(string)
   })
 }
+
+variable "cluster" {
+  description = "The RKE2 cluster and its load balancer pair, in one zone. The VIP is keepalived's, in front of HAProxy; addresses follow the plan in docs/zones.md."
+  type = object({
+    vnet = string
+    vip  = string
+    load_balancers = object({
+      template     = string
+      cores        = optional(number, 1)
+      memory_mb    = optional(number, 1024)
+      disk_size_gb = optional(number, 10)
+      nodes = map(object({
+        ip = string
+        # Bump to recreate the VM, as in vms.
+        rebuild = optional(number, 0)
+      }))
+    })
+    servers = object({
+      template = string
+      # RKE2 on Rocky 10, which needs x86-64-v3.
+      cpu_type     = optional(string, "x86-64-v3")
+      cores        = optional(number, 4)
+      memory_mb    = optional(number, 12288)
+      disk_size_gb = optional(number, 100)
+      # Blank disks on top of the root one, scsi1 onwards.
+      data_disks_gb = optional(list(number), [])
+      nodes = map(object({
+        ip      = string
+        rebuild = optional(number, 0)
+      }))
+    })
+  })
+
+  # The VIP and every address sit inside the zone, never on the host's .1, and
+  # no machine takes the VIP.
+  validation {
+    condition = contains(keys(var.zones), var.cluster.vnet) && alltrue([
+      for ip in concat([var.cluster.vip], [for n in merge(var.cluster.load_balancers.nodes, var.cluster.servers.nodes) : n.ip]) :
+      cidrhost("${ip}/${split("/", var.zones[var.cluster.vnet].cidr)[1]}", 0) == cidrhost(var.zones[var.cluster.vnet].cidr, 0)
+      && ip != cidrhost(var.zones[var.cluster.vnet].cidr, 1)
+    ])
+    error_message = "The cluster's vip and every address must be inside its vnet's zone and must not be the host's .1 — see docs/zones.md."
+  }
+
+  validation {
+    condition = alltrue([
+      for n in merge(var.cluster.load_balancers.nodes, var.cluster.servers.nodes) : n.ip != var.cluster.vip
+    ])
+    error_message = "No cluster machine may take the VIP."
+  }
+
+  # One namespace and one address plan with vms.
+  validation {
+    condition = length(setintersection(keys(var.vms), keys(merge(var.cluster.load_balancers.nodes, var.cluster.servers.nodes)))) == 0 && length(distinct(concat(
+      [for v in values(var.vms) : v.ip],
+      [for n in values(merge(var.cluster.load_balancers.nodes, var.cluster.servers.nodes)) : n.ip],
+    ))) == length(var.vms) + length(var.cluster.load_balancers.nodes) + length(var.cluster.servers.nodes)
+    error_message = "A cluster machine shares a name or an address with another VM."
+  }
+}
