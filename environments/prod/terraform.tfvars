@@ -138,12 +138,15 @@ cluster = {
   }
   servers = {
     template = "rocky-10-base"
-    # The root disk and two blank ones for the cluster's storage.
+    # The system disk holds RKE2, etcd, the images and the logs; the two blank
+    # ones are Longhorn's, joined by LVM (the longhorn_node role).
+    disk_size_gb  = 50
     data_disks_gb = [100, 100]
     nodes = {
-      "vm-rke2-01" = { ip = "10.10.4.21" }
-      "vm-rke2-02" = { ip = "10.10.4.22" }
-      "vm-rke2-03" = { ip = "10.10.4.23" }
+      # Rebuilt with the smaller system disk (#120).
+      "vm-rke2-01" = { ip = "10.10.4.21", rebuild = 1 }
+      "vm-rke2-02" = { ip = "10.10.4.22", rebuild = 1 }
+      "vm-rke2-03" = { ip = "10.10.4.23", rebuild = 1 }
     }
   }
 }
