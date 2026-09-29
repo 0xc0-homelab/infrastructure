@@ -1,4 +1,0 @@
-- name: Configure what the SDN needs on the node
-  hosts: node
-  roles:
-    - role: node_forwarding

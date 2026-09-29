@@ -1,5 +1,0 @@
-# Zones that must never reach the internet. None today: the data services run
-# in the cluster, and the rule for the old data zone is removed on the next run.
-node_forwarding_no_egress_cidrs: []
-# The node's public interface.
-node_forwarding_uplink: eno1
