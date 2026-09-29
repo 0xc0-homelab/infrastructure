@@ -86,14 +86,9 @@ build {
     inline = ["cloud-init status --wait --long || { rc=$?; [ $rc -eq 2 ] && exit 0; exit $rc; }"]
   }
 
-  # The template is baked up to date: the image is only rebuilt upstream now
-  # and then.
-  provisioner "shell" {
-    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-    inline          = ["dnf -y upgrade"]
-  }
-
-  # The baseline every VM needs: the guest agent, SSH hardening.
+  # The baseline every VM needs: the guest agent, SSH hardening, and the repos
+  # on Rocky's CDN. First, so the upgrade below does not crawl through the
+  # mirror list's slow mirror.
   provisioner "ansible" {
     playbook_file = "${path.root}/playbook.yml"
     user          = "rocky"
@@ -103,6 +98,13 @@ build {
       "ANSIBLE_ROLES_PATH=${path.root}/../../ansible/roles",
       "ANSIBLE_HOST_KEY_CHECKING=False",
     ]
+  }
+
+  # The template is baked up to date: the image is only rebuilt upstream now
+  # and then. After the base role, on the CDN.
+  provisioner "shell" {
+    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+    inline          = ["dnf -y upgrade"]
   }
 
   # Every clone must get its own identity and its own cloud-init run.
