@@ -1,0 +1,11 @@
+- name: Reload NetworkManager
+  ansible.builtin.systemd_service:
+    name: NetworkManager
+    state: reloaded
+
+# The play runs one server at a time, so etcd keeps quorum through this.
+- name: Restart rke2-server
+  ansible.builtin.systemd_service:
+    name: rke2-server
+    state: restarted
+  when: not rke2_server_pending

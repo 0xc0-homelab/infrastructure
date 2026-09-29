@@ -1,0 +1,41 @@
+- name: Trust Rancher's RPM signing key
+  ansible.builtin.rpm_key:
+    key: "{{ rke2_server_gpg_key }}"
+    state: present
+
+- name: Add the rke2-common repository
+  ansible.builtin.yum_repository:
+    name: rancher-rke2-common
+    description: Rancher RKE2 common ({{ rke2_server_channel }})
+    baseurl: "{{ rke2_server_repo_url }}/common/centos/10/noarch"
+    gpgcheck: true
+    gpgkey: "{{ rke2_server_gpg_key }}"
+  register: rke2_server_repo_common
+
+- name: Add the rke2 repository for {{ rke2_server_minor }}
+  ansible.builtin.yum_repository:
+    name: rancher-rke2
+    description: Rancher RKE2 {{ rke2_server_minor }} ({{ rke2_server_channel }})
+    baseurl: "{{ rke2_server_repo_url }}/{{ rke2_server_minor }}/centos/10/x86_64"
+    gpgcheck: true
+    gpgkey: "{{ rke2_server_gpg_key }}"
+  register: rke2_server_repo
+
+# On a dry run before the first real one the repositories are not there yet,
+# so there is nothing to install from: skip rather than fail the dry run.
+- name: Install rke2-server {{ rke2_server_version }}
+  ansible.builtin.dnf:
+    name:
+      - "rke2-server-{{ rke2_server_version }}"
+      - "rke2-selinux-{{ rke2_server_selinux_version }}"
+    state: present
+  register: rke2_server_package
+  when: not (ansible_check_mode and (rke2_server_repo_common.changed or rke2_server_repo.changed))
+
+# True on a dry run that would install RKE2: the unit does not exist yet, so
+# nothing may start or restart it.
+- name: Note whether RKE2 is still to be installed
+  ansible.builtin.set_fact:
+    rke2_server_pending: >-
+      {{ ansible_check_mode
+         and (rke2_server_repo_common.changed or rke2_server_repo.changed or rke2_server_package.changed) }}

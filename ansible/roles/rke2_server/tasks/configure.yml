@@ -1,0 +1,54 @@
+- name: Look for local etcd data
+  ansible.builtin.stat:
+    path: "{{ rke2_server_etcd_dir }}"
+  register: rke2_server_etcd
+
+# Straight to each peer, not through the VIP: a cluster whose load balancer is
+# down must still be found, or this host would start a second one.
+- name: Probe the peers' supervisors
+  ansible.builtin.command:
+    cmd: timeout 3 bash -c 'exec 3<>/dev/tcp/{{ item }}/9345'
+  loop: "{{ rke2_server_peers }}"
+  register: rke2_server_probe
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+# The bootstrap host keeps no server line once it holds etcd data, as the
+# first server always does; it joins only when rebuilt into a running
+# cluster. Every other host always joins.
+- name: Decide whether to join or initialise
+  ansible.builtin.set_fact:
+    rke2_server_peers_up: "{{ rke2_server_probe.results | selectattr('rc', 'equalto', 0) | list | length > 0 }}"
+    rke2_server_join: >-
+      {{ not rke2_server_bootstrap
+         or (not rke2_server_etcd.stat.exists
+             and rke2_server_probe.results | selectattr('rc', 'equalto', 0) | list | length > 0) }}
+
+- name: Refuse to start a second cluster, or join nothing
+  ansible.builtin.assert:
+    that: rke2_server_etcd.stat.exists or rke2_server_bootstrap or rke2_server_peers_up
+    fail_msg: >-
+      No peer answers on 9345 and this is not the bootstrap host. Bring up the
+      bootstrap server first, or fix the network: there is no cluster to join.
+  # A dry run starts nothing, so on the first one no peer is ever up: the
+  # others show as joining, which is what the real run does.
+  when: not ansible_check_mode
+
+- name: Create the config directory
+  ansible.builtin.file:
+    path: /etc/rancher/rke2
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: Write the RKE2 config
+  ansible.builtin.template:
+    src: config.yaml.j2
+    dest: /etc/rancher/rke2/config.yaml
+    owner: root
+    group: root
+    mode: "0600"
+  no_log: true
+  notify: Restart rke2-server

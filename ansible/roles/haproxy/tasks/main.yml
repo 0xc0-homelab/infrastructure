@@ -1,0 +1,41 @@
+- name: Install HAProxy
+  ansible.builtin.apt:
+    name: haproxy
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  register: haproxy_package
+
+# The backup load balancer does not hold the VIP, and HAProxy must still bind
+# it, so it takes over the moment keepalived moves it.
+- name: Allow binding an address the host does not hold
+  ansible.builtin.copy:
+    dest: /etc/sysctl.d/60-haproxy.conf
+    content: |
+      # Managed by Ansible (haproxy): the VIP is bound before it is held.
+      net.ipv4.ip_nonlocal_bind = 1
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Apply the sysctl settings
+
+# The setting must hold before HAProxy binds the VIP, on the first run too.
+- name: Apply the sysctl settings now
+  ansible.builtin.meta: flush_handlers
+
+- name: Configure HAProxy
+  ansible.builtin.template:
+    src: haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+    owner: root
+    group: root
+    mode: "0644"
+    validate: haproxy -c -f %s
+  notify: Reload haproxy
+
+- name: Enable and start HAProxy
+  ansible.builtin.systemd_service:
+    name: haproxy
+    enabled: true
+    state: started
+  when: not (ansible_check_mode and haproxy_package.changed)

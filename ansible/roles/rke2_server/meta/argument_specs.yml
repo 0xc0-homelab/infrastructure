@@ -1,0 +1,58 @@
+argument_specs:
+  main:
+    short_description: An RKE2 server on Rocky Linux 10
+    description:
+      - Installs RKE2 from Rancher's RPM repository, pinned by version, with
+        its SELinux policy, and runs it as a server — control plane, etcd and
+        workloads together.
+      - Every host joins through the registration address, except the
+        bootstrap host, which initialises the cluster and keeps no server line
+        once it holds etcd data. Rebuilt into a running cluster, found by
+        probing the peers directly, it joins like the others. A joining host
+        with no peer up fails rather than wait.
+    options:
+      rke2_server_token:
+        type: str
+        required: true
+        no_log: true
+        description: Shared secret servers join with. From secrets/ansible.sops.yaml.
+      rke2_server_registration_address:
+        type: str
+        required: true
+        description: Fixed address in front of the servers, the VIP. Joins go to its port 9345.
+      rke2_server_node_ip:
+        type: str
+        required: true
+        description: This host's address in the zone.
+      rke2_server_peers:
+        type: list
+        elements: str
+        required: true
+        description: The other servers' addresses, probed directly on 9345 before deciding to bootstrap.
+      rke2_server_bootstrap:
+        type: bool
+        required: true
+        description: Whether this host may initialise a new cluster when no peer is up. True on exactly one host.
+      rke2_server_tls_san:
+        type: list
+        elements: str
+        default: []
+        description: Extra names and addresses for the API certificate, the VIP among them.
+      rke2_server_ingress_controller:
+        type: str
+        default: none
+        choices: [none, traefik, ingress-nginx]
+        description: RKE2's packaged ingress controller. none — the ingress comes from gitops.
+      rke2_server_version:
+        type: str
+        default: "1.36.4~rke2r1"
+        description: RPM version of rke2-server, as in Rancher's repository.
+      rke2_server_selinux_version:
+        type: str
+        default: "0.23"
+        description: RPM version of rke2-selinux.
+      rke2_server_channel:
+        type: str
+        default: stable
+        choices: [stable, latest]
+        description: Rancher's RPM repository channel.

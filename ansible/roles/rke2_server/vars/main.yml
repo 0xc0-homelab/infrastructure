@@ -1,0 +1,14 @@
+# The repository is per Kubernetes minor, taken from the pinned version.
+rke2_server_minor: "{{ rke2_server_version.split('.')[0:2] | join('.') }}"
+rke2_server_repo_url: "https://rpm.rancher.io/rke2/{{ rke2_server_channel }}"
+rke2_server_gpg_key: https://rpm.rancher.io/public.key
+
+# Present only once this host has joined or initialised a cluster.
+rke2_server_etcd_dir: /var/lib/rancher/rke2/server/db/etcd
+
+# Both interfere with Canal: firewalld with its rules, nm-cloud-setup with a
+# routing table of its own.
+rke2_server_conflicting_units:
+  - firewalld.service
+  - nm-cloud-setup.service
+  - nm-cloud-setup.timer

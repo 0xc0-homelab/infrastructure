@@ -1,0 +1,8 @@
+# Unique among the VRRP instances in the zone; there is only this one.
+keepalived_virtual_router_id: 10
+
+# The zone's NIC, the one the VIP lives on.
+keepalived_interface: "{{ ansible_facts.default_ipv4.interface }}"
+
+# The VIP follows HAProxy: a host whose HAProxy is down gives it up.
+keepalived_track_service: haproxy

@@ -1,0 +1,43 @@
+argument_specs:
+  main:
+    short_description: HAProxy in TCP mode in front of the RKE2 servers
+    description:
+      - Installs HAProxy and forwards each frontend, bound to the VIP, to the
+        same backend port on every RKE2 server. TCP only; TLS ends in the
+        cluster. The backup load balancer binds the VIP too, before it holds
+        it, through net.ipv4.ip_nonlocal_bind.
+    options:
+      haproxy_listen_address:
+        type: str
+        required: true
+        description: The VIP keepalived holds. Never 0.0.0.0.
+      haproxy_backends:
+        type: list
+        elements: dict
+        required: true
+        description: The RKE2 servers, each a name and an address.
+        options:
+          name:
+            type: str
+            required: true
+          address:
+            type: str
+            required: true
+      haproxy_frontends:
+        type: list
+        elements: dict
+        description: What is forwarded, each a name, the port on the VIP, and the port on the servers.
+        options:
+          name:
+            type: str
+            required: true
+          port:
+            type: int
+            required: true
+          backend_port:
+            type: int
+            required: true
+      haproxy_timeout:
+        type: str
+        default: 30m
+        description: Client and server idle timeout. Long, for Kubernetes watches.

@@ -12,5 +12,8 @@ export CLOUDFLARED_TUNNEL_TOKEN="$token"
 GITHUB_RUNNER_APP_PRIVATE_KEY="$(sops decrypt --extract '["github_runner_app_private_key"]' secrets/ansible.sops.yaml)"
 export GITHUB_RUNNER_APP_PRIVATE_KEY
 
+RKE2_TOKEN="$(sops decrypt --extract '["rke2_token"]' secrets/ansible.sops.yaml)"
+export RKE2_TOKEN
+
 cd ansible
 exec ansible-playbook "$@"
