@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+# Restarts VMs one at a time from Proxmox, which applies their pending changes
+# (a restart from inside the guest does not), and waits for each to be back
+# before the next:
+#   - every VM: its guest agent answers, and nothing is left pending;
+#   - an RKE2 server (vm-rke2-*): its node is Ready, and every Longhorn volume
+#     healthy again, so two servers are never down, or rebuilding, at once.
+# The order is the operator's; the script only ever restarts one VM at a time.
+# Never pass the CI VM running your own job, and mind that restarting a
+# vm-access connector drops the WARP sessions through it.
+# Usage: scripts/rolling-reboot <vm-name>...
+set -euo pipefail
+cd "$(dirname "$0")/.."
+[ "$#" -gt 0 ] || { echo "usage: scripts/rolling-reboot <vm-name>..." >&2; exit 2; }
+
+exec sops exec-env secrets/tofu.sops.yaml "bash -s -- $(printf '%q ' "$@")" <<'SCRIPT'
+set -euo pipefail
+api="${PROXMOX_VE_ENDPOINT%/}/api2/json"
+auth="Authorization: PVEAPIToken=$PROXMOX_VE_API_TOKEN"
+key="${HOMELAB_SSH_KEY_FILE:-$HOME/.ssh/0xc0-homelab}"
+pve() { curl -fsS -H "$auth" "$@"; }
+kubectl_on() { # ip args...
+  local ip="$1"; shift
+  # ssh hands the command to the remote shell: quote every argument, since
+  # jsonpath expressions carry (), {} and [].
+  ssh -n -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -i "$key" "ops@$ip" \
+    "sudo /var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml $(printf '%q ' "$@")"
+}
+# Retries a check every 10 seconds until it passes or the minutes run out.
+wait_for() { # minutes description command...
+  local minutes="$1" what="$2"; shift 2
+  for _ in $(seq 1 $((minutes * 6))); do "$@" >/dev/null 2>&1 && return 0; sleep 10; done
+  echo "  $what: not after $minutes minutes, stopping here" >&2; return 1
+}
+pending_keys() { # node vmid
+  pve "$api/nodes/$1/qemu/$2/pending" |
+    jq -r '[.data[] | select(.pending != null or .delete != null) | .key] | join(",")'
+}
+node_ready() { # ip name
+  [ "$(kubectl_on "$1" get node "$2" -o 'jsonpath={.status.conditions[?(@.type=="Ready")].status}')" = True ]
+}
+volumes_healthy() { # ip: every Longhorn volume healthy (none counts); a failed query does not
+  local states
+  states="$(kubectl_on "$1" -n longhorn-system get volumes.longhorn.io \
+    -o 'jsonpath={range .items[*]}{.status.robustness}{"\n"}{end}')" || return 1
+  [ -z "$states" ] || ! grep -qv '^healthy$' <<<"$states"
+}
+task_ok() { # node upid
+  [ "$(pve "$api/nodes/$1/tasks/$(jq -rn --arg u "$2" '$u|@uri')/status" | jq -r .data.exitstatus)" = OK ]
+}
+
+for name in "$@"; do
+  vm="$(pve "$api/cluster/resources?type=vm" |
+    jq -c --arg n "$name" '[.data[] | select(.name == $n and .template != 1)]')"
+  [ "$(jq length <<<"$vm")" = 1 ] || { echo "$name: not exactly one VM by that name, stopping" >&2; exit 1; }
+  node="$(jq -r '.[0].node' <<<"$vm")"
+  vmid="$(jq -r '.[0].vmid' <<<"$vm")"
+
+  echo "$name ($vmid): restarting, pending: $(pending_keys "$node" "$vmid" | sed 's/^$/nothing/')"
+  upid="$(pve -X POST "$api/nodes/$node/qemu/$vmid/status/reboot" | jq -r .data)"
+  wait_for 10 "the restart task" task_ok "$node" "$upid"
+
+  wait_for 5 "the guest agent" pve -X POST "$api/nodes/$node/qemu/$vmid/agent/ping"
+  left="$(pending_keys "$node" "$vmid")"
+  [ -z "$left" ] || { echo "  still pending after the restart: $left, stopping" >&2; exit 1; }
+
+  case "$name" in
+    vm-rke2-*)
+      ip="$(pve "$api/nodes/$node/qemu/$vmid/agent/network-get-interfaces" |
+        jq -r '[.data.result[]."ip-addresses"[]? | ."ip-address" | select(startswith("10.10."))][0]')"
+      wait_for 10 "node $name Ready" node_ready "$ip" "$name"
+      wait_for 30 "every Longhorn volume healthy" volumes_healthy "$ip"
+      ;;
+  esac
+  echo "$name ($vmid): back"
+done
+SCRIPT

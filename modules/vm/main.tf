@@ -37,8 +37,13 @@ resource "proxmox_virtual_environment_vm" "main" {
     type  = var.cpu_type
   }
 
+  # floating = dedicated gives the VM a balloon device with no ballooning
+  # target: Proxmox gets the guest's real memory use, and the guest hands the
+  # pages it frees back to the host. Without it (floating = 0), Proxmox shows
+  # the VM's footprint on the host, full of guest cache, near 100%.
   memory {
     dedicated = var.memory_mb
+    floating  = var.memory_mb
   }
 
   # The templates are baked with the guest agent: the provider waits for it
