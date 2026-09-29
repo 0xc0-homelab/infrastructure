@@ -1,10 +1,11 @@
 # The API and the supervisor, where servers register, go to the same port; the
-# web ingress goes to its fixed NodePorts (gitops, the ingress controller).
+# web ingress goes to Traefik's fixed NodePort (gitops, platform/traefik). No
+# 443: TLS ends at Cloudflare for public traffic, and WARP carries the internal
+# one in plain HTTP.
 haproxy_frontends:
   - { name: kube-apiserver, port: 6443, backend_port: 6443 }
   - { name: rke2-supervisor, port: 9345, backend_port: 9345 }
   - { name: ingress-http, port: 80, backend_port: 30080 }
-  - { name: ingress-https, port: 443, backend_port: 30443 }
 
 # Kubernetes watches stay open with little traffic: a short idle timeout cuts
 # them.

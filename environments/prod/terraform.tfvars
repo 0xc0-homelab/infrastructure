@@ -154,7 +154,7 @@ cluster = {
 transit = [
   { from = "mgmt", to = ["mgmt"], ports = [22], note = "between the vm-access connectors; a WARP session can leave from either one" },
   { from = "mgmt", to = ["ci"], ports = [22], note = "admin SSH, through the vm-access tunnel" },
-  { from = "mgmt", to = ["platform"], ports = [22, 443, 6443, 8200], note = "admin: SSH, the portals through the LB, the Kubernetes API, Vault" },
+  { from = "mgmt", to = ["platform"], ports = [22, 80, 6443, 8200], note = "admin: SSH, the internal portals through the LB over WARP, the Kubernetes API, Vault" },
   { from = "mgmt", to = ["node"], ports = [22, 8006], note = "admin: SSH and the Proxmox API, through the vm-access tunnel" },
   { from = "mgmt", to = ["node"], ports = [443], note = "Traefik on the host (Proxmox UI, PBS, RustFS), over WARP; never from the internet" },
   { from = "ci", to = ["platform"], ports = [22, 6443], note = "the runner: SSH to configure the VMs, and the Kubernetes API" },

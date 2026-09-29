@@ -119,7 +119,7 @@ flowchart LR
   internet(("internet"))
 
   mgmt -- "22" --> ci
-  mgmt -- "22, 443, 6443, 8200" --> platform
+  mgmt -- "22, 80, 6443, 8200" --> platform
   mgmt -- "22, 8006" --> node
   mgmt -- "443" --> node
   ci -- "22, 6443" --> platform
