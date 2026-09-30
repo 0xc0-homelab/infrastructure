@@ -78,3 +78,13 @@
             namespace: traefik
             data:
               key: "{{ lookup('ansible.builtin.env', 'CROWDSEC_BOUNCER_KEY') }}"
+          # The Cloudflare token for the DNS: cert-manager's DNS-01 challenges
+          # and external-dns's records.
+          - name: cloudflare-api-token
+            namespace: cert-manager
+            data:
+              token: "{{ lookup('ansible.builtin.env', 'CLOUDFLARE_DNS_TOKEN') }}"
+          - name: cloudflare-api-token
+            namespace: external-dns
+            data:
+              token: "{{ lookup('ansible.builtin.env', 'CLOUDFLARE_DNS_TOKEN') }}"

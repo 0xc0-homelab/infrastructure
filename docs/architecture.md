@@ -119,7 +119,7 @@ flowchart LR
   internet(("internet"))
 
   mgmt -- "22" --> ci
-  mgmt -- "22, 80, 6443, 8200" --> platform
+  mgmt -- "22, 80, 443, 6443, 8200" --> platform
   mgmt -- "22, 8006" --> node
   mgmt -- "443" --> node
   ci -- "22, 6443" --> platform
@@ -159,14 +159,20 @@ sequenceDiagram
 
   U->>CF: HTTPS
   CF->>LB: public tunnel (outbound from the LB VMs)
-  Note over LB: cloudflared → HAProxy
-  LB->>K: NodePort, across the three RKE2 nodes
-  Note over K: Traefik, with CrowdSec's bouncer
+  Note over LB: cloudflared → HAProxy 443, HTTPS again
+  LB->>K: NodePort 30443, across the three RKE2 nodes
+  Note over K: Traefik websecure: TLS with Let's Encrypt, CrowdSec's bouncer
   K-->>U: response, back through the tunnel
 ```
 
 No inbound port is opened for web traffic: `cloudflared` on the LB VMs dials
-out to Cloudflare. **No admin panel is ever published this way**: the portals,
+out to Cloudflare. From there to Traefik the traffic is HTTPS again, checked
+against a Let's Encrypt wildcard issued by cert-manager (DNS-01 through
+Cloudflare), with the request's host as SNI. The tunnel serves every name of
+each domain in `public_domains`; a name is public only once external-dns gives
+it a record, which it does only for the routes marked public.
+
+**No admin panel is ever published this way**: the portals,
 Vault and the Kubernetes API are reached only over WARP (operator decision,
 2026-09-29; publishing a portal behind Cloudflare Access is deferred).
 
@@ -184,7 +190,7 @@ sequenceDiagram
 
   O->>CF: WARP, authenticated by Access
   CF->>V: tunnel with WARP routing to 10.10.0.0/16
-  V->>Z: whatever mgmt's matrix entries allow towards it — SSH everywhere, the portals (on the VIP's port 80), the Kubernetes API and Vault towards platform, the Proxmox API towards the node
+  V->>Z: whatever mgmt's matrix entries allow towards it — SSH everywhere, the portals (HTTPS on the VIP's 443; 80 only redirects), the Kubernetes API and Vault towards platform, the Proxmox API towards the node
 ```
 
 The operator reaches every zone and the node's internal address directly,

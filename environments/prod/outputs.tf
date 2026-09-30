@@ -23,3 +23,8 @@ output "admin_tunnel_token" {
   value       = module.admin_tunnel.token
   sensitive   = true
 }
+
+output "public_tunnel_id" {
+  description = "The public tunnel's ID: external-dns (gitops, platform/traefik) points public names at <id>.cfargotunnel.com."
+  value       = module.public_tunnel.id
+}

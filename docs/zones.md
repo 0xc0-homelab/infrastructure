@@ -123,5 +123,8 @@ that breaks them fails.
    other ingress to the node is a **critical** finding, and so is implicit
    admin access: `local_network` stays pointed at loopback.
 7. No admin interface reaches the internet through the public tunnel: the
-   portals, Vault and the Kubernetes API are reached only over WARP.
+   portals, Vault and the Kubernetes API are reached only over WARP. The
+   tunnel serves every name of `public_domains` (`terraform.tfvars`), but only
+   a name with a public record reaches it, and external-dns (gitops) creates
+   those only for the routes marked public. A portal's name never has one.
 8. No VM from a phase later than the one declared in `CLAUDE.md`.

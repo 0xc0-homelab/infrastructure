@@ -59,14 +59,18 @@ module "zero_trust" {
 }
 
 # The public tunnel: its connectors run on the load balancers, and it goes to
-# HAProxy on the VIP, then the ingress. Public traffic enters platform, never
-# mgmt. No public hostname yet; the portals stay on WARP.
+# HAProxy on the VIP, then Traefik over HTTPS. Public traffic enters platform,
+# never mgmt. Every name of a public domain goes to Traefik, which routes it or
+# answers 404; a name is public only once external-dns (gitops) gives it a
+# record. The portals stay on WARP, with no record.
 module "public_tunnel" {
   source = "../../modules/cloudflare-tunnel"
 
   account_id = var.cloudflare_account_id
   name       = "public"
-  ingress    = []
+  ingress = flatten([for d in var.public_domains : [
+    for h in ["*.${d}", d] : { hostname = h, service = "https://${var.cluster.vip}:443" }
+  ]])
 }
 
 # The admin tunnel: the admin path. WARP clients reach every zone through it;
