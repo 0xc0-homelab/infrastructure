@@ -15,5 +15,5 @@ github_runner_labels:
 # internal VIP (the cluster's internal_vip in terraform.tfvars); its Let's
 # Encrypt certificate is valid for the name.
 github_runner_hosts:
-  - address: 10.10.4.9
+  - address: "{{ platform_internal_vip }}"
     names: [vault.int.0xc0.cc]

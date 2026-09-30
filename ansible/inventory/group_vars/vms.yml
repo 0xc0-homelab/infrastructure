@@ -15,3 +15,9 @@ ansible_ssh_common_args: >-
   -o StrictHostKeyChecking=accept-new
   -o UserKnownHostsFile={{ lookup('ansible.builtin.env', 'HOMELAB_KNOWN_HOSTS', default='~/.ssh/known_hosts') }}
   -o ServerAliveInterval=15 -o ServerAliveCountMax=3
+
+# The internal VIP, on the load balancers: the WARP-only path, where
+# *.int.0xc0.cc resolves for WARP clients, and where the CI VMs reach Vault.
+# The cluster's internal_vip in terraform.tfvars; the public tunnel never goes
+# there. Here rather than in platform.yml, because ci needs it too.
+platform_internal_vip: 10.10.4.9
