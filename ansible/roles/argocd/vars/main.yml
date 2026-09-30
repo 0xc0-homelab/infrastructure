@@ -18,3 +18,7 @@ argocd_values:
     # helmCharts inflate its pinned charts: Kustomize needs Helm for that.
     cm:
       kustomize.buildOptions: --enable-helm
+    # Plain HTTP behind Traefik, which ends TLS with the *.int.0xc0.cc
+    # wildcard (https://argocd.int.0xc0.cc, over WARP only).
+    params:
+      server.insecure: true
