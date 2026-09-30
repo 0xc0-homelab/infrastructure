@@ -77,3 +77,21 @@
     state: started
     daemon_reload: "{{ longhorn_node_unit.changed }}"
   when: not (ansible_check_mode and longhorn_node_vgs.rc != 0)
+
+# A filesystem made after install carries no SELinux labels: everything on it
+# is unlabeled_t, which qemu-guest-agent may not open, so backups cannot freeze
+# it. restorecon gives it the policy's own (var_lib_t). A dry run lists what it
+# would change; the real run changes only that.
+- name: Find what is mislabelled on {{ longhorn_node_path }}
+  ansible.builtin.command:
+    cmd: "restorecon -R -n -v {{ longhorn_node_path }}"
+  register: longhorn_node_labels
+  changed_when: false
+  check_mode: false
+  when: not (ansible_check_mode and longhorn_node_vgs.rc != 0)
+
+- name: Give the policy's labels to {{ longhorn_node_path }}
+  ansible.builtin.command:
+    cmd: "restorecon -R {{ longhorn_node_path }}"
+  changed_when: true
+  when: longhorn_node_labels.stdout | default('') | length > 0

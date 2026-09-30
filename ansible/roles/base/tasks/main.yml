@@ -45,6 +45,26 @@
 # No start task for qemu-guest-agent: systemd starts it when the virtio port
 # appears.
 
+# Backups freeze every filesystem through qemu-guest-agent first. On Rocky,
+# SELinux keeps it out of any directory it has no rule for, and the RKE2
+# nodes' kubelet and CSI mounts are among them: without this, their backups
+# are crash-consistent only.
+- name: Read qemu-guest-agent's SELinux boolean (Rocky)
+  ansible.builtin.command:
+    cmd: getsebool virt_qemu_ga_read_nonsecurity_files
+  register: base_qemu_ga_boolean
+  changed_when: false
+  check_mode: false
+  when: ansible_facts.os_family == "RedHat"
+
+- name: Let qemu-guest-agent freeze every filesystem (Rocky)
+  ansible.builtin.command:
+    cmd: setsebool -P virt_qemu_ga_read_nonsecurity_files on
+  changed_when: true
+  when:
+    - ansible_facts.os_family == "RedHat"
+    - base_qemu_ga_boolean.stdout is not search('--> on$')
+
 - name: Harden SSH
   ansible.builtin.template:
     src: sshd-hardening.conf.j2
