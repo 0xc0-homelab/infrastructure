@@ -48,6 +48,19 @@ argument_specs:
         elements: str
         default: [homelab]
         description: Custom labels workflows target.
+      github_runner_hosts:
+        type: list
+        elements: dict
+        default: []
+        description: Extra /etc/hosts entries for the jobs, for names inside the network with no public record.
+        options:
+          address:
+            type: str
+            required: true
+          names:
+            type: list
+            elements: str
+            required: true
   install:
     short_description: What a runner VM needs, without the runners
     description:

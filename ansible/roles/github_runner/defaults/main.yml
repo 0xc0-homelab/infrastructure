@@ -13,3 +13,6 @@ github_runner_org: 0xc0-homelab
 # repos that use it.
 github_runner_group: homelab
 github_runner_labels: [homelab]
+
+# Extra /etc/hosts entries for the jobs, each an address and its names.
+github_runner_hosts: []

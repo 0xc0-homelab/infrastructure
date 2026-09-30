@@ -122,7 +122,7 @@ flowchart LR
   mgmt -- "22, 80, 443, 6443, 8200" --> platform
   mgmt -- "22, 8006" --> node
   mgmt -- "443" --> node
-  ci -- "22, 6443" --> platform
+  ci -- "22, 443 (Vault), 6443" --> platform
   ci -- "443, 8006" --> node
   platform -- "9100" --> node
   platform -- "443" --> internet
