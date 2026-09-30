@@ -24,6 +24,7 @@ No providers.
 
 | Name | Source | Version |
 | ---- | ------ | ------- |
+| <a name="module_agents"></a> [agents](#module\_agents) | ../vm | n/a |
 | <a name="module_load_balancers"></a> [load\_balancers](#module\_load\_balancers) | ../vm | n/a |
 | <a name="module_servers"></a> [servers](#module\_servers) | ../vm | n/a |
 
@@ -35,6 +36,7 @@ No resources.
 
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_agents"></a> [agents](#input\_agents) | The RKE2 agents — workloads only, no control plane or etcd: the template, the size, the data disks, and each VM's address. An empty nodes map for none. | <pre>object({<br/>    template_vm_id = number<br/>    cpu_type       = string<br/>    cores          = number<br/>    memory_mb      = number<br/>    disk_size_gb   = number<br/>    data_disks_gb  = list(number)<br/>    nodes = map(object({<br/>      ip      = string<br/>      rebuild = number<br/>    }))<br/>  })</pre> | n/a | yes |
 | <a name="input_cidr"></a> [cidr](#input\_cidr) | The zone's CIDR: every address is inside it, and the host's .1 is the gateway. | `string` | n/a | yes |
 | <a name="input_datastore_id"></a> [datastore\_id](#input\_datastore\_id) | Datastore for the disks and the cloud-init drives. | `string` | n/a | yes |
 | <a name="input_dns_servers"></a> [dns\_servers](#input\_dns\_servers) | Resolvers written by cloud-init. | `list(string)` | n/a | yes |
@@ -49,7 +51,8 @@ No resources.
 
 | Name | Description |
 | ---- | ----------- |
+| <a name="output_agents"></a> [agents](#output\_agents) | The RKE2 agents' addresses, by name. |
 | <a name="output_load_balancers"></a> [load\_balancers](#output\_load\_balancers) | The load balancers' addresses, by name. |
 | <a name="output_servers"></a> [servers](#output\_servers) | The RKE2 servers' addresses, by name. |
-| <a name="output_vms"></a> [vms](#output\_vms) | Every VM of the cluster, load balancers and servers, with its VMID, VNet and NIC MAC: the zone firewall's input. |
+| <a name="output_vms"></a> [vms](#output\_vms) | Every VM of the cluster, load balancers, servers and agents, with its VMID, VNet and NIC MAC: the zone firewall's and the backup job's input. |
 <!-- END_TF_DOCS -->

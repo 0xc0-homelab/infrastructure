@@ -1,0 +1,4 @@
+# The repository is per Kubernetes minor, taken from the pinned version.
+rke2_agent_minor: "{{ rke2_agent_version.split('.')[0:2] | join('.') }}"
+rke2_agent_repo_url: "https://rpm.rancher.io/rke2/{{ rke2_agent_channel }}"
+rke2_agent_gpg_key: https://rpm.rancher.io/public.key

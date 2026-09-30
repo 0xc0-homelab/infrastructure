@@ -1,0 +1,19 @@
+# The host's preparation is the servers': the same kernel module, the same
+# units out of Canal's way, NetworkManager kept off the CNI interfaces.
+- name: Prepare the host
+  ansible.builtin.include_role:
+    name: rke2_server
+    tasks_from: prepare
+  tags: [rke2_agent, rke2_agent_prepare]
+
+- name: Install RKE2
+  ansible.builtin.import_tasks: install.yml
+  tags: [rke2_agent, rke2_agent_install]
+
+- name: Configure RKE2
+  ansible.builtin.import_tasks: configure.yml
+  tags: [rke2_agent, rke2_agent_configure]
+
+- name: Start RKE2
+  ansible.builtin.import_tasks: service.yml
+  tags: [rke2_agent, rke2_agent_service]

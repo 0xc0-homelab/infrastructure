@@ -1,0 +1,7 @@
+# The unit is Type=notify: this returns once the agent has joined, or fails.
+- name: Enable and start rke2-agent
+  ansible.builtin.systemd_service:
+    name: rke2-agent
+    enabled: true
+    state: started
+  when: not rke2_agent_pending

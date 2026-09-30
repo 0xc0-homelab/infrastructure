@@ -72,3 +72,19 @@ variable "servers" {
     error_message = "etcd needs an odd number of servers: 1, 3 or 5."
   }
 }
+
+variable "agents" {
+  description = "The RKE2 agents — workloads only, no control plane or etcd: the template, the size, the data disks, and each VM's address. An empty nodes map for none."
+  type = object({
+    template_vm_id = number
+    cpu_type       = string
+    cores          = number
+    memory_mb      = number
+    disk_size_gb   = number
+    data_disks_gb  = list(number)
+    nodes = map(object({
+      ip      = string
+      rebuild = number
+    }))
+  })
+}
