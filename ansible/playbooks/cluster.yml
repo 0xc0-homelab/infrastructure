@@ -12,15 +12,19 @@
     - role: haproxy
       vars:
         haproxy_listen_address: "{{ platform_vip }}"
+        # The WARP-only path's VIP; the public tunnel never goes there.
+        haproxy_internal_address: "{{ platform_internal_vip }}"
         haproxy_backends: >-
           {{ dict(groups['rke2_servers'] | zip(groups['rke2_servers'] | map('extract', hostvars, 'ansible_host')))
              | dict2items(key_name='name', value_name='address') }}
     - role: keepalived
       vars:
-        keepalived_vip: "{{ platform_vip }}/{{ platform_prefix_length }}"
+        keepalived_vips:
+          - "{{ platform_vip }}/{{ platform_prefix_length }}"
+          - "{{ platform_internal_vip }}/{{ platform_prefix_length }}"
         keepalived_source_address: "{{ ansible_host }}"
         keepalived_peers: "{{ groups['lb'] | difference([inventory_hostname]) | map('extract', hostvars, 'ansible_host') | list }}"
-        # The first load balancer holds the VIP while its HAProxy is up.
+        # The first load balancer holds the VIPs while its HAProxy is up.
         keepalived_priority: "{{ 150 if inventory_hostname == groups['lb'][0] else 100 }}"
     # The public tunnel's connectors, one on each load balancer. The tunnel,
     # remotely managed, sends each public hostname to HAProxy on the VIP.

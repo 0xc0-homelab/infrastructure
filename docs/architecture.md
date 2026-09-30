@@ -114,7 +114,7 @@ flowchart LR
     mgmt["mgmt<br/>10.10.0.0/24<br/>vm-access-01 .10<br/>vm-access-02 .20"]
     ci["ci<br/>10.10.1.0/24<br/>vm-ci-01 .10<br/>vm-ci-02 .20"]
   end
-  platform["platform<br/>10.10.4.0/24<br/>VIP .10<br/>vm-lb-01 .11 · vm-lb-02 .12<br/>vm-rke2-01/02/03 .21-.23"]
+  platform["platform<br/>10.10.4.0/24<br/>VIP .10 · internal VIP .9<br/>vm-lb-01 .11 · vm-lb-02 .12<br/>vm-rke2-01/02/03 .21-.23 · vm-rke2-04 .24"]
   node["node<br/>pve-1"]
   internet(("internet"))
 
@@ -190,12 +190,19 @@ sequenceDiagram
 
   O->>CF: WARP, authenticated by Access
   CF->>V: tunnel with WARP routing to 10.10.0.0/16
-  V->>Z: whatever mgmt's matrix entries allow towards it — SSH everywhere, the portals (HTTPS on the VIP's 443; 80 only redirects), the Kubernetes API and Vault towards platform, the Proxmox API towards the node
+  V->>Z: whatever mgmt's matrix entries allow towards it — SSH everywhere, the internal services (HTTPS on the internal VIP's 443), the public VIP's 443 and 80 (80 only redirects), the Kubernetes API and Vault towards platform, the Proxmox API towards the node
 ```
 
 The operator reaches every zone and the node's internal address directly,
 without a jump host, as if on the network. Private dashboards — Grafana, Vault
 UI, Proxmox — are reached this way, never through the public tunnel.
+
+The cluster's internal services have a path of their own. Cloudflare Gateway
+resolves every `*.int.0xc0.cc` name to the internal VIP, `10.10.4.9`, for WARP
+devices only; those names have no public record. HAProxy sends that VIP's 443
+to Traefik's `internal` entrypoint, with its own Let's Encrypt wildcard. The
+public tunnel only ever targets the public VIP, so the separation is by
+network, not by name.
 
 The **way back in** if this breaks is the Hetzner Rescue system.
 

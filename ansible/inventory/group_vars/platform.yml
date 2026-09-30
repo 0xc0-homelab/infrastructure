@@ -2,6 +2,10 @@
 # environments/prod/terraform.tfvars. The API, the supervisor and the ingress
 # are all reached there.
 platform_vip: 10.10.4.10
+# The internal VIP, on the same load balancers: the WARP-only path, where
+# *.int.0xc0.cc resolves for WARP clients. The cluster's internal_vip in
+# terraform.tfvars; the public tunnel never goes there.
+platform_internal_vip: 10.10.4.9
 platform_prefix_length: 24
 
 # One RKE2 version for the whole cluster: the agents take the servers', so no

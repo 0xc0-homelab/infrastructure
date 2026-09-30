@@ -18,10 +18,10 @@ defaults
     timeout client {{ haproxy_timeout }}
     timeout server {{ haproxy_timeout }}
     default-server inter 3s fall 3 rise 2
-{% for frontend in haproxy_frontends %}
+{% for frontend in haproxy_frontends if not (frontend.internal | default(false)) or haproxy_internal_address %}
 
 frontend {{ frontend.name }}
-    bind {{ haproxy_listen_address }}:{{ frontend.port }}
+    bind {{ haproxy_internal_address if frontend.internal | default(false) else haproxy_listen_address }}:{{ frontend.port }}
     default_backend {{ frontend.name }}
 
 backend {{ frontend.name }}

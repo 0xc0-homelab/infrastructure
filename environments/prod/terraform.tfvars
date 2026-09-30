@@ -129,6 +129,10 @@ cluster = {
   vnet = "platform"
   # keepalived's, in front of HAProxy; no VM takes it.
   vip = "10.10.4.10"
+  # The WARP-only path's, next to it on the load balancers (operator decision,
+  # 2026-09-30): *.int.0xc0.cc resolves here for WARP clients, and the public
+  # tunnel never comes here. No VM takes it either.
+  internal_vip = "10.10.4.9"
   load_balancers = {
     template = "debian-13-base"
     nodes = {
@@ -164,7 +168,7 @@ cluster = {
 transit = [
   { from = "mgmt", to = ["mgmt"], ports = [22], note = "between the vm-access connectors; a WARP session can leave from either one" },
   { from = "mgmt", to = ["ci"], ports = [22], note = "admin SSH, through the vm-access tunnel" },
-  { from = "mgmt", to = ["platform"], ports = [22, 80, 443, 6443, 8200], note = "admin: SSH, the internal portals through the LB over WARP (80 only redirects), the Kubernetes API, Vault" },
+  { from = "mgmt", to = ["platform"], ports = [22, 80, 443, 6443, 8200], note = "admin: SSH, both VIPs over WARP (443; 80 only redirects, on the public one), the Kubernetes API, Vault" },
   { from = "mgmt", to = ["node"], ports = [22, 8006], note = "admin: SSH and the Proxmox API, through the vm-access tunnel" },
   { from = "mgmt", to = ["node"], ports = [443], note = "Traefik on the host (Proxmox UI, PBS, RustFS), over WARP; never from the internet" },
   { from = "ci", to = ["platform"], ports = [22, 6443], note = "the runner: SSH to configure the VMs, and the Kubernetes API" },
@@ -206,3 +210,7 @@ backup = {
 # offby1.cc is in another Cloudflare account, so it cannot point at this
 # tunnel: it gets a certificate only.
 public_domains = ["0xc0.cc"]
+
+# The WARP-only path's names (operator decision, 2026-09-30): Traefik's
+# internal entrypoint, behind the cluster's internal_vip.
+internal_domains = ["int.0xc0.cc"]

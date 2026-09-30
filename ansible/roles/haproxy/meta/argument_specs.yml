@@ -2,15 +2,19 @@ argument_specs:
   main:
     short_description: HAProxy in TCP mode in front of the RKE2 servers
     description:
-      - Installs HAProxy and forwards each frontend, bound to the VIP, to the
-        same backend port on every RKE2 server. TCP only; TLS ends in the
-        cluster. The backup load balancer binds the VIP too, before it holds
-        it, through net.ipv4.ip_nonlocal_bind.
+      - Installs HAProxy and forwards each frontend, bound to the VIP (or the
+        internal VIP), to the same backend port on every RKE2 server. TCP
+        only; TLS ends in the cluster. The backup load balancer binds the VIPs
+        too, before it holds them, through net.ipv4.ip_nonlocal_bind.
     options:
       haproxy_listen_address:
         type: str
         required: true
         description: The VIP keepalived holds. Never 0.0.0.0.
+      haproxy_internal_address:
+        type: str
+        default: ""
+        description: The internal VIP keepalived holds, for the frontends marked internal. Never 0.0.0.0. Empty, those are left out.
       haproxy_backends:
         type: list
         elements: dict
@@ -26,7 +30,7 @@ argument_specs:
       haproxy_frontends:
         type: list
         elements: dict
-        description: What is forwarded, each a name, the port on the VIP, and the port on the servers.
+        description: What is forwarded, each a name, the port on the VIP, the port on the servers, and whether it binds the internal VIP.
         options:
           name:
             type: str
@@ -37,6 +41,9 @@ argument_specs:
           backend_port:
             type: int
             required: true
+          internal:
+            type: bool
+            default: false
       haproxy_timeout:
         type: str
         default: 30m

@@ -61,3 +61,22 @@ resource "cloudflare_zero_trust_gateway_policy" "main" {
     override_ips = [var.private_hostnames_ip]
   }
 }
+
+# The WARP-only path: every name under the internal domains resolves to the
+# internal VIP, for WARP devices only. They have no public record at all, so
+# outside WARP they do not exist.
+resource "cloudflare_zero_trust_gateway_policy" "internal" {
+  count = length(var.internal_domains) > 0 ? 1 : 0
+
+  account_id  = var.account_id
+  name        = "${var.team_name} internal domains"
+  description = "Resolves the internal domains to the internal VIP, through WARP"
+  action      = "override"
+  enabled     = true
+  filters     = ["dns"]
+  traffic     = join(" or ", [for d in var.internal_domains : "any(dns.domains[*] == \"${d}\")"])
+
+  rule_settings = {
+    override_ips = [var.internal_ip]
+  }
+}

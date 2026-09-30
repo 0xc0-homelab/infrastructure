@@ -219,6 +219,8 @@ variable "cluster" {
   type = object({
     vnet = string
     vip  = string
+    # The WARP-only path's VIP, on the same load balancers: *.int.0xc0.cc.
+    internal_vip = string
     load_balancers = object({
       template     = string
       cores        = optional(number, 1)
@@ -263,27 +265,28 @@ variable "cluster" {
   # no machine takes the VIP.
   validation {
     condition = contains(keys(var.zones), var.cluster.vnet) && alltrue([
-      for ip in concat([var.cluster.vip], [for n in merge(var.cluster.load_balancers.nodes, var.cluster.servers.nodes, var.cluster.agents.nodes) : n.ip]) :
+      for ip in concat([var.cluster.vip, var.cluster.internal_vip], [for n in merge(var.cluster.load_balancers.nodes, var.cluster.servers.nodes, var.cluster.agents.nodes) : n.ip]) :
       cidrhost("${ip}/${split("/", var.zones[var.cluster.vnet].cidr)[1]}", 0) == cidrhost(var.zones[var.cluster.vnet].cidr, 0)
       && ip != cidrhost(var.zones[var.cluster.vnet].cidr, 1)
     ])
-    error_message = "The cluster's vip and every address must be inside its vnet's zone and must not be the host's .1 — see docs/zones.md."
+    error_message = "The cluster's vips and every address must be inside its vnet's zone and must not be the host's .1 — see docs/zones.md."
   }
 
   validation {
     condition = alltrue([
-      for n in merge(var.cluster.load_balancers.nodes, var.cluster.servers.nodes, var.cluster.agents.nodes) : n.ip != var.cluster.vip
-    ])
-    error_message = "No cluster machine may take the VIP."
+      for n in merge(var.cluster.load_balancers.nodes, var.cluster.servers.nodes, var.cluster.agents.nodes) : !contains([var.cluster.vip, var.cluster.internal_vip], n.ip)
+    ]) && var.cluster.vip != var.cluster.internal_vip
+    error_message = "No cluster machine may take a VIP, and the two VIPs must differ."
   }
 
-  # One namespace and one address plan with vms.
+  # One namespace and one address plan with vms, the VIPs included.
   validation {
     condition = length(setintersection(keys(var.vms), keys(merge(var.cluster.load_balancers.nodes, var.cluster.servers.nodes, var.cluster.agents.nodes)))) == 0 && length(distinct(concat(
       [for v in values(var.vms) : v.ip],
       [for n in values(merge(var.cluster.load_balancers.nodes, var.cluster.servers.nodes, var.cluster.agents.nodes)) : n.ip],
-    ))) == length(var.vms) + length(var.cluster.load_balancers.nodes) + length(var.cluster.servers.nodes) + length(var.cluster.agents.nodes)
-    error_message = "A cluster machine shares a name or an address with another VM."
+      [var.cluster.vip, var.cluster.internal_vip],
+    ))) == length(var.vms) + length(var.cluster.load_balancers.nodes) + length(var.cluster.servers.nodes) + length(var.cluster.agents.nodes) + 2
+    error_message = "A cluster machine or a VIP shares a name or an address with another VM."
   }
 }
 
@@ -304,6 +307,12 @@ variable "backup" {
 
 variable "public_domains" {
   description = "Domains whose names the public tunnel serves. Each must be a zone in the tunnel's own Cloudflare account: a CNAME to the tunnel from another account's zone fails at the edge (1014)."
+  type        = list(string)
+  default     = []
+}
+
+variable "internal_domains" {
+  description = "Domains of the WARP-only path: every name under them resolves to the cluster's internal_vip for WARP devices, and has no public record."
   type        = list(string)
   default     = []
 }

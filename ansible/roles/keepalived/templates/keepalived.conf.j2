@@ -27,8 +27,11 @@ vrrp_instance vip {
 {% endfor %}
     }
 
+    # Every VIP in one instance: they always move together.
     virtual_ipaddress {
-        {{ keepalived_vip }} dev {{ keepalived_interface }}
+{% for vip in keepalived_vips %}
+        {{ vip }} dev {{ keepalived_interface }}
+{% endfor %}
     }
 
     track_script {

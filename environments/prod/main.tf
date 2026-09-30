@@ -56,6 +56,10 @@ module "zero_trust" {
 
   private_hostnames    = var.node_web_hostnames
   private_hostnames_ip = cidrhost(var.zones["mgmt"].cidr, 1)
+
+  # The WARP-only path (gitops: Traefik's internal entrypoint).
+  internal_domains = var.internal_domains
+  internal_ip      = var.cluster.internal_vip
 }
 
 # The public tunnel: its connectors run on the load balancers, and it goes to
