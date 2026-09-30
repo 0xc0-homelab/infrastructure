@@ -93,6 +93,16 @@
             namespace: external-dns
             data:
               token: "{{ lookup('ansible.builtin.env', 'CLOUDFLARE_DNS_TOKEN') }}"
+          # Basic auth for the internal UIs that have no login of their own:
+          # each namespace's Traefik Middleware reads it (gitops).
+          - name: ui-basic-auth
+            namespace: longhorn-system
+            data:
+              users: "{{ lookup('ansible.builtin.env', 'UI_BASIC_AUTH_USERS') }}"
+          - name: ui-basic-auth
+            namespace: traefik
+            data:
+              users: "{{ lookup('ansible.builtin.env', 'UI_BASIC_AUTH_USERS') }}"
 
 - name: Configure the RKE2 agents
   hosts: rke2_agents
