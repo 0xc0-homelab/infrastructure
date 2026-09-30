@@ -9,3 +9,11 @@ github_runner_app_installation_id: "164149198"
 github_runner_labels:
   - homelab
   - "{{ inventory_hostname }}"
+
+# Names the jobs reach inside the network with no public record: the CI VMs are
+# not on WARP, so Cloudflare Gateway does not resolve them here. Vault is on the
+# internal VIP (the cluster's internal_vip in terraform.tfvars); its Let's
+# Encrypt certificate is valid for the name.
+github_runner_hosts:
+  - address: "{{ platform_internal_vip }}"
+    names: [vault.int.0xc0.cc]

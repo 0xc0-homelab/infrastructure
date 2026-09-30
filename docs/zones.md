@@ -97,7 +97,9 @@ rule in Proxmox always traces back to its line of the matrix.
 - An entry towards the **node** becomes a node rule. From a control zone only
   the node's `admin_ports` (`node_firewall`) survive: `mgmt`'s admin entry
   gives it 22 and 8006 on the node, and its Traefik entry 443; `ci` gets 443
-  and 8006. From anywhere else, the entry's ports as written: 9100 from
+  and 8006. Towards `platform`, `ci` gets 22, 6443 and 443: the last one for
+  the vault repo's CI, which reaches Vault on the internal VIP (the rule opens
+  443 to the whole zone, the VIPs included). From anywhere else, the entry's ports as written: 9100 from
   `platform`, for the node metrics scrape.
 - An entry towards the **internet** is egress, allowed by the outbound policy
   of every zone that has one.

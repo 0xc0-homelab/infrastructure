@@ -15,8 +15,11 @@ on:
       - '.github/workflows/apply.yml'
   workflow_dispatch:
 
+# id-token: the reusable workflow asks for it (Vault logins); this root does
+# not use it.
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   apply:

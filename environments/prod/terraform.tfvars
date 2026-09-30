@@ -171,7 +171,7 @@ transit = [
   { from = "mgmt", to = ["platform"], ports = [22, 80, 443, 6443, 8200], note = "admin: SSH, both VIPs over WARP (443; 80 only redirects, on the public one), the Kubernetes API, Vault" },
   { from = "mgmt", to = ["node"], ports = [22, 8006], note = "admin: SSH and the Proxmox API, through the vm-access tunnel" },
   { from = "mgmt", to = ["node"], ports = [443], note = "Traefik on the host (Proxmox UI, PBS, RustFS), over WARP; never from the internet" },
-  { from = "ci", to = ["platform"], ports = [22, 6443], note = "the runner: SSH to configure the VMs, and the Kubernetes API" },
+  { from = "ci", to = ["platform"], ports = [22, 443, 6443], note = "the runner: SSH to configure the VMs, Vault on the internal VIP, and the Kubernetes API" },
   # The one way into mgmt from another zone (operator decision, 2026-09-29):
   # the pipeline runs the vm-access playbook. Only the CI VMs, not the zone.
   { from = "ci", to = ["mgmt"], ports = [22], sources = ["vm-ci-01", "vm-ci-02"], note = "the pipeline's playbooks, from the CI VMs only" },

@@ -7,9 +7,12 @@ on:
   pull_request:
     branches: [main]
 
+# id-token: the reusable workflow asks for it (Vault logins); this root does
+# not use it.
 permissions:
   contents: read
   pull-requests: write
+  id-token: write
 
 jobs:
   plan:
