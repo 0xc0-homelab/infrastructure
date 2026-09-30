@@ -1,10 +1,14 @@
 # {{ ansible_managed }}
 # RKE2's helm-controller installs and upgrades ArgoCD from this. It keeps
 # managing it: ArgoCD never manages itself, so the two never fight over it.
+# Its UI is on the WARP-only path (gitops, platform/argocd-ui): the label lets
+# its HTTPRoute attach to the Gateway's internal listener.
 apiVersion: v1
 kind: Namespace
 metadata:
   name: argocd
+  labels:
+    gateway.0xc0.cc/internal: "true"
 ---
 apiVersion: helm.cattle.io/v1
 kind: HelmChart
