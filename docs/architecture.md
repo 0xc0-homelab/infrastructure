@@ -160,7 +160,7 @@ sequenceDiagram
   U->>CF: HTTPS
   CF->>LB: public tunnel (outbound from the LB VMs)
   Note over LB: cloudflared → HAProxy 443, HTTPS again
-  LB->>K: NodePort 30443, across the three RKE2 nodes
+  LB->>K: NodePort 30443, across the three RKE2 servers
   Note over K: Traefik websecure: TLS with Let's Encrypt, CrowdSec's bouncer
   K-->>U: response, back through the tunnel
 ```

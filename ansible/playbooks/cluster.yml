@@ -1,5 +1,6 @@
 # The RKE2 cluster and its load balancer. The load balancers go first, so the
-# VIP is in front of the bootstrap server before the others join through it.
+# VIP is in front of the bootstrap server before the others join through it;
+# the agents go last, once the servers are up.
 
 - name: Configure the load balancers
   hosts: lb
@@ -88,3 +89,21 @@
             namespace: external-dns
             data:
               token: "{{ lookup('ansible.builtin.env', 'CLOUDFLARE_DNS_TOKEN') }}"
+
+- name: Configure the RKE2 agents
+  hosts: rke2_agents
+  become: true
+  # One at a time, like the servers: a bad change stops at the first.
+  serial: 1
+  roles:
+    - role: base
+    # The data disks and what Longhorn needs on the host, before RKE2: the
+    # agents hold Longhorn replicas too.
+    - role: longhorn_node
+    - role: rke2_agent
+      vars:
+        # The servers' token, from secrets/ansible.sops.yaml through the
+        # wrapper script, into the environment only.
+        rke2_agent_token: "{{ lookup('ansible.builtin.env', 'RKE2_TOKEN') }}"
+        rke2_agent_registration_address: "{{ platform_vip }}"
+        rke2_agent_node_ip: "{{ ansible_host }}"

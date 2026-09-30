@@ -1,0 +1,36 @@
+argument_specs:
+  main:
+    short_description: An RKE2 agent on Rocky Linux 10
+    description:
+      - Installs RKE2 from Rancher's RPM repository, pinned to the servers'
+        version, with its SELinux policy, and runs it as an agent — workloads
+        only, no control plane or etcd.
+      - The host is prepared as a server is (the rke2_server role's prepare
+        tasks). The agent joins through the registration address.
+    options:
+      rke2_agent_token:
+        type: str
+        required: true
+        no_log: true
+        description: The cluster's shared secret, the servers' token. From secrets/ansible.sops.yaml.
+      rke2_agent_registration_address:
+        type: str
+        required: true
+        description: Fixed address in front of the servers, the VIP. The agent joins through its port 9345.
+      rke2_agent_node_ip:
+        type: str
+        required: true
+        description: This host's address in the zone.
+      rke2_agent_version:
+        type: str
+        default: "1.36.4~rke2r1"
+        description: RPM version of rke2-agent, as in Rancher's repository. The same as the servers'.
+      rke2_agent_selinux_version:
+        type: str
+        default: "0.23"
+        description: RPM version of rke2-selinux.
+      rke2_agent_channel:
+        type: str
+        default: stable
+        choices: [stable, latest]
+        description: Rancher's RPM repository channel.

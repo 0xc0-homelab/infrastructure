@@ -149,6 +149,16 @@ cluster = {
       "vm-rke2-03" = { ip = "10.10.4.23", rebuild = 1 }
     }
   }
+  # Workers only (operator decision, 2026-09-30): capacity, while etcd stays
+  # with the three servers. Sized and disked like them, Longhorn included.
+  agents = {
+    template      = "rocky-10-base"
+    disk_size_gb  = 50
+    data_disks_gb = [100, 100]
+    nodes = {
+      "vm-rke2-04" = { ip = "10.10.4.24" }
+    }
+  }
 }
 
 transit = [

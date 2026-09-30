@@ -1,5 +1,6 @@
 # Pinned: the RKE2 stable channel on 2026-09-29, v1.36.4+rke2r1. The RPM
-# writes the + as ~. Bumping is its own commit, one minor at a time.
+# writes the + as ~. The cluster's version is set once in the inventory
+# (group_vars/platform.yml), for the servers and the agents alike.
 rke2_server_version: "1.36.4~rke2r1"
 rke2_server_selinux_version: "0.23"
 rke2_server_channel: stable

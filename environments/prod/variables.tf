@@ -244,13 +244,26 @@ variable "cluster" {
         rebuild = optional(number, 0)
       }))
     })
+    # Workers only, sized like the servers unless told otherwise.
+    agents = optional(object({
+      template      = optional(string, "rocky-10-base")
+      cpu_type      = optional(string, "x86-64-v3")
+      cores         = optional(number, 4)
+      memory_mb     = optional(number, 12288)
+      disk_size_gb  = optional(number, 100)
+      data_disks_gb = optional(list(number), [])
+      nodes = optional(map(object({
+        ip      = string
+        rebuild = optional(number, 0)
+      })), {})
+    }), {})
   })
 
   # The VIP and every address sit inside the zone, never on the host's .1, and
   # no machine takes the VIP.
   validation {
     condition = contains(keys(var.zones), var.cluster.vnet) && alltrue([
-      for ip in concat([var.cluster.vip], [for n in merge(var.cluster.load_balancers.nodes, var.cluster.servers.nodes) : n.ip]) :
+      for ip in concat([var.cluster.vip], [for n in merge(var.cluster.load_balancers.nodes, var.cluster.servers.nodes, var.cluster.agents.nodes) : n.ip]) :
       cidrhost("${ip}/${split("/", var.zones[var.cluster.vnet].cidr)[1]}", 0) == cidrhost(var.zones[var.cluster.vnet].cidr, 0)
       && ip != cidrhost(var.zones[var.cluster.vnet].cidr, 1)
     ])
@@ -259,17 +272,17 @@ variable "cluster" {
 
   validation {
     condition = alltrue([
-      for n in merge(var.cluster.load_balancers.nodes, var.cluster.servers.nodes) : n.ip != var.cluster.vip
+      for n in merge(var.cluster.load_balancers.nodes, var.cluster.servers.nodes, var.cluster.agents.nodes) : n.ip != var.cluster.vip
     ])
     error_message = "No cluster machine may take the VIP."
   }
 
   # One namespace and one address plan with vms.
   validation {
-    condition = length(setintersection(keys(var.vms), keys(merge(var.cluster.load_balancers.nodes, var.cluster.servers.nodes)))) == 0 && length(distinct(concat(
+    condition = length(setintersection(keys(var.vms), keys(merge(var.cluster.load_balancers.nodes, var.cluster.servers.nodes, var.cluster.agents.nodes)))) == 0 && length(distinct(concat(
       [for v in values(var.vms) : v.ip],
-      [for n in values(merge(var.cluster.load_balancers.nodes, var.cluster.servers.nodes)) : n.ip],
-    ))) == length(var.vms) + length(var.cluster.load_balancers.nodes) + length(var.cluster.servers.nodes)
+      [for n in values(merge(var.cluster.load_balancers.nodes, var.cluster.servers.nodes, var.cluster.agents.nodes)) : n.ip],
+    ))) == length(var.vms) + length(var.cluster.load_balancers.nodes) + length(var.cluster.servers.nodes) + length(var.cluster.agents.nodes)
     error_message = "A cluster machine shares a name or an address with another VM."
   }
 }

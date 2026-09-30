@@ -3,3 +3,11 @@
 # are all reached there.
 platform_vip: 10.10.4.10
 platform_prefix_length: 24
+
+# One RKE2 version for the whole cluster: the agents take the servers', so no
+# agent runs ahead of or behind its control plane. Bumping is its own commit,
+# one minor at a time; the RPM writes the + as ~.
+rke2_server_version: "1.36.4~rke2r1"
+rke2_server_selinux_version: "0.23"
+rke2_agent_version: "{{ rke2_server_version }}"
+rke2_agent_selinux_version: "{{ rke2_server_selinux_version }}"

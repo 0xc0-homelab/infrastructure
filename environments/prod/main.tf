@@ -116,7 +116,8 @@ module "vms" {
   depends_on = [module.sdn]
 }
 
-# The RKE2 cluster and its HAProxy + keepalived pair, created together.
+# The RKE2 cluster (servers and agents) and its HAProxy + keepalived pair,
+# created together.
 module "cluster" {
   source = "../../modules/rke2-cluster"
 
@@ -142,6 +143,15 @@ module "cluster" {
     disk_size_gb   = var.cluster.servers.disk_size_gb
     data_disks_gb  = var.cluster.servers.data_disks_gb
     nodes          = var.cluster.servers.nodes
+  }
+  agents = {
+    template_vm_id = lookup(local.template_ids, var.cluster.agents.template, 2147483647)
+    cpu_type       = var.cluster.agents.cpu_type
+    cores          = var.cluster.agents.cores
+    memory_mb      = var.cluster.agents.memory_mb
+    disk_size_gb   = var.cluster.agents.disk_size_gb
+    data_disks_gb  = var.cluster.agents.data_disks_gb
+    nodes          = var.cluster.agents.nodes
   }
 
   username        = var.vm_admin_user

@@ -1,9 +1,10 @@
 output "cluster" {
-  description = "The cluster's VIP and the addresses of its load balancers and servers, for the Ansible inventory and kubectl."
+  description = "The cluster's VIP and the addresses of its load balancers, servers and agents, for the Ansible inventory and kubectl."
   value = {
     vip            = var.cluster.vip
     load_balancers = module.cluster.load_balancers
     servers        = module.cluster.servers
+    agents         = module.cluster.agents
   }
 }
 
