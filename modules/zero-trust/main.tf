@@ -79,11 +79,4 @@ resource "cloudflare_zero_trust_gateway_policy" "internal" {
   rule_settings = {
     override_ips = [var.internal_ip]
   }
-
-  lifecycle {
-    precondition {
-      condition     = var.internal_ip != null
-      error_message = "internal_ip is required with internal_domains."
-    }
-  }
 }

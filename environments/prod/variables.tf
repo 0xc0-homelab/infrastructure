@@ -279,13 +279,14 @@ variable "cluster" {
     error_message = "No cluster machine may take a VIP, and the two VIPs must differ."
   }
 
-  # One namespace and one address plan with vms.
+  # One namespace and one address plan with vms, the VIPs included.
   validation {
     condition = length(setintersection(keys(var.vms), keys(merge(var.cluster.load_balancers.nodes, var.cluster.servers.nodes, var.cluster.agents.nodes)))) == 0 && length(distinct(concat(
       [for v in values(var.vms) : v.ip],
       [for n in values(merge(var.cluster.load_balancers.nodes, var.cluster.servers.nodes, var.cluster.agents.nodes)) : n.ip],
-    ))) == length(var.vms) + length(var.cluster.load_balancers.nodes) + length(var.cluster.servers.nodes) + length(var.cluster.agents.nodes)
-    error_message = "A cluster machine shares a name or an address with another VM."
+      [var.cluster.vip, var.cluster.internal_vip],
+    ))) == length(var.vms) + length(var.cluster.load_balancers.nodes) + length(var.cluster.servers.nodes) + length(var.cluster.agents.nodes) + 2
+    error_message = "A cluster machine or a VIP shares a name or an address with another VM."
   }
 }
 

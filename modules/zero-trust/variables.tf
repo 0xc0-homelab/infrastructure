@@ -60,4 +60,11 @@ variable "internal_ip" {
   description = "Private address the internal domains resolve to for WARP devices, inside include_networks. Required with internal_domains."
   type        = string
   default     = null
+
+  validation {
+    condition = length(var.internal_domains) == 0 || (var.internal_ip != null && anytrue([
+      for n in var.include_networks : can(cidrhost(n, 0)) && cidrhost("${coalesce(var.internal_ip, "0.0.0.0")}/${split("/", n)[1]}", 0) == cidrhost(n, 0)
+    ]))
+    error_message = "internal_ip is required with internal_domains, and must sit inside include_networks."
+  }
 }

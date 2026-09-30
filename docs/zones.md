@@ -65,8 +65,9 @@ The `platform` VIPs are not VMs: they are the keepalived addresses the two
 public tunnel and WARP reach. `10.10.4.9` is the internal one: the WARP-only
 path, where `*.int.0xc0.cc` resolves for WARP clients and its 443 goes to
 Traefik's `internal` entrypoint. The public tunnel only ever targets
-`10.10.4.10`, so nothing from the internet reaches the internal path. `vm-lb-01` and `vm-lb-02` run
-HAProxy, keepalived and the public tunnel's cloudflared connectors.
+`10.10.4.10`, so nothing from the internet reaches the internal path.
+`vm-lb-01` and `vm-lb-02` run HAProxy, keepalived and the public tunnel's
+cloudflared connectors.
 `vm-rke2-01` to `vm-rke2-03` are identical RKE2 servers — control plane, etcd
 and workloads together — and `vm-rke2-04` is an agent, workloads only.
 `cluster` creates them all together (`modules/rke2-cluster`), so the load
