@@ -49,3 +49,15 @@ variable "private_hostnames_ip" {
   description = "Private address those hostnames resolve to for WARP devices, inside include_networks."
   type        = string
 }
+
+variable "internal_domains" {
+  description = "Domains whose every name WARP devices resolve to internal_ip: the WARP-only path. None, no rule."
+  type        = list(string)
+  default     = []
+}
+
+variable "internal_ip" {
+  description = "Private address the internal domains resolve to for WARP devices, inside include_networks. Required with internal_domains."
+  type        = string
+  default     = null
+}

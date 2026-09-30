@@ -129,6 +129,10 @@ cluster = {
   vnet = "platform"
   # keepalived's, in front of HAProxy; no VM takes it.
   vip = "10.10.4.10"
+  # The WARP-only path's, next to it on the load balancers (operator decision,
+  # 2026-09-30): *.int.0xc0.cc resolves here for WARP clients, and the public
+  # tunnel never comes here. No VM takes it either.
+  internal_vip = "10.10.4.9"
   load_balancers = {
     template = "debian-13-base"
     nodes = {
@@ -206,3 +210,7 @@ backup = {
 # offby1.cc is in another Cloudflare account, so it cannot point at this
 # tunnel: it gets a certificate only.
 public_domains = ["0xc0.cc"]
+
+# The WARP-only path's names (operator decision, 2026-09-30): Traefik's
+# internal entrypoint, behind the cluster's internal_vip.
+internal_domains = ["int.0xc0.cc"]

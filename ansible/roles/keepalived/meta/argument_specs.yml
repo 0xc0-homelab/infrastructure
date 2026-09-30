@@ -1,15 +1,17 @@
 argument_specs:
   main:
-    short_description: keepalived holding the VIP in front of HAProxy
+    short_description: keepalived holding the VIPs in front of HAProxy
     description:
       - Installs keepalived and runs one VRRP instance over unicast between
-        the load balancers. The VIP stays on the one with the highest priority
-        while its tracked service is up, and moves to its peer otherwise.
+        the load balancers. The VIPs stay together on the one with the highest
+        priority while its tracked service is up, and move to its peer
+        otherwise.
     options:
-      keepalived_vip:
-        type: str
+      keepalived_vips:
+        type: list
+        elements: str
         required: true
-        description: The VIP with its prefix length, e.g. 10.10.4.10/24.
+        description: The VIPs with their prefix length, e.g. 10.10.4.10/24. They move as one.
       keepalived_source_address:
         type: str
         required: true

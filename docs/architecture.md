@@ -197,6 +197,13 @@ The operator reaches every zone and the node's internal address directly,
 without a jump host, as if on the network. Private dashboards — Grafana, Vault
 UI, Proxmox — are reached this way, never through the public tunnel.
 
+The cluster's internal services have a path of their own. Cloudflare Gateway
+resolves every `*.int.0xc0.cc` name to the internal VIP, `10.10.4.9`, for WARP
+devices only; those names have no public record. HAProxy sends that VIP's 443
+to Traefik's `internal` entrypoint, with its own Let's Encrypt wildcard. The
+public tunnel only ever targets the public VIP, so the separation is by
+network, not by name.
+
 The **way back in** if this breaks is the Hetzner Rescue system.
 
 **Today:** WARP through the two `vm-access` connectors. The node's own
