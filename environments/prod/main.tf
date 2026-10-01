@@ -62,6 +62,17 @@ module "zero_trust" {
   internal_ip      = var.cluster.internal_vip
 }
 
+# Mail to the public domain's addresses, forwarded to the operator's mailboxes
+# (infrastructure#157). Nothing receives or sends mail here.
+module "email_routing" {
+  source = "../../modules/email-routing"
+
+  account_id   = var.cloudflare_account_id
+  zone_name    = var.public_domains[0]
+  destinations = var.email_destinations
+  forwards     = var.email_forwards
+}
+
 # The public tunnel: its connectors run on the load balancers, and it goes to
 # HAProxy on the VIP, then Traefik over HTTPS. Public traffic enters platform,
 # never mgmt. Every name of a public domain goes to Traefik, which routes it or

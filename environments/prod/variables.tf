@@ -80,6 +80,20 @@ variable "warp_allowed_emails" {
   sensitive   = true
 }
 
+# Not a secret, but kept out of this public repo: the operator's mailboxes, as
+# JSON ({"operator": "..."}), from Vault (ci/infrastructure/email-routing) as
+# TF_VAR_email_destinations.
+variable "email_destinations" {
+  description = "Mailboxes Email Routing forwards to, by name."
+  type        = map(string)
+  sensitive   = true
+}
+
+variable "email_forwards" {
+  description = "Addresses of the public domain forwarded by Email Routing => the name of their destination in email_destinations."
+  type        = map(string)
+}
+
 variable "vm_admin_user" {
   description = "Admin user cloud-init creates on every VM. SSH keys only."
   type        = string
