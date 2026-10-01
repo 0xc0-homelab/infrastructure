@@ -65,6 +65,10 @@ onto disk:
 scripts/ansible playbooks/vm-access.yml --check --diff
 ```
 
+Every play goes one host at a time (`serial`), so a bad change stops at the
+first and the other keeps the service. A dry run changes nothing:
+`scripts/ansible` runs it on every host at once (`homelab_serial`).
+
 Ansible never touches the node. Every zone reaches the internet, so the node
 needs no forwarding rule of its own: Docker carries one setting by hand,
 `ip-forward-no-drop`, that keeps the `FORWARD` policy ACCEPT

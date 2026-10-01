@@ -78,8 +78,16 @@ supervisor and the ingress to the servers only.
 Packer builds a template on a throwaway VM, cloned from the previous template
 in the chain (`packer/build-order`), which becomes the new template when the
 build ends: the old template is deleted by name first, and the new one takes
-the same fixed VMID. It lives in `ci` at **10.10.1.250**, where the runner
-that drives it can reach it over SSH, and no machine may take that address.
+the same fixed VMID. It lives in `ci`, where the runner that drives it can
+reach it over SSH, at an address of its chain's: the chains build at once, the
+templates of one chain one after the other. No machine may take them.
+
+| Chain | Build address |
+|---|---|
+| `debian-13-base`, `debian-13-runner` | 10.10.1.250 |
+| `rocky-10-base` | 10.10.1.251 |
+
+A new chain takes the next free address here, as its templates' `build_ip`.
 Packer cannot set a VM's firewall options, so the build VM is the one NIC
 without zone filtering, for the minutes the build lasts.
 

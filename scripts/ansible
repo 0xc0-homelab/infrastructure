@@ -28,5 +28,11 @@ export RKE2_TOKEN
 ARGOCD_ADMIN_PASSWORD_BCRYPT="$(sops decrypt --extract '["argocd_admin_password_bcrypt"]' secrets/ansible.sops.yaml)"
 export ARGOCD_ADMIN_PASSWORD_BCRYPT
 
+# The plays go one host at a time (serial), so a bad change stops at the first
+# and the other keeps the service. A dry run changes nothing: every host at once.
+case " $* " in
+  *" --check "*) set -- -e homelab_serial=100% "$@" ;;
+esac
+
 cd ansible
 exec ansible-playbook "$@"
