@@ -2,7 +2,9 @@
   hosts: ci
   become: true
   # One at a time: the other VM's runners keep taking jobs meanwhile.
-  serial: 1
+  # A dry run (--check) changes nothing, so scripts/ansible runs it on every
+  # host at once (homelab_serial).
+  serial: "{{ homelab_serial | default(1) }}"
   roles:
     - role: base
     - role: github_runner
