@@ -13,3 +13,13 @@ tls-san:
 selinux: true
 ingress-controller: {{ rke2_server_ingress_controller }}
 write-kubeconfig-mode: "0600"
+# The control plane's metrics, on the node's address, for the OpenObserve
+# collector (gitops, openobserve-collector): etcd's over plain HTTP on 2381,
+# the scheduler's (10259) and the controller manager's (10257) over HTTPS,
+# behind the API's authorization. The zone firewall admits them from platform
+# only.
+etcd-expose-metrics: true
+kube-scheduler-arg:
+  - bind-address=0.0.0.0
+kube-controller-manager-arg:
+  - bind-address=0.0.0.0

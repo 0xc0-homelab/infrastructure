@@ -22,3 +22,30 @@ argocd_values:
     # wildcard (https://argocd.int.0xc0.cc, over WARP only).
     params:
       server.insecure: true
+      # Traces of every sync and request, over OTLP, to the OpenObserve
+      # collector's gateway (gitops, openobserve-collector). Plain gRPC, in
+      # the cluster.
+      otlp.address: openobserve-collector-gateway-collector.openobserve-collector.svc.cluster.local:4317
+      otlp.insecure: true
+  # Metrics, each with a ServiceMonitor the collector's target allocator
+  # finds. argocd has no NetworkPolicies: nothing to open.
+  controller:
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+  server:
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+  repoServer:
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+  applicationSet:
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true

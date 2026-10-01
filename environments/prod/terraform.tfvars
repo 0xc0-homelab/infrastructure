@@ -178,7 +178,7 @@ transit = [
   # A job on either CI VM configures both.
   { from = "ci", to = ["ci"], ports = [22], sources = ["vm-ci-01", "vm-ci-02"], note = "the pipeline's playbooks, between the CI VMs" },
   { from = "ci", to = ["node"], ports = [443, 8006], note = "Proxmox API and RustFS, through Traefik on 443. NEVER 22 towards the node from ci" },
-  { from = "platform", to = ["platform"], ports = ["2379-2381", 6443, 9099, 9345, 10250, "30000-32767"], note = "the cluster: etcd, API, Canal health, supervisor, kubelet, NodePorts; the LB towards the nodes" },
+  { from = "platform", to = ["platform"], ports = ["2379-2381", 6443, 9099, 9345, 10250, 10257, 10259, "30000-32767"], note = "the cluster: etcd and its metrics, API, Canal health, supervisor, kubelet, controller-manager and scheduler metrics, NodePorts; the LB towards the nodes" },
   { from = "platform", to = ["platform"], proto = "udp", ports = [8472], note = "Canal VXLAN between the cluster nodes" },
   { from = "platform", to = ["platform"], proto = "vrrp", ports = [], note = "keepalived between the two LB VMs" },
   { from = "platform", to = ["node"], ports = [9100], note = "node metrics" },
