@@ -62,39 +62,13 @@
         # Decrypted from secrets/ansible.sops.yaml by the wrapper script, into
         # the environment only.
         argocd_admin_password_bcrypt: "{{ lookup('ansible.builtin.env', 'ARGOCD_ADMIN_PASSWORD_BCRYPT') }}"
-    # What the cluster boots with besides ArgoCD's password, from SOPS. The
-    # CrowdSec bouncer's key goes twice: crowdsec's LAPI registers the bouncer
-    # with it, and Traefik's plugin reads it as a file. crowdsec-lapi holds the
-    # LAPI's shared secret and AppSec's registration token, which the chart
-    # would otherwise regenerate on every render.
+    # The platform's secrets come from Vault through Vault Secrets Operator now
+    # (Cloudflare, CrowdSec, the UI basic auth). The list is kept, empty, so
+    # the manifest is rewritten without objects and RKE2 deletes the old boot
+    # Secrets; the role leaves in the cleanup once that has run everywhere.
     - role: cluster_secrets
       vars:
-        cluster_secrets_items:
-          - name: crowdsec-lapi
-            namespace: crowdsec
-            data:
-              csLapiSecret: "{{ lookup('ansible.builtin.env', 'CROWDSEC_LAPI_SECRET') }}"
-              registrationToken: "{{ lookup('ansible.builtin.env', 'CROWDSEC_REGISTRATION_TOKEN') }}"
-          - name: crowdsec-bouncer-key
-            namespace: crowdsec
-            data:
-              key: "{{ lookup('ansible.builtin.env', 'CROWDSEC_BOUNCER_KEY') }}"
-          - name: crowdsec-bouncer-key
-            namespace: traefik
-            data:
-              key: "{{ lookup('ansible.builtin.env', 'CROWDSEC_BOUNCER_KEY') }}"
-          # The Cloudflare token for the DNS is not here any more: it comes from
-          # Vault (platform/shared/cloudflare), through Vault Secrets Operator.
-          # Basic auth for the internal UIs that have no login of their own:
-          # each namespace's Traefik Middleware reads it (gitops).
-          - name: ui-basic-auth
-            namespace: longhorn-system
-            data:
-              users: "{{ lookup('ansible.builtin.env', 'UI_BASIC_AUTH_USERS') }}"
-          - name: ui-basic-auth
-            namespace: traefik
-            data:
-              users: "{{ lookup('ansible.builtin.env', 'UI_BASIC_AUTH_USERS') }}"
+        cluster_secrets_items: []
 
 - name: Configure the RKE2 agents
   hosts: rke2_agents

@@ -28,19 +28,5 @@ export RKE2_TOKEN
 ARGOCD_ADMIN_PASSWORD_BCRYPT="$(sops decrypt --extract '["argocd_admin_password_bcrypt"]' secrets/ansible.sops.yaml)"
 export ARGOCD_ADMIN_PASSWORD_BCRYPT
 
-CROWDSEC_BOUNCER_KEY="$(sops decrypt --extract '["crowdsec_bouncer_key"]' secrets/ansible.sops.yaml)"
-export CROWDSEC_BOUNCER_KEY
-
-CROWDSEC_LAPI_SECRET="$(sops decrypt --extract '["crowdsec_lapi_secret"]' secrets/ansible.sops.yaml)"
-export CROWDSEC_LAPI_SECRET
-
-CROWDSEC_REGISTRATION_TOKEN="$(sops decrypt --extract '["crowdsec_registration_token"]' secrets/ansible.sops.yaml)"
-export CROWDSEC_REGISTRATION_TOKEN
-
-# The internal UIs' basic auth (Longhorn, Traefik's dashboard), as htpasswd
-# lines: the password itself stays in SOPS, for the operator.
-UI_BASIC_AUTH_USERS="$(sops decrypt --extract '["ui_basic_auth_users"]' secrets/ansible.sops.yaml)"
-export UI_BASIC_AUTH_USERS
-
 cd ansible
 exec ansible-playbook "$@"
