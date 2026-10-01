@@ -66,13 +66,6 @@
         # From Vault (ci/infrastructure/argocd) through the wrapper script, into
         # the environment only.
         argocd_admin_password_bcrypt: "{{ lookup('ansible.builtin.env', 'ARGOCD_ADMIN_PASSWORD_BCRYPT') }}"
-    # The platform's secrets come from Vault through Vault Secrets Operator now
-    # (Cloudflare, CrowdSec, the UI basic auth). The list is kept, empty, so
-    # the manifest is rewritten without objects and RKE2 deletes the old boot
-    # Secrets; the role leaves in the cleanup once that has run everywhere.
-    - role: cluster_secrets
-      vars:
-        cluster_secrets_items: []
 
 - name: Configure the RKE2 agents
   hosts: rke2_agents

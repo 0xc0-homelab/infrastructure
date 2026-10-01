@@ -1,2 +1,0 @@
-# Every RKE2 server applies what it finds here, and again whenever it changes.
-cluster_secrets_manifest: /var/lib/rancher/rke2/server/manifests/cluster-secrets.yaml

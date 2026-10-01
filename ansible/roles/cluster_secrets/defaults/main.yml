@@ -1,3 +1,0 @@
-# The Secrets to write. The playbook passes them, each value read from the
-# environment the wrapper script fills from SOPS.
-cluster_secrets_items: []
