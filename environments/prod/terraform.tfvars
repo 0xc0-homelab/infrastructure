@@ -211,6 +211,12 @@ backup = {
 # tunnel: it gets a certificate only.
 public_domains = ["0xc0.cc"]
 
+# Email Routing on the public domain: address => destination name. The
+# destinations themselves come from Vault (variables.tf, email_destinations).
+email_forwards = {
+  "sergio@0xc0.cc" = "operator"
+}
+
 # The WARP-only path's names (operator decision, 2026-09-30): Traefik's
 # internal entrypoint, behind the cluster's internal_vip.
 internal_domains = ["int.0xc0.cc"]
