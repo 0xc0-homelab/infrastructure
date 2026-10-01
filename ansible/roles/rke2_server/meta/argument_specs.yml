@@ -15,7 +15,7 @@ argument_specs:
         type: str
         required: true
         no_log: true
-        description: Shared secret servers join with. From secrets/ansible.sops.yaml.
+        description: Shared secret servers join with. From Vault (ci/infrastructure/rke2).
       rke2_server_registration_address:
         type: str
         required: true

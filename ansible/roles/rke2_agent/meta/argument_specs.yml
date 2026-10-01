@@ -12,7 +12,7 @@ argument_specs:
         type: str
         required: true
         no_log: true
-        description: The cluster's shared secret, the servers' token. From secrets/ansible.sops.yaml.
+        description: The cluster's shared secret, the servers' token. From Vault (ci/infrastructure/rke2).
       rke2_agent_registration_address:
         type: str
         required: true

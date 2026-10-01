@@ -13,7 +13,10 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 [ "$#" -gt 0 ] || { echo "usage: scripts/rolling-reboot <vm-name>..." >&2; exit 2; }
 
-exec sops exec-env secrets/tofu.sops.yaml "bash -s -- $(printf '%q ' "$@")" <<'SCRIPT'
+. scripts/vault-env
+vault_env_proxmox
+
+exec bash -s -- "$@" <<'SCRIPT'
 set -euo pipefail
 api="${PROXMOX_VE_ENDPOINT%/}/api2/json"
 auth="Authorization: PVEAPIToken=$PROXMOX_VE_API_TOKEN"

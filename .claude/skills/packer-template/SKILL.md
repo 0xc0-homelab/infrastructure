@@ -90,7 +90,7 @@ per-VM configuration at clone time.
 autoinstall or preseed file to the installer. This is the fiddliest part;
 expect to iterate.
 
-**Credentials come from the environment or SOPS**, never from the `.pkr.hcl`.
+**Credentials come from the environment, read from Vault**, never from the `.pkr.hcl`.
 Declare them as variables with `sensitive = true` and no default.
 
 Check every field name against the `packer-plugin-proxmox` documentation. The

@@ -22,7 +22,7 @@ argument_specs:
         type: str
         required: true
         no_log: true
-        description: PEM private key of the App, from SOPS through scripts/ansible.
+        description: PEM private key of the App, from Vault through scripts/ansible.
       github_runner_version:
         type: str
         default: "2.337.0"

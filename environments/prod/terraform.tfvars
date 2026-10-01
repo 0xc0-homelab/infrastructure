@@ -54,8 +54,8 @@ zero_trust_team       = "0xc0"
 homelab_network       = "10.10.0.0/16"
 
 vm_admin_user = "ops"
-# The operator's key, and CI's, whose private half is in
-# secrets/ansible.sops.yaml: the pipeline runs every playbook. cloud-init sets
+# The operator's key, and CI's, whose private half is in Vault
+# (ci/infrastructure/ssh): the pipeline runs every playbook. cloud-init sets
 # them on a new VM; the base role keeps them on every VM.
 vm_admin_ssh_keys = [
   "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO0Sq1ydjDPRC82QwtxDWSxk2ci/E2bChEJCwm665nzZ sergioaten@0xc0-homelab 2026-09-22",

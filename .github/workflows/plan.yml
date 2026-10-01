@@ -7,8 +7,7 @@ on:
   pull_request:
     branches: [main]
 
-# id-token: the reusable workflow asks for it (Vault logins); this root does
-# not use it.
+# id-token: the job logs in to Vault with GitHub's OIDC token.
 permissions:
   contents: read
   pull-requests: write
@@ -22,5 +21,14 @@ jobs:
       # The self-hosted runners on the CI VMs, inside the network.
       runs-on: '{"group": "homelab", "labels": "homelab"}'
       paths: '^(environments/|modules/|mise\.toml$|\.github/workflows/(plan|apply)\.yml$)'
-    secrets:
-      SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+      # Every secret from Vault (ci/infrastructure/*, ci/shared/*), with GitHub's
+      # OIDC token: this repo has no SOPS file.
+      vault-addr: https://vault.int.0xc0.cc
+      vault-role: infrastructure
+      vault-secrets: |
+        ci/data/infrastructure/proxmox endpoint | PROXMOX_VE_ENDPOINT ;
+        ci/data/infrastructure/proxmox api_token | PROXMOX_VE_API_TOKEN ;
+        ci/data/shared/rustfs access_key_id | AWS_ACCESS_KEY_ID ;
+        ci/data/shared/rustfs secret_access_key | AWS_SECRET_ACCESS_KEY ;
+        ci/data/shared/cloudflare api_token | CLOUDFLARE_API_TOKEN ;
+        ci/data/infrastructure/warp allowed_emails | TF_VAR_warp_allowed_emails ;

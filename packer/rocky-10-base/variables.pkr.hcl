@@ -1,5 +1,5 @@
-# Connection. Secrets come from the environment (PKR_VAR_*), decrypted from
-# secrets/tofu.sops.yaml by scripts/packer or by CI; never from a file.
+# Connection. Secrets come from the environment (PKR_VAR_*), read from Vault
+# by scripts/packer, locally or in CI; never from a file.
 variable "proxmox_url" {
   description = "Proxmox API, with the path: https://<host>/api2/json."
   type        = string

@@ -73,7 +73,7 @@ variable "homelab_network" {
 }
 
 # Not a secret, but kept out of this public repo: it comes from
-# secrets/tofu.sops.yaml as TF_VAR_warp_allowed_emails.
+# Vault (ci/infrastructure/warp) as TF_VAR_warp_allowed_emails.
 variable "warp_allowed_emails" {
   description = "Who may enroll a WARP device, and so reach the homelab."
   type        = list(string)
