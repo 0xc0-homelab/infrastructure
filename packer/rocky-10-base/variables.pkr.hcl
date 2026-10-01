@@ -36,9 +36,9 @@ variable "build_bridge" {
 }
 
 variable "build_ip" {
-  description = "Address of the build VM, with its prefix."
+  description = "Address of the build VM, with its prefix. One per chain of clones (docs/zones.md): the chains build at once."
   type        = string
-  default     = "10.10.1.250/24"
+  default     = "10.10.1.251/24"
 }
 
 variable "build_gateway" {
