@@ -13,8 +13,10 @@ on:
     branches: [main]
     paths: ['ansible/**', 'scripts/ansible', '.github/workflows/ansible.yml']
 
+# id-token: the reusable workflow asks for it (Vault logins).
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   ansible:

@@ -13,8 +13,10 @@ on:
     branches: [main]
     paths: ['packer/**', 'ansible/roles/base/**', 'ansible/roles/github_runner/**', 'scripts/packer', 'scripts/delete-template', '.github/workflows/packer.yml']
 
+# id-token: the reusable workflow asks for it (Vault logins).
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   packer:
