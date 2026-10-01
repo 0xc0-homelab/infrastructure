@@ -26,16 +26,19 @@ Cloudflare — tunnels, Zero Trust, DNS — lives in the same root,
 `prod` is the one environment, with everything that makes it up. Split by
 service only if the coupling ever gets in the way.
 
-## CURRENT PHASE: 2 (Cluster)
+## CURRENT PHASE: 3 (Platform)
 
 Phase 1 is complete: Proxmox, zones, NAT, the Packer templates, `vm-access-01`,
 `vm-access-02` and `vm-ci-01` with the self-hosted runners, the zone and node
 firewalls. SOPS works, Rescue and WARP are tested.
 
-Phase 2 builds the cluster (workspace `docs/design.md`): the Rocky template
+Phase 2 built the cluster (workspace `docs/design.md`): the Rocky template
 chain, one RKE2 cluster in `platform`, the HAProxy load balancer with the public
 tunnel, ArgoCD, Longhorn, the ingress (Traefik) with its WAF (CrowdSec), and
 backups through PBS with a timed restore.
+
+Phase 3 brings the platform: Vault, with every secret this repo uses read from
+it (`ci/infrastructure/*`, `ci/shared/*`), and SOPS gone (.github#6).
 
 Do not implement VMs or services from later phases even if they fit. The phase
 of each VM is in `docs/zones.md`, Machines. If something requires a future phase, say so

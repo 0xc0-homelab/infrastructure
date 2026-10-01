@@ -30,7 +30,7 @@ jobs:
       runs-on: '{"group": "homelab", "labels": "homelab"}'
       environment: production
       # Every secret from Vault (ci/infrastructure/*, ci/shared/*), with GitHub's
-      # OIDC token: this repo has no SOPS file.
+      # OIDC token.
       vault-addr: https://vault.int.0xc0.cc
       vault-role: infrastructure
       vault-secrets: |

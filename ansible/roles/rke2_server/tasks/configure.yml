@@ -52,3 +52,11 @@
     mode: "0600"
   no_log: true
   notify: Restart rke2-server
+
+# The cluster_secrets role wrote the cluster's boot Secrets here until they
+# moved to Vault (.github#6), and left the manifest empty. RKE2 has nothing
+# left to apply from it. This task goes once it has run on every server.
+- name: Remove the old boot secrets manifest
+  ansible.builtin.file:
+    path: /var/lib/rancher/rke2/server/manifests/cluster-secrets.yaml
+    state: absent
