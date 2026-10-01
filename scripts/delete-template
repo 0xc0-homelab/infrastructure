@@ -7,7 +7,10 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 name="${1:?usage: scripts/delete-template <name>}"
 
-exec sops exec-env secrets/tofu.sops.yaml "bash -s -- $(printf '%q' "$name")" <<'SCRIPT'
+. scripts/vault-env
+vault_env_proxmox
+
+exec bash -s -- "$name" <<'SCRIPT'
 set -euo pipefail
 name="$1"
 api="${PROXMOX_VE_ENDPOINT%/}/api2/json"

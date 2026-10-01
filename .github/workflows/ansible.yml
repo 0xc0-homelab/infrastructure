@@ -8,12 +8,12 @@ name: ansible
 on:
   pull_request:
     branches: [main]
-    paths: ['ansible/**', 'scripts/ansible', '.github/workflows/ansible.yml']
+    paths: ['ansible/**', 'scripts/ansible', 'scripts/vault-env', '.github/workflows/ansible.yml']
   push:
     branches: [main]
-    paths: ['ansible/**', 'scripts/ansible', '.github/workflows/ansible.yml']
+    paths: ['ansible/**', 'scripts/ansible', 'scripts/vault-env', '.github/workflows/ansible.yml']
 
-# id-token: the reusable workflow asks for it (Vault logins).
+# id-token: the job logs in to Vault with GitHub's OIDC token.
 permissions:
   contents: read
   id-token: write
@@ -30,5 +30,16 @@ jobs:
         playbooks/cluster.yml
         playbooks/vm-access.yml
         playbooks/vm-ci.yml
-    secrets:
-      SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+      # Every secret from Vault (ci/infrastructure/*, ci/shared/*), with GitHub's
+      # OIDC token: this repo has no SOPS file.
+      vault-addr: https://vault.int.0xc0.cc
+      vault-role: infrastructure
+      vault-secrets: |
+        ci/data/shared/rustfs access_key_id | AWS_ACCESS_KEY_ID ;
+        ci/data/shared/rustfs secret_access_key | AWS_SECRET_ACCESS_KEY ;
+        ci/data/infrastructure/ssh private_key | CI_SSH_PRIVATE_KEY ;
+        ci/data/infrastructure/runner-app private_key | GITHUB_RUNNER_APP_PRIVATE_KEY ;
+        ci/data/infrastructure/rke2 token | RKE2_TOKEN ;
+        ci/data/infrastructure/argocd admin_password_bcrypt | ARGOCD_ADMIN_PASSWORD_BCRYPT ;
+      # The key CI logs in to the VMs with, one of vault-secrets.
+      ssh-key-env: CI_SSH_PRIVATE_KEY

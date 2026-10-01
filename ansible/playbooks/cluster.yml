@@ -50,7 +50,7 @@
     - role: longhorn_node
     - role: rke2_server
       vars:
-        # Decrypted from secrets/ansible.sops.yaml by the wrapper script, into
+        # From Vault (ci/infrastructure/rke2) through the wrapper script, into
         # the environment only.
         rke2_server_token: "{{ lookup('ansible.builtin.env', 'RKE2_TOKEN') }}"
         rke2_server_registration_address: "{{ platform_vip }}"
@@ -63,7 +63,7 @@
     # server. From there ArgoCD syncs everything else from gitops.
     - role: argocd
       vars:
-        # Decrypted from secrets/ansible.sops.yaml by the wrapper script, into
+        # From Vault (ci/infrastructure/argocd) through the wrapper script, into
         # the environment only.
         argocd_admin_password_bcrypt: "{{ lookup('ansible.builtin.env', 'ARGOCD_ADMIN_PASSWORD_BCRYPT') }}"
     # The platform's secrets come from Vault through Vault Secrets Operator now
@@ -88,7 +88,7 @@
     - role: longhorn_node
     - role: rke2_agent
       vars:
-        # The servers' token, from secrets/ansible.sops.yaml through the
+        # The servers' token, from Vault (ci/infrastructure/rke2) through the
         # wrapper script, into the environment only.
         rke2_agent_token: "{{ lookup('ansible.builtin.env', 'RKE2_TOKEN') }}"
         rke2_agent_registration_address: "{{ platform_vip }}"

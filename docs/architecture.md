@@ -245,23 +245,23 @@ RustFS and the rest of Traefik are not reachable from the internet.
 
 ```mermaid
 flowchart LR
-  key["age key<br/>operator laptop"] --> sops["SOPS"]
-  cikey["CI age key, one per repo<br/>SOPS_AGE_KEY Actions secret"] --> sops
-  sops -- "encrypts to both" --> file["secrets/*.sops.yaml<br/>committed, ciphertext only"]
-  file -- "scripts/tofu decrypts into env" --> tofu["tofu, locally"]
-  file -- "tofu workflows decrypt into env, masked" --> ci["tofu in CI"]
+  vault["Vault, in the cluster<br/>engine ci/"] -- "JWT login, GitHub OIDC<br/>role infrastructure" --> ci["tofu, packer, ansible in CI<br/>env vars, masked"]
+  vault -- "operator's token, over WARP<br/>scripts/vault-env" --> local["scripts/*, locally"]
+  op["operator"] -- "writes and rotates" --> vault
 ```
 
-- Secrets are committed **encrypted**, to the operator's key and to the repo's
-  own CI key. The repos are public, so the ciphertext is too — standard SOPS
-  practice; a leaked key means rotating the secrets it protects. Each repo's CI
-  key decrypts only that repo's files, and is the only Actions secret there.
-- CI masks every decrypted value before using it.
-- `scripts/tofu` decrypts into the environment for one command; plaintext
-  never reaches disk. Saved plan files are never kept, because they contain
-  the variables.
-- From phase 2, the CI keys live on the CI VMs and the Actions secrets go away. From phase 3, secrets move
-  progressively to Vault over OIDC.
+- Every secret lives in Vault (`ci/infrastructure/*`, and `ci/shared/rustfs`
+  and `ci/shared/cloudflare`), none in this repo (operator decision,
+  2026-10-01, .github#6). No Vault credential is stored: CI logs in with the
+  job's GitHub OIDC token, and reads only what its policy names.
+- The reusable workflows put each secret in the job's environment, masked,
+  under the variable the code reads (`vault-secrets` in the callers).
+- Locally, `scripts/vault-env` reads whatever is not already set, with the
+  operator's token (`vault login -no-print`), into the environment for one
+  command; plaintext never reaches disk. Saved plan files are never kept,
+  because they contain the variables.
+- The accepted risk: with the cluster or Vault down, the pipelines have no
+  credentials until Vault is restored from PBS and unsealed.
 
 ## Backups
 

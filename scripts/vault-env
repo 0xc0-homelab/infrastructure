@@ -1,0 +1,31 @@
+# Sourced by the other scripts, never run on its own. vault_env exports one
+# secret from Vault's ci/ engine under the variable the code reads, unless it
+# is set already: in CI the reusable workflows have set them all from Vault
+# (vault-secrets in .github/workflows/), so nothing is read here; locally, it
+# reads them with the operator's token, over WARP (vault login -no-print).
+# Values go into the environment only, never onto disk or the screen.
+
+export VAULT_ADDR="${VAULT_ADDR:-https://vault.int.0xc0.cc}"
+
+vault_env() { # variable path key
+  local var="$1" path="$2" key="$3" value
+  [ -z "${!var:-}" ] || return 0
+  if [ -z "${vault_env_checked:-}" ]; then
+    vault token lookup >/dev/null 2>&1 || { echo "not logged in to Vault: vault login -no-print" >&2; exit 1; }
+    vault_env_checked=1
+  fi
+  value="$(vault kv get -mount=ci -field="$key" "$path")"
+  export "$var=$value"
+}
+
+# The OpenTofu state, in RustFS.
+vault_env_state() {
+  vault_env AWS_ACCESS_KEY_ID shared/rustfs access_key_id
+  vault_env AWS_SECRET_ACCESS_KEY shared/rustfs secret_access_key
+}
+
+# The Proxmox API: OpenTofu, Packer and the scripts that call it.
+vault_env_proxmox() {
+  vault_env PROXMOX_VE_ENDPOINT infrastructure/proxmox endpoint
+  vault_env PROXMOX_VE_API_TOKEN infrastructure/proxmox api_token
+}

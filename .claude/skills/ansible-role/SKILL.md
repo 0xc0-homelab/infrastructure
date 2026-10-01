@@ -91,7 +91,7 @@ validated by actually applying it, restructure it.
   The zones and VMs are in `environments/prod/terraform.tfvars`, explained in
   `docs/zones.md`.
 - Secrets never appear in `defaults/`. The role takes a variable; the value
-  comes from a SOPS-encrypted file.
+  comes from Vault, through the wrapper script.
 
 ## Procedure
 

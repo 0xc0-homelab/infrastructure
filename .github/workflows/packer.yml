@@ -8,12 +8,12 @@ name: packer
 on:
   pull_request:
     branches: [main]
-    paths: ['packer/**', 'ansible/roles/base/**', 'ansible/roles/github_runner/**', 'scripts/packer', 'scripts/delete-template', '.github/workflows/packer.yml']
+    paths: ['packer/**', 'ansible/roles/base/**', 'ansible/roles/github_runner/**', 'scripts/packer', 'scripts/delete-template', 'scripts/vault-env', '.github/workflows/packer.yml']
   push:
     branches: [main]
-    paths: ['packer/**', 'ansible/roles/base/**', 'ansible/roles/github_runner/**', 'scripts/packer', 'scripts/delete-template', '.github/workflows/packer.yml']
+    paths: ['packer/**', 'ansible/roles/base/**', 'ansible/roles/github_runner/**', 'scripts/packer', 'scripts/delete-template', 'scripts/vault-env', '.github/workflows/packer.yml']
 
-# id-token: the reusable workflow asks for it (Vault logins).
+# id-token: the build logs in to Vault with GitHub's OIDC token.
 permissions:
   contents: read
   id-token: write
@@ -21,5 +21,11 @@ permissions:
 jobs:
   packer:
     uses: 0xc0-homelab/.github/.github/workflows/packer.yml@main
-    secrets:
-      SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+    with:
+      # Every secret from Vault (ci/infrastructure/*, ci/shared/*), with GitHub's
+      # OIDC token: this repo has no SOPS file.
+      vault-addr: https://vault.int.0xc0.cc
+      vault-role: infrastructure
+      vault-secrets: |
+        ci/data/infrastructure/proxmox endpoint | PROXMOX_VE_ENDPOINT ;
+        ci/data/infrastructure/proxmox api_token | PROXMOX_VE_API_TOKEN ;

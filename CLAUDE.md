@@ -81,8 +81,8 @@ Ansible reaches every VM directly over WARP.
 
 `playbooks/vm-ci.yml` runs the `github_runner` role: ephemeral runners, each
 fetching a just-in-time config from a GitHub App of their own before every
-job. The App key comes from `secrets/ansible.sops.yaml` and is readable only
-by root on the CI VMs, `vm-ci-01` and `vm-ci-02`; jobs run as the
+job. The App key comes from Vault (`ci/infrastructure/runner-app`) and is
+readable only by root on the CI VMs, `vm-ci-01` and `vm-ci-02`; jobs run as the
 unprivileged `runner` user. Each runner carries the `homelab` label and its
 VM's name, so a job can pin itself to one VM.
 
@@ -90,8 +90,8 @@ VM's name, so a job can pin itself to one VM.
 public tunnel's `cloudflared` on the `lb` pair, holding the VIP, then
 `rke2_server` and `argocd` on each server, one at a time. The first server
 initialises the cluster; the others join through the VIP, with the token from
-`secrets/ansible.sops.yaml`. The `argocd` role writes ArgoCD's `HelmChart` and
-the root `Application` into RKE2's manifests directory: RKE2's helm-controller
+Vault (`ci/infrastructure/rke2`). The `argocd` role writes ArgoCD's
+`HelmChart` and the root `Application` into RKE2's manifests directory: RKE2's helm-controller
 installs ArgoCD, and ArgoCD syncs `bootstrap/prod/` from `gitops` (operator
 decision, 2026-09-29). There is no OpenTofu root for the cluster. The admin kubeconfig is
 stored nowhere but on the servers (operator decision, 2026-09-29): whatever
@@ -163,9 +163,10 @@ RKE2 pods and services, lab).
 - No admin interface reaches the internet through the public tunnel: the
   portals, Vault and the Kubernetes API are reached only over WARP, through
   the admin tunnel. Publishing a portal behind Cloudflare Access is deferred.
-- Secrets with SOPS+age. An unencrypted file holding sensitive material is a
-  bug, not a TODO. From phase 3 onwards, progressive migration to Vault over
-  OIDC.
+- Secrets live in Vault, never in this repo (.github#6): CI reads them over
+  JWT with GitHub's OIDC token (role `infrastructure`), the scripts locally
+  with the operator's token (`scripts/vault-env`). A file holding sensitive
+  material is a bug, not a TODO.
 - Do not run `tofu apply`, `tofu destroy` or `ansible-playbook` without
   `--check`. The human runs the apply after manual approval of the PR.
 - Idempotent playbooks: no `shell`/`command` without `creates:` or
@@ -222,8 +223,8 @@ firewall, addressing or inventory. Check the eight invariants in
 ## The cluster's ingress and WAF
 
 Traefik with the Gateway API, and CrowdSec in front of it, both deployed by
-ArgoCD from `gitops` (operator decision, 2026-09-29). This repo only gives
-them what the cluster boots with: the bouncer's key from SOPS. open-appsec is
+ArgoCD from `gitops` (operator decision, 2026-09-29). Their secrets come from
+Vault through Vault Secrets Operator, not from this repo. open-appsec is
 deferred to phase 6, and the load balancers stay layer 4.
 
 ## Skills in this repo

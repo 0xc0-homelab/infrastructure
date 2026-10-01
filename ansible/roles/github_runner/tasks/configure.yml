@@ -4,7 +4,7 @@
 - name: Refuse an empty App key
   ansible.builtin.assert:
     that: github_runner_app_private_key | length > 0
-    fail_msg: No App key. Run through scripts/ansible, which decrypts it from secrets/ansible.sops.yaml.
+    fail_msg: No App key. Run through scripts/ansible, which reads it from Vault.
   no_log: true
 
 - name: Create the App config directory

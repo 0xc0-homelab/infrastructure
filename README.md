@@ -13,19 +13,21 @@ modules/<name>/         the resources
 packer/<template>/      bakes the templates every VM clones
 scripts/tofu             runs tofu on an environment, secrets decrypted in env
 scripts/ansible          runs ansible-playbook with the tunnel token in env
+scripts/vault-env        sourced by the others: each secret from Vault, unless set
 scripts/packer           validates or builds a template locally
 scripts/delete-template  deletes a template by name before it is rebuilt
 ansible/                 what runs inside the VMs: inventory, playbooks, roles
 .github/workflows/       plan, apply, packer and issue-check pipelines
-secrets/                 SOPS-encrypted, to the operator and this repo's CI key
 docs/                    architecture and the zone matrix
 ```
 
 ## Running it
 
-Tools come from `mise.toml`. Secrets never touch disk in plaintext:
+Tools come from `mise.toml`. Secrets come from Vault, over WARP, and never
+touch disk:
 
 ```
+vault login -no-print
 scripts/tofu prod init
 scripts/tofu prod plan
 ```
