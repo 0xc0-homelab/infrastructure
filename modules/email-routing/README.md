@@ -41,10 +41,10 @@ No modules.
 
 | Name | Type |
 | ---- | ---- |
-| [cloudflare_email_routing_address.main](https://registry.terraform.io/providers/cloudflare/cloudflare/5.25.0/docs/resources/email_routing_address) | resource |
 | [cloudflare_email_routing_catch_all.main](https://registry.terraform.io/providers/cloudflare/cloudflare/5.25.0/docs/resources/email_routing_catch_all) | resource |
 | [cloudflare_email_routing_dns.main](https://registry.terraform.io/providers/cloudflare/cloudflare/5.25.0/docs/resources/email_routing_dns) | resource |
 | [cloudflare_email_routing_rule.main](https://registry.terraform.io/providers/cloudflare/cloudflare/5.25.0/docs/resources/email_routing_rule) | resource |
+| [cloudflare_email_routing_addresses.verified](https://registry.terraform.io/providers/cloudflare/cloudflare/5.25.0/docs/data-sources/email_routing_addresses) | data source |
 | [cloudflare_zone.main](https://registry.terraform.io/providers/cloudflare/cloudflare/5.25.0/docs/data-sources/zone) | data source |
 
 ## Inputs
@@ -58,5 +58,9 @@ No modules.
 
 ## Outputs
 
-No outputs.
+| Name | Description |
+| ---- | ----------- |
+| <a name="output_account_id"></a> [account\_id](#output\_account\_id) | The zone's account: where its destinations must exist (email-destinations). |
+| <a name="output_destinations_used"></a> [destinations\_used](#output\_destinations\_used) | Names of the destinations this zone's rules and catch-all forward to. |
+| <a name="output_pending"></a> [pending](#output\_pending) | How many of this zone's forwards wait for their destination's confirmation. |
 <!-- END_TF_DOCS -->

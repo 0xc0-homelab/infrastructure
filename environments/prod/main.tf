@@ -63,8 +63,7 @@ module "zero_trust" {
 }
 
 # Mail to the operator's domains, forwarded to their mailboxes (#157, #160),
-# once per domain: each may be in another Cloudflare account. Nothing receives
-# or sends mail here.
+# once per domain. Nothing receives or sends mail here.
 module "email_routing" {
   source = "../../modules/email-routing"
   # The domains are not secret; their addresses and destinations are.
@@ -76,10 +75,57 @@ module "email_routing" {
   catch_all    = var.email_forwards[each.key].catch_all
 }
 
+# The destinations, once per Cloudflare account: they belong to the account,
+# and every zone of it shares them (#164). Each account gets the ones its
+# zones forward to.
+locals {
+  email_destinations_by_account = {
+    for account, names in { for zone, m in module.email_routing : m.account_id => m.destinations_used... } :
+    account => toset(flatten([for n in names : tolist(n)]))
+  }
+}
+
+module "email_destinations" {
+  source   = "../../modules/email-destinations"
+  for_each = local.email_destinations_by_account
+
+  account_id = each.key
+  emails     = { for n in each.value : n => var.email_destinations[n] }
+}
+
 # 0xc0.cc's, from before the module was called per domain.
 moved {
   from = module.email_routing
   to   = module.email_routing["0xc0.cc"]
+}
+
+# The destinations, from when each zone made its own (#164). Both zones are in
+# this account.
+moved {
+  from = module.email_routing["0xc0.cc"].cloudflare_email_routing_address.main["sergio"]
+  to   = module.email_destinations["ca1599ae7852d5b4718cba351adad927"].cloudflare_email_routing_address.main["sergio"]
+}
+
+moved {
+  from = module.email_routing["offby1.cc"].cloudflare_email_routing_address.main["alex"]
+  to   = module.email_destinations["ca1599ae7852d5b4718cba351adad927"].cloudflare_email_routing_address.main["alex"]
+}
+
+# offby1.cc's own "sergio" was a second copy of the same mailbox: the refresh
+# now finds it as the live destination above, so destroying it would destroy
+# that one. Forgotten from the state, never destroyed. The two above are moved
+# first, so this forgets only that one.
+removed {
+  from = module.email_routing.cloudflare_email_routing_address.main
+
+  lifecycle {
+    destroy = false
+  }
+}
+
+output "email_forwards_pending" {
+  description = "By domain, the forwards still waiting for their destination's confirmation: they get their rule on the first apply after it."
+  value       = { for zone, m in module.email_routing : zone => m.pending }
 }
 
 # The public tunnel: its connectors run on the load balancers, and it goes to
