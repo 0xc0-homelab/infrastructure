@@ -15,6 +15,7 @@ vault_env_proxmox
 vault_env CLOUDFLARE_API_TOKEN shared/cloudflare api_token
 vault_env TF_VAR_warp_allowed_emails infrastructure/warp allowed_emails
 vault_env TF_VAR_email_destinations infrastructure/email-routing destinations
+vault_env TF_VAR_email_forwards infrastructure/email-routing forwards
 
 # Wait for CI to release the state lock rather than failing straight away.
 export TF_CLI_ARGS_plan="${TF_CLI_ARGS_plan:--lock-timeout=5m}"
