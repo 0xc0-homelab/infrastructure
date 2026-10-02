@@ -62,15 +62,22 @@ module "zero_trust" {
   internal_ip      = var.cluster.internal_vip
 }
 
-# Mail to the public domain's addresses, forwarded to the operator's mailboxes
-# (infrastructure#157). Nothing receives or sends mail here.
+# Mail to the operator's domains, forwarded to their mailboxes (#157, #160),
+# once per domain: each may be in another Cloudflare account. Nothing receives
+# or sends mail here.
 module "email_routing" {
-  source = "../../modules/email-routing"
+  source   = "../../modules/email-routing"
+  for_each = var.email_forwards
 
-  account_id   = var.cloudflare_account_id
-  zone_name    = var.public_domains[0]
+  zone_name    = each.key
   destinations = var.email_destinations
-  forwards     = var.email_forwards
+  forwards     = each.value
+}
+
+# 0xc0.cc's, from before the module was called per domain.
+moved {
+  from = module.email_routing
+  to   = module.email_routing["0xc0.cc"]
 }
 
 # The public tunnel: its connectors run on the load balancers, and it goes to

@@ -5,13 +5,16 @@ forwarded to a mailbox elsewhere. There is no mailbox here and nothing is sent.
 
 - **Enabled for the zone** (`cloudflare_email_routing_dns`): Cloudflare adds
   its MX and SPF records. A zone with MX records of its own refuses it.
-- **Destinations**: the mailboxes, account-wide, by a name. Cloudflare mails
-  each one a confirmation link on creation; forwarding to it works once it is
-  clicked.
+- **Destinations**: the mailboxes, by a name, in the zone's account (found
+  from the zone). Cloudflare mails each one a confirmation link on creation;
+  forwarding to it works once it is clicked. A zone in another account needs
+  its own confirmation for the same mailbox.
 - **Rules**: one per forwarded address, `to` matcher, forward action.
 
 The API token needs Email Routing Addresses (account), Email Routing Rules
-(zone) and Zone Settings (zone), all Edit.
+(zone) and Zone Settings (zone), all Edit, in every account and zone it is
+used for. Nothing that exists already is adopted: a rule or a destination made
+by hand is removed first, or imported.
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
@@ -44,10 +47,9 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
-| <a name="input_account_id"></a> [account\_id](#input\_account\_id) | Cloudflare account holding the zone; destination addresses are account-wide. | `string` | n/a | yes |
 | <a name="input_destinations"></a> [destinations](#input\_destinations) | Mailboxes mail is forwarded to, by a name of the caller's choosing. Each must be verified once, from Cloudflare's confirmation mail, before forwarding to it works. | `map(string)` | n/a | yes |
 | <a name="input_forwards"></a> [forwards](#input\_forwards) | Address in the zone => name of the destination it forwards to (a key of destinations). | `map(string)` | n/a | yes |
-| <a name="input_zone_name"></a> [zone\_name](#input\_zone\_name) | Zone that receives the mail, e.g. 0xc0.cc. | `string` | n/a | yes |
+| <a name="input_zone_name"></a> [zone\_name](#input\_zone\_name) | Zone that receives the mail, e.g. 0xc0.cc. Its account, found from it, holds the destination addresses. | `string` | n/a | yes |
 
 ## Outputs
 

@@ -211,10 +211,16 @@ backup = {
 # tunnel: it gets a certificate only.
 public_domains = ["0xc0.cc"]
 
-# Email Routing on the public domain: address => destination name. The
-# destinations themselves come from Vault (variables.tf, email_destinations).
+# Email Routing, by domain: address => destination name. The destinations
+# themselves come from Vault (variables.tf, email_destinations). offby1.cc is
+# in another Cloudflare account: its destination is confirmed there again.
 email_forwards = {
-  "sergio@0xc0.cc" = "operator"
+  "0xc0.cc" = {
+    "sergio@0xc0.cc" = "operator"
+  }
+  "offby1.cc" = {
+    "sergio@offby1.cc" = "operator"
+  }
 }
 
 # The WARP-only path's names (operator decision, 2026-09-30): Traefik's

@@ -1,10 +1,5 @@
-variable "account_id" {
-  description = "Cloudflare account holding the zone; destination addresses are account-wide."
-  type        = string
-}
-
 variable "zone_name" {
-  description = "Zone that receives the mail, e.g. 0xc0.cc."
+  description = "Zone that receives the mail, e.g. 0xc0.cc. Its account, found from it, holds the destination addresses."
   type        = string
 }
 
@@ -19,7 +14,7 @@ variable "forwards" {
   type        = map(string)
 
   validation {
-    condition     = alltrue([for from in keys(var.forwards) : can(regex("^[^@]+@[^@]+$", from))])
-    error_message = "Every forwarded address must be a full address, local@domain."
+    condition     = alltrue([for from in keys(var.forwards) : endswith(from, "@${var.zone_name}") && can(regex("^[^@]+@[^@]+$", from))])
+    error_message = "Every forwarded address must be a full address in the zone, local@<zone_name>."
   }
 }
