@@ -41,3 +41,4 @@ jobs:
         ci/data/shared/cloudflare api_token | CLOUDFLARE_API_TOKEN ;
         ci/data/infrastructure/warp allowed_emails | TF_VAR_warp_allowed_emails ;
         ci/data/infrastructure/email-routing destinations | TF_VAR_email_destinations ;
+        ci/data/infrastructure/email-routing forwards | TF_VAR_email_forwards ;

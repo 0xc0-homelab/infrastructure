@@ -66,12 +66,14 @@ module "zero_trust" {
 # once per domain: each may be in another Cloudflare account. Nothing receives
 # or sends mail here.
 module "email_routing" {
-  source   = "../../modules/email-routing"
-  for_each = var.email_forwards
+  source = "../../modules/email-routing"
+  # The domains are not secret; their addresses and destinations are.
+  for_each = toset(nonsensitive(keys(var.email_forwards)))
 
   zone_name    = each.key
   destinations = var.email_destinations
-  forwards     = each.value
+  forwards     = var.email_forwards[each.key].addresses
+  catch_all    = var.email_forwards[each.key].catch_all
 }
 
 # 0xc0.cc's, from before the module was called per domain.
