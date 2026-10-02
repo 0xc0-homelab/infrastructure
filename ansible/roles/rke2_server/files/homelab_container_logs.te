@@ -1,0 +1,16 @@
+# container-selinux's log reader domain (container_logreader_t) reads the
+# container logs, but may not watch them: a log shipper that tails through
+# inotify (CrowdSec's agents, gitops platform/crowdsec) then reads nothing.
+# The watch, and nothing more (infrastructure#168). Bump the version with
+# any change.
+module homelab_container_logs 1.0;
+
+require {
+	type container_logreader_t;
+	type container_log_t;
+	class dir watch;
+	class file watch;
+}
+
+allow container_logreader_t container_log_t:dir watch;
+allow container_logreader_t container_log_t:file watch;

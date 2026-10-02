@@ -10,6 +10,14 @@
   ansible.builtin.import_tasks: install.yml
   tags: [rke2_agent, rke2_agent_install]
 
+# The same SELinux policy module as the servers': the same log readers run
+# on every node.
+- name: Load the node's SELinux policy module
+  ansible.builtin.include_role:
+    name: rke2_server
+    tasks_from: selinux
+  tags: [rke2_agent, rke2_agent_selinux]
+
 - name: Configure RKE2
   ansible.builtin.import_tasks: configure.yml
   tags: [rke2_agent, rke2_agent_configure]
