@@ -13,6 +13,10 @@ locals {
   # in a plan (posted on the PR, in a public repo); the address itself stays
   # sensitive.
   rules = { for from, to in var.forwards : substr(sha256(from), 0, 16) => { from = from, to = to } }
+
+  # Only the destinations this zone's rules and catch-all use: each is created
+  # in the zone's account, and each creation mails its owner a confirmation.
+  used = nonsensitive(toset(concat(values(var.forwards), var.catch_all == null ? [] : [var.catch_all])))
 }
 
 # Turns Email Routing on for the zone: Cloudflare adds its MX and SPF records.
@@ -23,7 +27,7 @@ resource "cloudflare_email_routing_dns" "main" {
 # The destination mailboxes stay out of the plan's output: they are personal,
 # and this repo is public. Their names are not secret.
 resource "cloudflare_email_routing_address" "main" {
-  for_each = toset(nonsensitive(keys(var.destinations)))
+  for_each = local.used
 
   account_id = local.account_id
   email      = var.destinations[each.key]

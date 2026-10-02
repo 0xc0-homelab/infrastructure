@@ -18,6 +18,11 @@ variable "forwards" {
     condition     = alltrue([for from in keys(var.forwards) : endswith(from, "@${var.zone_name}") && can(regex("^[^@]+@[^@]+$", from))])
     error_message = "Every forwarded address must be a full address in the zone, local@<zone_name>."
   }
+
+  validation {
+    condition     = alltrue([for to in values(var.forwards) : contains(keys(var.destinations), to)])
+    error_message = "Every forward names a destination that exists in destinations."
+  }
 }
 
 variable "catch_all" {
