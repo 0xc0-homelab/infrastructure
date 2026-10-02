@@ -13,7 +13,7 @@ argument_specs:
         type: str
         required: true
         no_log: true
-        description: bcrypt hash of the admin password ($2a$), from Vault (ci/infrastructure/argocd).
+        description: bcrypt hash of the admin password ($2a$), from Vault (platform/argocd/admin).
       argocd_chart_version:
         type: str
         default: "10.9.4"

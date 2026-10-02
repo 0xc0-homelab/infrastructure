@@ -1,20 +1,20 @@
 # Sourced by the other scripts, never run on its own. vault_env exports one
-# secret from Vault's ci/ engine under the variable the code reads, unless it
-# is set already: in CI the reusable workflows have set them all from Vault
+# secret from Vault (the ci/ engine unless told another) under the variable the
+# code reads, unless it is set already: in CI the reusable workflows have set them all from Vault
 # (vault-secrets in .github/workflows/), so nothing is read here; locally, it
 # reads them with the operator's token, over WARP (vault login -no-print).
 # Values go into the environment only, never onto disk or the screen.
 
 export VAULT_ADDR="${VAULT_ADDR:-https://vault.int.0xc0.cc}"
 
-vault_env() { # variable path key
-  local var="$1" path="$2" key="$3" value
+vault_env() { # variable path key [mount, ci by default]
+  local var="$1" path="$2" key="$3" mount="${4:-ci}" value
   [ -z "${!var:-}" ] || return 0
   if [ -z "${vault_env_checked:-}" ]; then
     vault token lookup >/dev/null 2>&1 || { echo "not logged in to Vault: vault login -no-print" >&2; exit 1; }
     vault_env_checked=1
   fi
-  value="$(vault kv get -mount=ci -field="$key" "$path")"
+  value="$(vault kv get -mount="$mount" -field="$key" "$path")"
   export "$var=$value"
 }
 

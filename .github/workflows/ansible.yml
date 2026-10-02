@@ -40,6 +40,6 @@ jobs:
         ci/data/infrastructure/ssh private_key | CI_SSH_PRIVATE_KEY ;
         ci/data/infrastructure/runner-app private_key | GITHUB_RUNNER_APP_PRIVATE_KEY ;
         ci/data/infrastructure/rke2 token | RKE2_TOKEN ;
-        ci/data/infrastructure/argocd admin_password_bcrypt | ARGOCD_ADMIN_PASSWORD_BCRYPT ;
+        platform/data/argocd/admin password_bcrypt | ARGOCD_ADMIN_PASSWORD_BCRYPT ;
       # The key CI logs in to the VMs with, one of vault-secrets.
       ssh-key-env: CI_SSH_PRIVATE_KEY
