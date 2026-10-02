@@ -89,9 +89,17 @@ variable "email_destinations" {
   sensitive   = true
 }
 
+# Not secret either, but kept out of this public repo with the destinations:
+# managed in Vault (ci/infrastructure/email-routing, forwards), as JSON, as
+# TF_VAR_email_forwards. A change there is applied by running the apply
+# workflow.
 variable "email_forwards" {
-  description = "Email Routing, by domain: address => the name of its destination in email_destinations."
-  type        = map(map(string))
+  description = "Email Routing, by domain: its forwarded addresses (address => destination name in email_destinations), and optionally the destination of every other address."
+  type = map(object({
+    addresses = map(string)
+    catch_all = optional(string)
+  }))
+  sensitive = true
 }
 
 variable "vm_admin_user" {

@@ -8,6 +8,11 @@ data "cloudflare_zone" "main" {
 
 locals {
   account_id = data.cloudflare_zone.main.account.id
+
+  # Each rule is keyed by a hash of its address, so the addresses never show
+  # in a plan (posted on the PR, in a public repo); the address itself stays
+  # sensitive.
+  rules = { for from, to in var.forwards : substr(sha256(from), 0, 16) => { from = from, to = to } }
 }
 
 # Turns Email Routing on for the zone: Cloudflare adds its MX and SPF records.
@@ -25,19 +30,36 @@ resource "cloudflare_email_routing_address" "main" {
 }
 
 resource "cloudflare_email_routing_rule" "main" {
-  for_each = var.forwards
+  for_each = toset(nonsensitive(keys(local.rules)))
 
   zone_id = data.cloudflare_zone.main.zone_id
-  name    = "forward ${each.key}"
+  name    = "forward ${local.rules[each.key].from}"
   enabled = true
   matchers = [{
     type  = "literal"
     field = "to"
-    value = each.key
+    value = local.rules[each.key].from
   }]
   actions = [{
     type  = "forward"
-    value = [cloudflare_email_routing_address.main[each.value].email]
+    value = [cloudflare_email_routing_address.main[local.rules[each.key].to].email]
+  }]
+
+  depends_on = [cloudflare_email_routing_dns.main]
+}
+
+# Every other address of the zone, when the caller names a destination for
+# it. Cloudflare keeps one catch-all per zone; managing it here owns it.
+resource "cloudflare_email_routing_catch_all" "main" {
+  count = nonsensitive(var.catch_all != null) ? 1 : 0
+
+  zone_id  = data.cloudflare_zone.main.zone_id
+  name     = "catch-all"
+  enabled  = true
+  matchers = [{ type = "all" }]
+  actions = [{
+    type  = "forward"
+    value = [cloudflare_email_routing_address.main[var.catch_all].email]
   }]
 
   depends_on = [cloudflare_email_routing_dns.main]
