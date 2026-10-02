@@ -6,6 +6,10 @@
   ansible.builtin.import_tasks: install.yml
   tags: [rke2_server, rke2_server_install]
 
+- name: Load the node's SELinux policy module
+  ansible.builtin.import_tasks: selinux.yml
+  tags: [rke2_server, rke2_server_selinux]
+
 - name: Configure RKE2
   ansible.builtin.import_tasks: configure.yml
   tags: [rke2_server, rke2_server_configure]

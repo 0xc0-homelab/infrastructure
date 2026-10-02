@@ -1,0 +1,60 @@
+# The node's own SELinux policy module, homelab_container_logs: it lets a log
+# reader container watch the container logs (files/homelab_container_logs.te).
+# After the install, which brings rke2-selinux and with it container-selinux's
+# types. Shared with the agents (rke2_agent).
+- name: Install the SELinux policy compiler
+  ansible.builtin.dnf:
+    name: checkpolicy
+    state: present
+
+- name: Make the directory for the node's SELinux modules
+  ansible.builtin.file:
+    path: /usr/local/share/selinux/homelab
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Copy the container logs policy module
+  ansible.builtin.copy:
+    src: homelab_container_logs.te
+    dest: /usr/local/share/selinux/homelab/homelab_container_logs.te
+    owner: root
+    group: root
+    mode: "0644"
+  register: rke2_server_selinux_source
+
+- name: List the loaded SELinux modules
+  ansible.builtin.command:
+    cmd: semodule -l
+  register: rke2_server_selinux_modules
+  changed_when: false
+  check_mode: false
+
+# Built and loaded again only when its source changes, or when it is not
+# loaded at all.
+- name: Build and load the container logs policy module
+  when: >-
+    rke2_server_selinux_source.changed
+    or 'homelab_container_logs' not in rke2_server_selinux_modules.stdout_lines
+  block:
+    - name: Compile the container logs policy module
+      ansible.builtin.command:
+        cmd: >-
+          checkmodule -M -m
+          -o /usr/local/share/selinux/homelab/homelab_container_logs.mod
+          /usr/local/share/selinux/homelab/homelab_container_logs.te
+      changed_when: true
+
+    - name: Package the container logs policy module
+      ansible.builtin.command:
+        cmd: >-
+          semodule_package
+          -o /usr/local/share/selinux/homelab/homelab_container_logs.pp
+          -m /usr/local/share/selinux/homelab/homelab_container_logs.mod
+      changed_when: true
+
+    - name: Load the container logs policy module
+      ansible.builtin.command:
+        cmd: semodule -i /usr/local/share/selinux/homelab/homelab_container_logs.pp
+      changed_when: true
