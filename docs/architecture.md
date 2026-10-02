@@ -167,7 +167,7 @@ sequenceDiagram
 
 No inbound port is opened for web traffic: `cloudflared` on the LB VMs dials
 out to Cloudflare. From there to Traefik the traffic is HTTPS again, checked
-against a Let's Encrypt wildcard issued by cert-manager (DNS-01 through
+against its domain's Let's Encrypt wildcard, issued by cert-manager (DNS-01 through
 Cloudflare), with the request's host as SNI. The tunnel serves every name of
 each domain in `public_domains`; a name is public only once external-dns gives
 it a record, which it does only for the routes marked public.

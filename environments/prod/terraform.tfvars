@@ -207,9 +207,9 @@ backup = {
 }
 
 # Public domains, served by the public tunnel (operator decision, 2026-09-29).
-# offby1.cc is in another Cloudflare account, so it cannot point at this
-# tunnel: it gets a certificate only.
-public_domains = ["0xc0.cc"]
+# Both zones are in the tunnel's own account; offby1.cc serves its landing
+# page (0xc0-homelab/offby1.cc#1).
+public_domains = ["0xc0.cc", "offby1.cc"]
 
 # The WARP-only path's names (operator decision, 2026-09-30): Traefik's
 # internal entrypoint, behind the cluster's internal_vip.
