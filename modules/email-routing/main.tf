@@ -1,10 +1,13 @@
+# Found by name in whichever account holds it: the zones are in more than
+# one, and the token reaches them all.
 data "cloudflare_zone" "main" {
   filter = {
     name = var.zone_name
-    account = {
-      id = var.account_id
-    }
   }
+}
+
+locals {
+  account_id = data.cloudflare_zone.main.account.id
 }
 
 # Turns Email Routing on for the zone: Cloudflare adds its MX and SPF records.
@@ -17,7 +20,7 @@ resource "cloudflare_email_routing_dns" "main" {
 resource "cloudflare_email_routing_address" "main" {
   for_each = toset(nonsensitive(keys(var.destinations)))
 
-  account_id = var.account_id
+  account_id = local.account_id
   email      = var.destinations[each.key]
 }
 

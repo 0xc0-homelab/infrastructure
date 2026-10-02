@@ -90,8 +90,8 @@ variable "email_destinations" {
 }
 
 variable "email_forwards" {
-  description = "Addresses of the public domain forwarded by Email Routing => the name of their destination in email_destinations."
-  type        = map(string)
+  description = "Email Routing, by domain: address => the name of its destination in email_destinations."
+  type        = map(map(string))
 }
 
 variable "vm_admin_user" {
