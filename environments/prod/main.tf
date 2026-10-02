@@ -100,8 +100,7 @@ moved {
 }
 
 # The destinations, from when each zone made its own (#164). Both zones are in
-# this account. offby1.cc's "sergio" is not moved: its address was the one
-# 0xc0.cc's "operator" destroyed, gone from Cloudflare.
+# this account.
 moved {
   from = module.email_routing["0xc0.cc"].cloudflare_email_routing_address.main["sergio"]
   to   = module.email_destinations["ca1599ae7852d5b4718cba351adad927"].cloudflare_email_routing_address.main["sergio"]
@@ -110,6 +109,18 @@ moved {
 moved {
   from = module.email_routing["offby1.cc"].cloudflare_email_routing_address.main["alex"]
   to   = module.email_destinations["ca1599ae7852d5b4718cba351adad927"].cloudflare_email_routing_address.main["alex"]
+}
+
+# offby1.cc's own "sergio" was a second copy of the same mailbox: the refresh
+# now finds it as the live destination above, so destroying it would destroy
+# that one. Forgotten from the state, never destroyed. The two above are moved
+# first, so this forgets only that one.
+removed {
+  from = module.email_routing.cloudflare_email_routing_address.main
+
+  lifecycle {
+    destroy = false
+  }
 }
 
 output "email_forwards_pending" {
