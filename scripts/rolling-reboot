@@ -3,8 +3,8 @@
 # (a restart from inside the guest does not), and waits for each to be back
 # before the next:
 #   - every VM: its guest agent answers, and nothing is left pending;
-#   - an RKE2 server (vm-rke2-*): its node is Ready, and every Longhorn volume
-#     healthy again, so two servers are never down, or rebuilding, at once.
+#   - an RKE2 node (vm-rke2-*): its node is Ready, and every Longhorn volume
+#     healthy again, so two nodes are never down, or rebuilding, at once.
 # The order is the operator's; the script only ever restarts one VM at a time.
 # Never pass the CI VM running your own job, and mind that restarting a
 # vm-access connector drops the WARP sessions through it.

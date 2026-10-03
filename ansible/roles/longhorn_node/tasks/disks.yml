@@ -17,8 +17,8 @@
   failed_when: longhorn_node_vgs.rc not in [0, 5]
   check_mode: false
 
-# Only a disk with nothing on it becomes Longhorn's: blkid -p exits 2 when it
-# finds no partition table, filesystem or LVM signature.
+# blkid -p exits 2 when it finds no partition table, filesystem or LVM
+# signature.
 - name: Check the data disks are blank
   ansible.builtin.command:
     cmd: "blkid -p {{ item }}"
@@ -78,10 +78,8 @@
     daemon_reload: "{{ longhorn_node_unit.changed }}"
   when: not (ansible_check_mode and longhorn_node_vgs.rc != 0)
 
-# A filesystem made after install carries no SELinux labels: everything on it
-# is unlabeled_t, which qemu-guest-agent may not open, so backups cannot freeze
-# it. restorecon gives it the policy's own (var_lib_t). A dry run lists what it
-# would change; the real run changes only that.
+# A filesystem made after install is unlabeled_t, which qemu-guest-agent may
+# not open, so backups cannot freeze it.
 - name: Find what is mislabelled on {{ longhorn_node_path }}
   ansible.builtin.command:
     cmd: "restorecon -R -n -v {{ longhorn_node_path }}"

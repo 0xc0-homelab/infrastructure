@@ -1,6 +1,3 @@
-# The prod environment of the node. This root only calls modules from
-# ../../modules; resources live there.
-
 module "sdn" {
   source = "../../modules/sdn-zone"
 
@@ -9,9 +6,7 @@ module "sdn" {
   vnets   = var.zones
 }
 
-# Every template on the node, by name: the raw images imported here and the
-# ones Packer bakes (packer/build-order). Packer rebuilds give a template a new
-# VMID, so it is read from Proxmox, never written down.
+# Packer's templates are created outside OpenTofu: read them from Proxmox.
 data "proxmox_virtual_environment_vms" "templates" {
   node_name = var.nodes[0]
 
@@ -57,13 +52,10 @@ module "zero_trust" {
   private_hostnames    = var.node_web_hostnames
   private_hostnames_ip = cidrhost(var.zones["mgmt"].cidr, 1)
 
-  # The WARP-only path (gitops: Traefik's internal entrypoint).
   internal_domains = var.internal_domains
   internal_ip      = var.cluster.internal_vip
 }
 
-# Mail to the operator's domains, forwarded to their mailboxes (#157, #160),
-# once per domain. Nothing receives or sends mail here.
 module "email_routing" {
   source = "../../modules/email-routing"
   # The domains are not secret; their addresses and destinations are.
@@ -75,9 +67,7 @@ module "email_routing" {
   catch_all    = var.email_forwards[each.key].catch_all
 }
 
-# The destinations, once per Cloudflare account: they belong to the account,
-# and every zone of it shares them (#164). Each account gets the ones its
-# zones forward to.
+# Destinations belong to the Cloudflare account, shared by all its zones.
 locals {
   email_destinations_by_account = {
     for account, names in { for zone, m in module.email_routing : m.account_id => m.destinations_used... } :
@@ -128,11 +118,8 @@ output "email_forwards_pending" {
   value       = { for zone, m in module.email_routing : zone => m.pending }
 }
 
-# The public tunnel: its connectors run on the load balancers, and it goes to
-# HAProxy on the VIP, then Traefik over HTTPS. Public traffic enters platform,
-# never mgmt. Every name of a public domain goes to Traefik, which routes it or
-# answers 404; a name is public only once external-dns (gitops) gives it a
-# record. The portals stay on WARP, with no record.
+# Public traffic enters platform, never mgmt. A name is public only once
+# external-dns (gitops) gives it a record.
 module "public_tunnel" {
   source = "../../modules/cloudflare-tunnel"
 
@@ -143,8 +130,6 @@ module "public_tunnel" {
   ]])
 }
 
-# The admin tunnel: the admin path. WARP clients reach every zone through it;
-# its connectors run on vm-access-01 and vm-access-02.
 module "admin_tunnel" {
   source = "../../modules/cloudflare-tunnel"
 
@@ -161,11 +146,8 @@ module "vms" {
   rebuild   = each.value.rebuild
   cpu_type  = each.value.cpu_type
   node_name = var.nodes[0]
-  # A template is missing for a while when Packer rebuilds it (it deletes it
-  # first). Existing VMs ignore their template, so their plan must not fail
-  # then. The fallback is the highest valid VMID, which never exists: a new VM
-  # created in that window fails to find its template instead of cloning
-  # another one.
+  # A template is missing while Packer rebuilds it. The fallback, the highest
+  # VMID, never exists: a new VM fails instead of cloning another one.
   template_vm_id = lookup(local.template_ids, each.value.template, 2147483647)
   datastore_id   = var.template_datastore
 
@@ -186,8 +168,6 @@ module "vms" {
   depends_on = [module.sdn]
 }
 
-# The RKE2 cluster (servers and agents) and its HAProxy + keepalived pair,
-# created together.
 module "cluster" {
   source = "../../modules/rke2-cluster"
 
@@ -231,8 +211,6 @@ module "cluster" {
   depends_on = [module.sdn]
 }
 
-# The zone firewall: the rules of every zone and of the node, computed from the
-# transit matrix in terraform.tfvars.
 module "zone_firewall" {
   source = "../../modules/zone-firewall"
 
@@ -257,8 +235,7 @@ module "zone_firewall" {
   depends_on = [module.vms, module.cluster]
 }
 
-# Every VM to PBS, daily, data disks included: that covers the Longhorn volumes
-# on the RKE2 servers. Templates stay out; Packer rebuilds them.
+# Templates stay out; Packer rebuilds them.
 module "backup" {
   source = "../../modules/backup-job"
 

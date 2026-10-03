@@ -2,13 +2,9 @@
   hosts: access
   become: true
   # One at a time: while one connector restarts, the other keeps admin access.
-  # A dry run (--check) changes nothing, so scripts/ansible runs it on every
-  # host at once (homelab_serial).
   serial: "{{ homelab_serial | default(1) }}"
   roles:
     - role: base
     - role: cloudflared
       vars:
-        # Read from the OpenTofu state by scripts/ansible, into the
-        # environment only.
         cloudflared_tunnel_token: "{{ lookup('ansible.builtin.env', 'ADMIN_TUNNEL_TOKEN') }}"

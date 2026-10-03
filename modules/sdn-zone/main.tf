@@ -1,7 +1,3 @@
-# One Proxmox SDN Simple zone, with a VNet and a subnet per homelab zone. The
-# host is the gateway (.1) of every subnet, and SNAT gives egress through the
-# node's public interface where the zone is allowed out.
-
 resource "proxmox_sdn_zone_simple" "main" {
   id    = var.zone_id
   nodes = var.nodes
@@ -37,9 +33,7 @@ resource "terraform_data" "vnets" {
   input = var.vnets
 }
 
-# SDN changes stay pending in Proxmox until applied. This applier is replaced —
-# and so re-applies — whenever any zone, VNet or subnet changes, or one is
-# removed.
+# SDN changes stay pending until applied: replacing this re-applies them.
 resource "proxmox_sdn_applier" "changes" {
   lifecycle {
     replace_triggered_by = [
@@ -57,6 +51,5 @@ resource "proxmox_sdn_applier" "changes" {
   ]
 }
 
-# Everything above depends on this one, so on destroy it goes last and applies
-# the removal.
+# On destroy it goes last and applies the removal.
 resource "proxmox_sdn_applier" "finalizer" {}

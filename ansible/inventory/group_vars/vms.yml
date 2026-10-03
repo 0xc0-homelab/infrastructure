@@ -1,23 +1,19 @@
-# Every VM, reached directly: over WARP from the laptop, from the CI VMs in
-# the pipeline, which points HOMELAB_SSH_KEY_FILE at CI's key.
+# The pipeline points HOMELAB_SSH_KEY_FILE at CI's key.
 ansible_user: ops
 ansible_ssh_private_key_file: "{{ lookup('ansible.builtin.env', 'HOMELAB_SSH_KEY_FILE', default='~/.ssh/0xc0-homelab') }}"
 
-# The keys ops accepts: vm_admin_ssh_keys in environments/prod/terraform.tfvars,
-# the one list, which the wrapper script reads from the OpenTofu state.
+# vm_admin_ssh_keys in terraform.tfvars, read from the OpenTofu state.
 base_admin_user: ops
 base_hostname: "{{ inventory_hostname }}"
 base_admin_ssh_keys: "{{ lookup('ansible.builtin.env', 'HOMELAB_ADMIN_SSH_KEYS') | from_json }}"
 
-# Keepalives: a session cut underneath (a connector restarting) fails in 45s
-# instead of hanging.
+# A session cut underneath (a connector restarting) fails in 45s instead of
+# hanging.
 ansible_ssh_common_args: >-
   -o StrictHostKeyChecking=accept-new
   -o UserKnownHostsFile={{ lookup('ansible.builtin.env', 'HOMELAB_KNOWN_HOSTS', default='~/.ssh/known_hosts') }}
   -o ServerAliveInterval=15 -o ServerAliveCountMax=3
 
-# The internal VIP, on the load balancers: the WARP-only path, where
-# *.int.0xc0.cc resolves for WARP clients, and where the CI VMs reach Vault.
-# The cluster's internal_vip in terraform.tfvars; the public tunnel never goes
-# there. Here rather than in platform.yml, because ci needs it too.
+# The cluster's internal_vip in terraform.tfvars. Here rather than in
+# platform.yml, because ci needs it too, to reach Vault.
 platform_internal_vip: 10.10.4.9

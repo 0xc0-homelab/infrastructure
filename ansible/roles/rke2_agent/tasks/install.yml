@@ -21,8 +21,7 @@
     gpgkey: "{{ rke2_agent_gpg_key }}"
   register: rke2_agent_repo
 
-# On a dry run before the first real one the repositories are not there yet,
-# so there is nothing to install from: skip rather than fail the dry run.
+# On a first dry run the repositories are not there yet.
 - name: Install rke2-agent {{ rke2_agent_version }}
   ansible.builtin.dnf:
     name:
@@ -32,8 +31,7 @@
   register: rke2_agent_package
   when: not (ansible_check_mode and (rke2_agent_repo_common.changed or rke2_agent_repo.changed))
 
-# True on a dry run that would install RKE2: the unit does not exist yet, so
-# nothing may start or restart it.
+# On a dry run that would install RKE2 the unit does not exist yet.
 - name: Note whether RKE2 is still to be installed
   ansible.builtin.set_fact:
     rke2_agent_pending: >-

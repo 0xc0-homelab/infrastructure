@@ -1,5 +1,4 @@
-# What a runner VM needs before it is one: baked into the runner template by
-# Packer, and a no-op on a VM cloned from it.
+# Baked into the runner template by Packer; a no-op on a VM cloned from it.
 
 - name: Install what the JIT step and the jobs need
   ansible.builtin.apt:
@@ -42,5 +41,4 @@
       && touch /var/lib/actions-runner-deps-{{ github_runner_version }}'
     chdir: /opt/actions-runner/.dist-{{ github_runner_version }}
     creates: /var/lib/actions-runner-deps-{{ github_runner_version }}
-  # In check mode the copy above is not unpacked, so there is no directory yet.
   when: not (ansible_check_mode and (github_runner_tarball.changed or github_runner_dist.changed))

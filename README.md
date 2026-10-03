@@ -1,7 +1,7 @@
 # infrastructure
 
 OpenTofu, Packer and Ansible for the 0xc0-labs node: its SDN zones, its
-firewall, and the VMs on it.
+firewall, the VMs on it, and the RKE2 cluster they run.
 
 - **How it fits together:** [`docs/architecture.md`](docs/architecture.md)
 - **The network:** decided in [`environments/prod/terraform.tfvars`](environments/prod/terraform.tfvars), explained in [`docs/zones.md`](docs/zones.md)
@@ -11,13 +11,14 @@ firewall, and the VMs on it.
 environments/prod/      the root for the node — only calls modules
 modules/<name>/         the resources
 packer/<template>/      bakes the templates every VM clones
-scripts/tofu             runs tofu on an environment, secrets decrypted in env
-scripts/ansible          runs ansible-playbook with the tunnel token in env
+scripts/tofu             runs tofu on an environment, secrets from Vault in env
+scripts/ansible          runs ansible-playbook, tunnel tokens and secrets in env
 scripts/vault-env        sourced by the others: each secret from Vault, unless set
 scripts/packer           validates or builds a template locally
 scripts/delete-template  deletes a template by name before it is rebuilt
+scripts/rolling-reboot   restarts VMs one at a time, waiting for each
 ansible/                 what runs inside the VMs: inventory, playbooks, roles
-.github/workflows/       plan, apply, packer and issue-check pipelines
+.github/workflows/       plan, apply, ansible, packer and issue-check pipelines
 docs/                    architecture and the zone matrix
 ```
 

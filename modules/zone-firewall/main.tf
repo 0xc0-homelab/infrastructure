@@ -1,12 +1,3 @@
-# The zone firewall: one security group per zone holding its inbound rules from
-# the transit matrix, and every VM's own firewall enabled with that group.
-# Filtering happens on each guest's NIC; the node runs pve-firewall, whose
-# VNet-level rules would need the nftables backend (a tech preview). The node
-# itself gets its own rules and DROP policy.
-
-# The transit matrix turned into rules. Each rule's comment is
-# "<from> -> <to>: <note>", so every rule in Proxmox traces back to its line of
-# terraform.tfvars.
 locals {
   vnet_of = { for vnet, z in var.zones : z.alias => vnet }
   cidr_of = { for vnet, z in var.zones : z.alias => z.cidr }
@@ -14,10 +5,8 @@ locals {
   # Proxmox writes port ranges as a:b.
   dport = [for e in var.transit : join(",", [for p in e.ports : replace(p, "-", ":")])]
 
-  # The whole from zone, or only the addresses an entry narrows it to.
   source = [for e in var.transit : length(e.sources) > 0 ? join(",", e.sources) : lookup(local.cidr_of, e.from, "")]
 
-  # Inbound rules of each zone, in matrix order.
   rules = {
     for vnet, z in var.zones : vnet => [
       for i, e in var.transit : {
@@ -30,7 +19,7 @@ locals {
   }
   groups = { for vnet, rules in local.rules : vnet => rules if length(rules) > 0 }
 
-  # The node's rules. From an admin zone only the node's admin ports survive.
+  # From an admin zone only the node's admin ports survive.
   node_ports = [
     for e in var.transit : (
       contains(var.node_admin.admin_zones, e.from)
@@ -47,8 +36,6 @@ locals {
     } if contains(e.to, "node") && length(local.node_ports[i]) > 0
   ]
 
-  # Zones that initiate nothing (an entry with an empty `to`): their VMs get an
-  # outbound DROP policy.
   no_egress = [for e in var.transit : local.vnet_of[e.from] if length(e.to) == 0 && contains(keys(local.vnet_of), e.from)]
 }
 
@@ -56,11 +43,8 @@ resource "proxmox_virtual_environment_cluster_firewall" "main" {
   enabled = var.enabled
 }
 
-# Proxmox gives the network it detects as local implicit admin access to the
-# node (22, 8006, 3128, 5900-5999, 60000-60050), outside any rule. Pointing
-# local_network at loopback, which the node accepts anyway, leaves only the
-# node rules below. An empty `management` ipset does not do it: the detected
-# network is added regardless.
+# Proxmox grants the network it detects as local implicit admin access to the
+# node, outside any rule. An empty `management` ipset does not stop it.
 resource "proxmox_virtual_environment_firewall_alias" "local_network" {
   name = "local_network"
   # A single address, as the API returns it: "/32" would diff on every plan.
@@ -84,8 +68,7 @@ resource "proxmox_virtual_environment_firewall_rules" "node" {
   }
 }
 
-# The node's DROP policy. Turned on only once its rules exist: without them it
-# cuts SSH over WARP and Traefik's 443.
+# Turned on only once its rules exist: without them it cuts SSH over WARP.
 resource "proxmox_node_firewall" "main" {
   node_name = var.node_name
   enabled   = var.node_enabled
@@ -116,9 +99,8 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "main" {
   }
 }
 
-# Proxmox deletes a VM's firewall config with the VM, and the provider cannot
-# move rules to a new VMID in place. So a recreated VM, same VMID or not, gets
-# its options and rules recreated: its MAC is new on every creation.
+# Proxmox deletes a VM's firewall config with the VM: a recreated VM, whose
+# MAC is new, gets its options and rules recreated.
 resource "terraform_data" "vm" {
   for_each = var.vms
   input    = each.value.mac

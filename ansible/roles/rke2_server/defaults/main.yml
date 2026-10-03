@@ -1,14 +1,9 @@
-# Pinned: the RKE2 stable channel on 2026-09-29, v1.36.4+rke2r1. The RPM
-# writes the + as ~. The cluster's version is set once in the inventory
-# (group_vars/platform.yml), for the servers and the agents alike.
+# The cluster's version is set in the inventory (group_vars/platform.yml).
 rke2_server_version: "1.36.4~rke2r1"
 rke2_server_selinux_version: "0.23"
 rke2_server_channel: stable
 
-# RKE2 packages Traefik as its ingress from v1.36. The cluster's ingress, also
-# Traefik but with CrowdSec, comes from gitops, pinned and managed by ArgoCD:
-# none here.
+# The cluster's ingress comes from gitops, managed by ArgoCD.
 rke2_server_ingress_controller: none
 
-# Names and addresses the API certificate carries besides the node's own.
 rke2_server_tls_san: []

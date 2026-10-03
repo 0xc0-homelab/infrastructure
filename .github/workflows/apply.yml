@@ -1,5 +1,3 @@
-# Applies environments/prod after a merge to main, once the operator approves
-# the production environment.
 name: apply
 
 # Only when OpenTofu could change something: a merge that touches no root,
@@ -25,12 +23,9 @@ jobs:
     uses: 0xc0-labs/.github/.github/workflows/tofu-apply.yml@main
     with:
       working-directory: environments/prod
-      # The self-hosted runners on the CI VMs, inside the network. Rebuilding a
-      # CI VM points this at the other one's label for that PR only.
+      # Rebuilding a CI VM points this at the other one's label for that PR only.
       runs-on: '{"group": "homelab", "labels": "homelab"}'
       environment: production
-      # Every secret from Vault (ci/infrastructure/*, ci/shared/*), with GitHub's
-      # OIDC token.
       vault-addr: https://vault.int.0xc0.cc
       vault-role: infrastructure
       vault-secrets: |

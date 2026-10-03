@@ -1,5 +1,4 @@
-# Connection. Secrets come from the environment (PKR_VAR_*), read from Vault
-# by scripts/packer, locally or in CI; never from a file.
+# Secrets come from the environment (PKR_VAR_*), never from a file.
 variable "proxmox_url" {
   description = "Proxmox API, with the path: https://<host>/api2/json."
   type        = string
@@ -28,7 +27,7 @@ variable "commit" {
   default     = "local"
 }
 
-# The throwaway build VM, at the address reserved in docs/zones.md.
+# The build VM, at the address reserved in docs/zones.md.
 variable "build_bridge" {
   description = "VNet of the build VM."
   type        = string

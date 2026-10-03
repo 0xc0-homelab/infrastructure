@@ -1,14 +1,10 @@
-# keepalived's VIP in front of HAProxy: the cluster's vip in
-# environments/prod/terraform.tfvars. The API, the supervisor and the ingress
-# are all reached there.
+# The cluster's vip in terraform.tfvars.
 platform_vip: 10.10.4.10
-# The internal VIP, platform_internal_vip, is in vms.yml: the CI VMs need it
-# too, to reach Vault.
+# platform_internal_vip is in vms.yml: the CI VMs need it too.
 platform_prefix_length: 24
 
-# One RKE2 version for the whole cluster: the agents take the servers', so no
-# agent runs ahead of or behind its control plane. Bumping is its own commit,
-# one minor at a time; the RPM writes the + as ~.
+# One RKE2 version for the whole cluster, so no agent runs ahead of or behind
+# its control plane. Bump one minor at a time; the RPM writes the + as ~.
 rke2_server_version: "1.36.4~rke2r1"
 rke2_server_selinux_version: "0.23"
 rke2_agent_version: "{{ rke2_server_version }}"

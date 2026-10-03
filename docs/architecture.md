@@ -1,15 +1,12 @@
 # Architecture
 
-How the pieces of the homelab fit together. The **decisions** behind them —
+How the pieces fit together. The **decisions** behind them —
 and what was discarded, and why — live in
 [`workspace/docs/design.md`](https://github.com/0xc0-labs/workspace/blob/main/docs/design.md).
 The **network** is decided by the code, in
 [`terraform.tfvars`](../environments/prod/terraform.tfvars), and explained in
 [`zones.md`](zones.md). This document explains how it fits together; if it
 disagrees with the code or with `design.md`, they win.
-
-Phase 1 is complete. This document covers every phase; each section says what
-exists **today** and what is **target** for a later one.
 
 ## The node
 
@@ -76,9 +73,6 @@ flowchart TB
   ([`#37`](https://github.com/0xc0-labs/infrastructure/issues/37)). IPv6
   is not filtered there.
 
-**Today:** Proxmox, Traefik, RustFS and PBS run, with the three VNets, the two
-`vm-access` connectors and the zone firewall on.
-
 ## Templates
 
 ```mermaid
@@ -86,19 +80,25 @@ flowchart LR
   cloud["debian-13-cloud<br/>raw image, imported by OpenTofu"]
   base["debian-13-base<br/>Packer, base role"]
   runner["debian-13-runner<br/>Packer, github_runner role"]
+  rcloud["rocky-10-cloud<br/>raw image, imported by OpenTofu"]
+  rbase["rocky-10-base<br/>Packer, base role"]
 
   cloud -- "Packer" --> base
   base -- "Packer" --> runner
-  base -- "clone" --> vmaccess["vm-access-01 / vm-access-02"]
+  rcloud -- "Packer" --> rbase
+  base -- "clone" --> vmaccess["vm-access-01 / vm-access-02<br/>vm-lb-01 / vm-lb-02"]
   runner -- "clone" --> vmci["vm-ci-01 / vm-ci-02"]
+  rbase -- "clone" --> vmrke2["vm-rke2-01 to vm-rke2-04"]
 ```
 
-OpenTofu imports the official `debian-13-cloud` image straight from Debian, as
-a raw template no VM ever clones. Packer bakes `debian-13-base` from it, with
-the `base` role, and `debian-13-runner` from `debian-13-base`, with the
-`github_runner` role (`packer/build-order`). Every merge to `main` that
-touches `packer/` or those roles rebuilds both templates in CI, after
-approval: each one deleted by name and built again. VMs are full clones and
+OpenTofu imports the official `debian-13-cloud` and `rocky-10-cloud` images
+straight from Debian and Rocky Linux, as raw templates no VM ever clones.
+Packer bakes `debian-13-base` from the first, with the `base` role, and
+`debian-13-runner` from `debian-13-base`, with the `github_runner` role;
+`rocky-10-base` comes from the second, with the `base` role, for the RKE2
+nodes (`packer/build-order`). Every merge to `main` that touches `packer/` or
+those roles rebuilds every template in CI, after approval: each one deleted by
+name and built again. VMs are full clones and
 ignore later changes to their template; moving one onto a new build is
 bumping its `rebuild` counter.
 
@@ -174,10 +174,7 @@ it a record, which it does only for the routes marked public.
 
 **No admin panel is ever published this way**: the portals,
 Vault and the Kubernetes API are reached only over WARP (operator decision,
-2026-09-29; publishing a portal behind Cloudflare Access is deferred).
-
-**Today:** not built. **Target:** phase 2, the LB pair and the RKE2 cluster's
-ingress.
+2026-09-29), and no portal is published behind Cloudflare Access either.
 
 ## Admin access
 
@@ -194,8 +191,8 @@ sequenceDiagram
 ```
 
 The operator reaches every zone and the node's internal address directly,
-without a jump host, as if on the network. Private dashboards — Grafana, Vault
-UI, Proxmox — are reached this way, never through the public tunnel.
+without a jump host, as if on the network. Private dashboards — OpenObserve,
+Vault UI, Proxmox — are reached this way, never through the public tunnel.
 
 The cluster's internal services have a path of their own. Cloudflare Gateway
 resolves every `*.int.0xc0.cc` name to the internal VIP, `10.10.4.9`, for WARP
@@ -206,7 +203,7 @@ network, not by name.
 
 The **way back in** if this breaks is the Hetzner Rescue system.
 
-**Today:** WARP through the two `vm-access` connectors. The node's own
+WARP goes through the two `vm-access` connectors. The node's own
 firewall is on DROP: SSH, the Proxmox UI on 8006 and Traefik on 443 answer
 on `10.10.0.1`. The public IP accepts only break-glass SSH, closed at the
 Hetzner firewall until it is needed.
@@ -235,7 +232,7 @@ flowchart LR
 - Every OpenTofu root has its own state key in RustFS, locked with a lockfile.
   Plans and applies wait for the lock instead of failing.
 
-**Today:** plans, applies, Packer builds and every playbook run on ephemeral
+Plans, applies, Packer builds and every playbook run on ephemeral
 runners, two on each CI VM (`vm-ci-01`, `vm-ci-02`), inside the network. The
 runner group admits only the reusable workflows from `0xc0-labs/.github`,
 as they are on `main`, and fork PRs go to GitHub's runners, where they get no secrets.
@@ -265,19 +262,19 @@ flowchart LR
 
 ## Backups
 
-PBS on the host backs up to a datastore on the Hetzner Storage Box. Phase 2
-adds an off-site copy to B2 and a restore that is **timed and written down** —
-until that restore has been done, the backups are not considered tested. With
-RAID 0 on the node, that restore is the recovery plan.
+PBS on the host backs every VM up whole, data disks included, daily, to a
+datastore on the Hetzner Storage Box (`backup` in `terraform.tfvars`, module
+`backup-job`). With RAID 0 on the node, a restore from it is the recovery
+plan, so it is **timed and written down**: a restore that has not been timed
+does not count as tested.
 
 ## Where each thing lives
 
 | Concern | Source of truth |
 |---|---|
-| Decisions, phases, discarded options | [`workspace/docs/design.md`](https://github.com/0xc0-labs/workspace/blob/main/docs/design.md) |
+| Decisions, discarded options | [`workspace/docs/design.md`](https://github.com/0xc0-labs/workspace/blob/main/docs/design.md) |
 | Zones, VMs, transit matrix | [`environments/prod/terraform.tfvars`](../environments/prod/terraform.tfvars) |
 | Reserved ranges, addressing plan, invariants | [`docs/zones.md`](zones.md) |
 | How it fits together | this document |
 | State of the work | [project board](https://github.com/orgs/0xc0-labs/projects/1) |
-| Current phase | `CLAUDE.md` of each repo; `/phase` keeps them in sync |
 | The org and its repos | [`0xc0-labs/.github`](https://github.com/0xc0-labs/.github) |

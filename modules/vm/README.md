@@ -1,6 +1,7 @@
 # vm
 
-A VM cloned from a Packer template (`packer/`, built on `debian-13-base`),
+A VM cloned from a Packer template (`packer/`: `debian-13-base`,
+`rocky-10-base` or one built on them),
 configured by cloud-init through the Proxmox API only — user, SSH keys,
 static address, DNS. No SSH from the provider to the node, and no snippets.
 
@@ -8,7 +9,7 @@ static address, DNS. No SSH from the provider to the node, and no snippets.
   whose NIC has it.
 - The guest agent is on: the templates are baked with it, and the provider
   waits for it when the VM is created.
-- Proxmox assigns the VMID, to VMs and templates alike; nobody picks one.
+- Proxmox assigns the VM's VMID; nobody picks one.
 - `prevent_destroy` on every VM: a deliberate rebuild lifts it in the same PR.
 
 Everything inside the guest after first boot is Ansible's job.

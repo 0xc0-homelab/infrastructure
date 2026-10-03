@@ -1,20 +1,16 @@
-# The RKE2 cluster and its load balancer. The load balancers go first, so the
-# VIP is in front of the bootstrap server before the others join through it;
-# the agents go last, once the servers are up.
+# The load balancers first, so the VIP is in front of the bootstrap server
+# before the others join through it; the agents last.
 
 - name: Configure the load balancers
   hosts: lb
   become: true
   # One at a time: the VIP stays on the other while one is reconfigured.
-  # A dry run (--check) changes nothing, so scripts/ansible runs it on every
-  # host at once (homelab_serial).
   serial: "{{ homelab_serial | default(1) }}"
   roles:
     - role: base
     - role: haproxy
       vars:
         haproxy_listen_address: "{{ platform_vip }}"
-        # The WARP-only path's VIP; the public tunnel never goes there.
         haproxy_internal_address: "{{ platform_internal_vip }}"
         haproxy_backends: >-
           {{ dict(groups['rke2_servers'] | zip(groups['rke2_servers'] | map('extract', hostvars, 'ansible_host')))
@@ -28,12 +24,8 @@
         keepalived_peers: "{{ groups['lb'] | difference([inventory_hostname]) | map('extract', hostvars, 'ansible_host') | list }}"
         # The first load balancer holds the VIPs while its HAProxy is up.
         keepalived_priority: "{{ 150 if inventory_hostname == groups['lb'][0] else 100 }}"
-    # The public tunnel's connectors, one on each load balancer. The tunnel,
-    # remotely managed, sends each public hostname to HAProxy on the VIP.
     - role: cloudflared
       vars:
-        # Read from the OpenTofu state by the wrapper script, into the
-        # environment only.
         cloudflared_tunnel_token: "{{ lookup('ansible.builtin.env', 'PUBLIC_TUNNEL_TOKEN') }}"
 
 - name: Configure the RKE2 servers
@@ -41,17 +33,12 @@
   become: true
   # One at a time: etcd keeps quorum, and the first server is up before the
   # others join.
-  # A dry run (--check) changes nothing, so scripts/ansible runs it on every
-  # host at once (homelab_serial).
   serial: "{{ homelab_serial | default(1) }}"
   roles:
     - role: base
-    # The data disks and what Longhorn needs on the host, before RKE2.
     - role: longhorn_node
     - role: rke2_server
       vars:
-        # From Vault (ci/infrastructure/rke2) through the wrapper script, into
-        # the environment only.
         rke2_server_token: "{{ lookup('ansible.builtin.env', 'RKE2_TOKEN') }}"
         rke2_server_registration_address: "{{ platform_vip }}"
         rke2_server_node_ip: "{{ ansible_host }}"
@@ -59,30 +46,20 @@
         rke2_server_bootstrap: "{{ inventory_hostname == groups['rke2_servers'][0] }}"
         rke2_server_tls_san:
           - "{{ platform_vip }}"
-    # ArgoCD, through RKE2's own helm-controller: the same manifests on every
-    # server. From there ArgoCD syncs everything else from gitops.
     - role: argocd
       vars:
-        # From Vault (platform/argocd/admin) through the wrapper script, into
-        # the environment only.
         argocd_admin_password_bcrypt: "{{ lookup('ansible.builtin.env', 'ARGOCD_ADMIN_PASSWORD_BCRYPT') }}"
 
 - name: Configure the RKE2 agents
   hosts: rke2_agents
   become: true
   # One at a time, like the servers: a bad change stops at the first.
-  # A dry run (--check) changes nothing, so scripts/ansible runs it on every
-  # host at once (homelab_serial).
   serial: "{{ homelab_serial | default(1) }}"
   roles:
     - role: base
-    # The data disks and what Longhorn needs on the host, before RKE2: the
-    # agents hold Longhorn replicas too.
     - role: longhorn_node
     - role: rke2_agent
       vars:
-        # The servers' token, from Vault (ci/infrastructure/rke2) through the
-        # wrapper script, into the environment only.
         rke2_agent_token: "{{ lookup('ansible.builtin.env', 'RKE2_TOKEN') }}"
         rke2_agent_registration_address: "{{ platform_vip }}"
         rke2_agent_node_ip: "{{ ansible_host }}"

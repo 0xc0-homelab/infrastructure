@@ -1,11 +1,11 @@
 # rke2-cluster
 
 The RKE2 cluster and its load balancer, created together in one zone: the
-RKE2 servers (control plane, etcd and workloads on every one) and the HAProxy
-+ keepalived pair in front of them. Each machine is a `vm` module, with its
+RKE2 servers (control plane, etcd and workloads on every one), the agents
+(workloads only) and the HAProxy + keepalived pair in front of them. Each machine is a `vm` module, with its
 firewall and `prevent_destroy`.
 
-The VIP belongs to keepalived and is set up by Ansible, like everything
+The VIPs belong to keepalived and are set up by Ansible, like everything
 inside the guests (`playbooks/cluster.yml`).
 
 <!-- BEGIN_TF_DOCS -->

@@ -1,12 +1,12 @@
 # sdn-zone
 
-One Proxmox SDN **Simple** zone, with a VNet and a subnet per homelab zone.
+One Proxmox SDN **Simple** zone, with a VNet and a subnet per zone.
 
 - The gateway of every subnet is the **host**, on the first address of its
   CIDR — computed, not an input, so it cannot drift from the design.
 - `snat` per VNet: egress through the node's public interface. On for every
-  zone today; the input stays per-VNet so a future zone that must initiate
-  nothing can turn it off, same as the retired `data` zone once did.
+  zone; the input stays per-VNet so a zone that must initiate nothing can
+  turn it off.
 - VNet IDs are limited by Proxmox to 8 letters and digits; the full zone name
   goes in `alias`.
 - Two appliers, as the provider recommends: `changes` is replaced — and so

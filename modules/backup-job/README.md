@@ -3,7 +3,7 @@
 A backup job on the node: the listed VMs, whole, to a PBS storage.
 
 - The mode is `snapshot`, so the guests keep running. Every disk goes in,
-  data disks included: that is how the RKE2 servers' Longhorn volumes are
+  data disks included: that is how the RKE2 nodes' Longhorn volumes are
   backed up.
 - `retention` becomes the job's prune settings (`keep-daily`, `keep-weekly`,
   and so on). PBS applies them per guest after each run.

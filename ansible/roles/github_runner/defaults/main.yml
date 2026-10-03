@@ -1,20 +1,12 @@
-# Pinned by version and the SHA-256 published in the release notes. Bumping is
-# its own commit: version and checksum together. The runner may still update
-# itself in place when GitHub requires it; the pin is what a new instance
-# starts from.
+# What a new instance starts from; the runner may still update itself in
+# place when GitHub requires it.
 github_runner_version: "2.337.0"
 github_runner_tarball_sha256: "70920811a4f8ad4328818682bca5c6469c1c942fab52448868071d0063816613"
 
-# Runners on this VM. Each one takes one job at a time.
 github_runner_count: 2
 
-# The organization is the App installation's own account, read at every
-# registration (github-runner-jit): a renamed org needs no change here.
-#
-# Created by .github (modules/runner-group), open only to the
-# repos that use it.
+# Created by .github (modules/runner-group).
 github_runner_group: homelab
 github_runner_labels: [homelab]
 
-# Extra /etc/hosts entries for the jobs, each an address and its names.
 github_runner_hosts: []

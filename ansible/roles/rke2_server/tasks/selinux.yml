@@ -1,7 +1,5 @@
-# The node's own SELinux policy module, homelab_container_logs: it lets a log
-# reader container watch the container logs (files/homelab_container_logs.te).
-# After the install, which brings rke2-selinux and with it container-selinux's
-# types. Shared with the agents (rke2_agent).
+# After the install, which brings container-selinux's types. Shared with the
+# agents.
 - name: Install the SELinux policy compiler
   ansible.builtin.dnf:
     name: checkpolicy
@@ -31,8 +29,6 @@
   changed_when: false
   check_mode: false
 
-# Built and loaded again only when its source changes, or when it is not
-# loaded at all.
 - name: Build and load the container logs policy module
   when: >-
     rke2_server_selinux_source.changed

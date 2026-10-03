@@ -1,15 +1,10 @@
-# Packages every VM needs.
 base_packages:
   - qemu-guest-agent
 
-# The admin user cloud-init created, and the public keys it must accept, CI's
-# among them. cloud-init sets them on a VM's first boot only; this keeps them
-# on every VM after that. Empty on a Packer build: the user does not exist in
-# a template.
+# cloud-init sets these on first boot only; this keeps them. Empty on a Packer
+# build: the user does not exist in a template.
 base_admin_user: ""
 base_admin_ssh_keys: []
 
-# The VM's hostname. cloud-init sets it from the VM's name when the VM is
-# created; this keeps it in step when the name changes. Empty on a Packer
-# build, which leaves the template's alone.
+# Keeps the hostname in step when the VM is renamed. Empty on a Packer build.
 base_hostname: ""

@@ -2,13 +2,9 @@
   hosts: ci
   become: true
   # One at a time: the other VM's runners keep taking jobs meanwhile.
-  # A dry run (--check) changes nothing, so scripts/ansible runs it on every
-  # host at once (homelab_serial).
   serial: "{{ homelab_serial | default(1) }}"
   roles:
     - role: base
     - role: github_runner
       vars:
-        # From Vault (ci/infrastructure/runner-app) through the wrapper script, into
-        # the environment only.
         github_runner_app_private_key: "{{ lookup('ansible.builtin.env', 'GITHUB_RUNNER_APP_PRIVATE_KEY') }}"

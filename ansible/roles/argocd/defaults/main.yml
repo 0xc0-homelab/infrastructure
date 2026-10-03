@@ -1,6 +1,5 @@
-# Pinned: the argo-cd chart and the images it runs, each tag with its digest
-# (the multi-arch index). Bumping is its own commit: the chart and its images
-# together, from the chart's own values.yaml.
+# Bump the chart and its images together, from the chart's own values.yaml;
+# each digest is the multi-arch index.
 argocd_chart_version: "10.9.4"
 argocd_image:
   repository: quay.io/argoproj/argocd
@@ -9,7 +8,6 @@ argocd_redis_image:
   repository: ecr-public.aws.com/docker/library/redis
   tag: "8.6.4-alpine@sha256:2cc044fc5a07c9b701f8f1255a309ae9ad7856e694ac03513bf3648c01e40763"
 
-# The root Application: everything in the cluster after ArgoCD comes from here.
 argocd_repo_url: https://github.com/0xc0-labs/gitops.git
 argocd_repo_revision: main
 argocd_repo_path: bootstrap/prod
