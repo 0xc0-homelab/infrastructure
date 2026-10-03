@@ -2,8 +2,8 @@
 argocd_manifests_dir: /var/lib/rancher/rke2/server/manifests
 argocd_chart_repo: https://argoproj.github.io/argo-helm
 
-# The chart's values. Dex stays off: single sign-on comes with Vault and OIDC
-# in phase 3.
+# The chart's values. Dex stays off: there is no single sign-on, only the
+# admin account.
 argocd_values:
   global:
     image: "{{ argocd_image }}"

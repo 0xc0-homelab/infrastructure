@@ -62,7 +62,7 @@ module "zero_trust" {
   internal_ip      = var.cluster.internal_vip
 }
 
-# Mail to the operator's domains, forwarded to their mailboxes (#157, #160),
+# Mail to the operator's domains, forwarded to their mailboxes,
 # once per domain. Nothing receives or sends mail here.
 module "email_routing" {
   source = "../../modules/email-routing"
@@ -76,7 +76,7 @@ module "email_routing" {
 }
 
 # The destinations, once per Cloudflare account: they belong to the account,
-# and every zone of it shares them (#164). Each account gets the ones its
+# and every zone of it shares them. Each account gets the ones its
 # zones forward to.
 locals {
   email_destinations_by_account = {
@@ -258,7 +258,7 @@ module "zone_firewall" {
 }
 
 # Every VM to PBS, daily, data disks included: that covers the Longhorn volumes
-# on the RKE2 servers. Templates stay out; Packer rebuilds them.
+# on the RKE2 nodes. Templates stay out; Packer rebuilds them.
 module "backup" {
   source = "../../modules/backup-job"
 

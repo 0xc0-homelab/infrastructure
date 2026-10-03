@@ -10,7 +10,7 @@ the module computes every rule from it, and none is written by hand.
   a `vrrp` rule carries no ports.
 - Every VM gets its **own firewall on**: inbound DROP except its zone's group;
   outbound ACCEPT, except a zone with no destination in the matrix, which gets
-  DROP instead (none today). A VM's options and rules are **recreated whenever
+  DROP instead (none has one). A VM's options and rules are **recreated whenever
   the VM is**: Proxmox deletes
   them with the VM, and the provider cannot move rules to a new VMID in place.
   The trigger is the VM's NIC MAC, new on every creation.

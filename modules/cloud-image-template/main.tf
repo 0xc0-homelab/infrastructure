@@ -44,7 +44,7 @@ resource "proxmox_virtual_environment_vm" "main" {
     dedicated = 1024
   }
 
-  # Raw image with no guest agent: Packer bakes it into debian-13-base.
+  # Raw image with no guest agent: Packer bakes it into the base templates.
   agent {
     enabled = false
   }

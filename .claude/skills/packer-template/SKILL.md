@@ -106,15 +106,14 @@ one it clones.
 
 ## Procedure
 
-1. Confirm the template belongs to the current phase (`CLAUDE.md`).
-2. Write `variables.pkr.hcl` first: decide the inputs before the build.
-3. Write the source and build blocks, plugin version pinned.
-4. `packer fmt` and `packer validate`.
-5. Build, and watch the console during provisioning.
-6. Verify on the resulting template, before handing it to OpenTofu:
+1. Write `variables.pkr.hcl` first: decide the inputs before the build.
+2. Write the source and build blocks, plugin version pinned.
+3. `packer fmt` and `packer validate`.
+4. Build, and watch the console during provisioning.
+5. Verify on the resulting template, before handing it to OpenTofu:
    qemu-guest-agent enabled, cloud-init enabled, no secret in the image, no
    leftover host keys or machine-id that would be cloned into every VM.
-7. Show the result and stop.
+6. Show the result and stop.
 
 ## Check before calling it done
 

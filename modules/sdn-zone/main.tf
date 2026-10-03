@@ -1,4 +1,4 @@
-# One Proxmox SDN Simple zone, with a VNet and a subnet per homelab zone. The
+# One Proxmox SDN Simple zone, with a VNet and a subnet per zone. The
 # host is the gateway (.1) of every subnet, and SNAT gives egress through the
 # node's public interface where the zone is allowed out.
 

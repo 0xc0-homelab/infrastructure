@@ -4,7 +4,7 @@ nodes = ["pve-1"]
 
 sdn_zone_id = "homelab"
 
-# The homelab zones, explained in docs/zones.md. Keys are VNet IDs (Proxmox: up
+# The zones, explained in docs/zones.md. Keys are VNet IDs (Proxmox: up
 # to 8 letters and digits); alias is the name everything else uses.
 zones = {
   mgmt = {
@@ -26,8 +26,8 @@ zones = {
 
 template_datastore = "local"
 
-# Official Debian cloud images, pinned to a dated build with the SHA-512 Debian
-# publishes next to it (SHA512SUMS). Bumping the image is its own commit.
+# Official cloud images, pinned to a dated build with the checksum the
+# distribution publishes next to it (Debian's SHA512SUMS). Bumping the image is its own commit.
 templates = {
   # Raw: no VM clones it. Packer bakes debian-13-base from it.
   "debian-13-cloud" = {
@@ -63,8 +63,8 @@ vm_admin_ssh_keys = [
 ]
 vm_dns_servers = ["1.1.1.1", "1.0.0.1"]
 
-# The VMs that exist. The addressing plan, later phases included, is in
-# docs/zones.md.
+# The VMs outside the cluster (`cluster`, below). The addressing plan of every
+# VM is in docs/zones.md.
 vms = {
   "vm-access-01" = {
     rebuild   = 1
@@ -117,12 +117,6 @@ node_firewall_enabled = true
 # Traefik on the node, outside IaC. WARP devices resolve these to 10.10.0.1.
 node_web_hostnames = ["pve.0xc0.cc", "pbs.0xc0.cc", "s3.0xc0.cc", "s3-console.0xc0.cc"]
 
-# The transit matrix: every flow the firewall allows. Anything not here is
-# denied. `proto` is tcp unless stated; an entry for a protocol without ports
-# (vrrp) has none. `from` and `to` are zone names (the `alias` of a
-# zone above), `node`, or `internet`; an empty `to` means the zone initiates
-# nothing. The zone-firewall module turns each entry into rules whose comment
-# is "<from> -> <to>: <note>". Notes are plain ASCII: Proxmox keeps them as is.
 # The RKE2 cluster and its load balancer, in platform (docs/zones.md). The
 # three servers are identical: control plane, etcd and workloads on each.
 cluster = {
@@ -147,7 +141,6 @@ cluster = {
     disk_size_gb  = 50
     data_disks_gb = [100, 100]
     nodes = {
-      # Rebuilt with the smaller system disk (#120).
       "vm-rke2-01" = { ip = "10.10.4.21", rebuild = 1 }
       "vm-rke2-02" = { ip = "10.10.4.22", rebuild = 1 }
       "vm-rke2-03" = { ip = "10.10.4.23", rebuild = 1 }
@@ -165,6 +158,12 @@ cluster = {
   }
 }
 
+# The transit matrix: every flow the firewall allows. Anything not here is
+# denied. `proto` is tcp unless stated; an entry for a protocol without ports
+# (vrrp) has none. `from` and `to` are zone names (the `alias` of a
+# zone above), `node`, or `internet`; an empty `to` means the zone initiates
+# nothing. The zone-firewall module turns each entry into rules whose comment
+# is "<from> -> <to>: <note>". Notes are plain ASCII: Proxmox keeps them as is.
 transit = [
   { from = "mgmt", to = ["mgmt"], ports = [22], note = "between the vm-access connectors; a WARP session can leave from either one" },
   { from = "mgmt", to = ["ci"], ports = [22], note = "admin SSH, through the vm-access tunnel" },

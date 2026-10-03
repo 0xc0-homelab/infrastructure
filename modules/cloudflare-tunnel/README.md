@@ -4,11 +4,13 @@ A Cloudflare Tunnel configured from Cloudflare (`config_src = "cloudflare"`),
 so the VM running its connector needs no config file — only the token.
 
 - `routes` are private networks carried by the tunnel for WARP clients: the
-  admin path into the homelab.
+  admin path into the zones.
 - `token` is a sensitive output. It reaches the connector through Ansible,
   straight from `tofu output`, never through a file.
 
-Public hostnames (ingress) are added when the public tunnel needs them.
+`ingress` lists the public hostnames, for the public tunnel, and where each
+goes; anything else gets a 404 from Cloudflare's edge. A tunnel that only
+carries private networks has none.
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements

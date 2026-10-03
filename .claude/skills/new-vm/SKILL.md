@@ -1,6 +1,6 @@
 ---
 name: new-vm
-description: Adds a new VM to the homelab end to end — picks a free IP in its zone, adds it to the vms map, the addressing plan and the Ansible inventory. Use whenever a machine is added, moved between zones or re-addressed.
+description: Adds a new VM end to end — picks a free IP in its zone, adds it to the vms map, the addressing plan and the Ansible inventory. Use whenever a machine is added, moved between zones or re-addressed.
 ---
 
 # Adding a VM
@@ -10,12 +10,6 @@ Four things have to end up consistent: the `vms` map in
 `docs/zones.md`, the Ansible inventory, and — only if the VM needs new traffic
 — the transit matrix. Doing three of the four is the failure mode this skill
 exists to prevent.
-
-## Before anything else: the phase gate
-
-Read the `CURRENT PHASE` heading in `CLAUDE.md`. Every VM in the addressing plan
-of `docs/zones.md` carries a phase. If the requested VM belongs to a later phase, **say so and
-stop**. Do not create it because it would fit technically.
 
 ## Step 1 — pick the address
 
@@ -28,10 +22,12 @@ stop**. Do not create it because it would fit technically.
 Rules, in order:
 
 1. `.1` is the Proxmox host in every zone. Never allocate it. In `platform`,
-   `.10` is also taken, by the keepalived VIP in front of HAProxy — never a VM.
-2. Hosts are numbered from `.10` upwards in steps of ten: `.10`, `.20`, `.30`
-   (`.11`, `.12` for the LB pair, since they share the `.10` VIP). Take the
-   lowest free one in that sequence.
+   `.9` and `.10` are also taken, by the keepalived VIPs in front of HAProxy —
+   never a VM.
+2. Hosts are numbered from `.10` upwards in steps of ten: `.10`, `.20`, `.30`.
+   `platform` numbers by role instead: `.11`, `.12` for the LB pair, which
+   shares the VIPs, and `.21` upwards for the RKE2 nodes. Take the lowest free
+   one in that sequence.
 3. The address must fall inside its zone's supernet. Check it, do not assume.
 4. It must not land on a reserved range — `10.11.0.0/16`, `10.20.0.0/16`,
    `10.42.0.0/16`, `10.43.0.0/16`, `10.66.66.0/24`. These are never used, not
@@ -46,15 +42,16 @@ the last line.
 
 One entry in `vms`, in `environments/prod/terraform.tfvars`: its template, VNet,
 IP and size. No VMID: Proxmox assigns one. The `vm` module does the rest, and
-its firewall comes with it. Add the same VM to the addressing plan in
-`docs/zones.md`, with its phase.
+its firewall comes with it. A load balancer or an RKE2 node goes under its
+group's `nodes` in `cluster` instead. Add the same VM to the addressing plan
+in `docs/zones.md`.
 
 - Every VM already has `lifecycle { prevent_destroy = true }` through the `vm`
   module — nothing to add by hand. Any disk holding data carries the same
   lifecycle rule.
-- The VM clones a Packer template — `debian-13-base` or one built on it — by
-  name, never the raw image. Anything beyond the image is Ansible's job, after
-  first boot.
+- The VM clones a Packer template — `debian-13-base`, `rocky-10-base` or one
+  built on them — by name, never the raw image. Anything beyond the image is
+  Ansible's job, after first boot.
 
 ## Step 3 — add it to the Ansible inventory
 
@@ -88,7 +85,5 @@ apply is launched by the human.
 
 - The IP is inside its zone supernet, off every reserved range, and unique.
 - The `vms` map, the plan in `docs/zones.md` and the inventory all agree.
-- The VM's phase, in the addressing plan of `docs/zones.md`, is not later than
-  the current phase.
 - Data disks carry `prevent_destroy`.
 - The transit matrix untouched unless the VM needs new traffic.

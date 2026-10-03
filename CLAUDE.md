@@ -1,7 +1,7 @@
 # infrastructure
 
 Proxmox VE 9 on a Hetzner dedicated server (`pve-1`, `pve.0xc0.cc`), 2× NVMe
-in mdadm RAID 0, no ZFS. A single node until phase 5. The host is router and
+in mdadm RAID 0, no ZFS. A single node. The host is router and
 firewall and holds `.1` in every zone; `eno1` keeps the public IP, each zone
 is an SDN VNet with no physical port, and egress is SNAT through `eno1`.
 
@@ -18,31 +18,24 @@ ones built on them)
 Proxmox provider: `bpg/proxmox`. Zones are Proxmox SDN: one Simple zone, a
 VNet and a subnet per zone, with the host as gateway and SNAT for egress, all
 in OpenTofu. Use the `proxmox_sdn_*` resources — the
-`proxmox_virtual_environment_sdn_*` ones are deprecated. Zones spanning nodes
-arrive with node 2 in phase 5.
+`proxmox_virtual_environment_sdn_*` ones are deprecated. There is no second
+node, so no zone spans nodes.
 
 Cloudflare — tunnels, Zero Trust, DNS — lives in the same root,
 `environments/prod/`, alongside the node (operator decision, 2026-09-23):
 `prod` is the one environment, with everything that makes it up. Split by
 service only if the coupling ever gets in the way.
 
-## CURRENT PHASE: 3 (Platform)
+## What runs
 
-Phase 1 is complete: Proxmox, zones, NAT, the Packer templates, `vm-access-01`,
-`vm-access-02` and `vm-ci-01` with the self-hosted runners, the zone and node
-firewalls. SOPS works, Rescue and WARP are tested.
-
-Phase 2 built the cluster (workspace `docs/design.md`): the Rocky template
-chain, one RKE2 cluster in `platform`, the HAProxy load balancer with the public
-tunnel, ArgoCD, Longhorn, the ingress (Traefik) with its WAF (CrowdSec), and
-backups through PBS with a timed restore.
-
-Phase 3 brings the platform: Vault, with every secret this repo uses read from
-it (`ci/infrastructure/*`, `ci/shared/*`), and SOPS gone (.github#6).
-
-Do not implement VMs or services from later phases even if they fit. The phase
-of each VM is in `docs/zones.md`, Machines. If something requires a future phase, say so
-and stop.
+On the node: the zones, NAT, the zone and node firewalls, the Packer
+templates, `vm-access-01` and `vm-access-02` (the admin connectors),
+`vm-ci-01` and `vm-ci-02` with the self-hosted runners, and one RKE2 cluster
+in `platform` behind the HAProxy load balancer pair that carries the public
+tunnel. In the cluster: ArgoCD, Longhorn, the ingress (Traefik) with its WAF
+(CrowdSec), and Vault, which holds every secret this repo uses
+(`ci/infrastructure/*`, `ci/shared/*`). PBS backs every VM up daily. The
+addressing plan of every VM is in `docs/zones.md`, Machines.
 
 ## Architecture
 
@@ -76,8 +69,8 @@ Ansible never touches the node. Every zone reaches the internet, so the node
 needs no forwarding rule of its own: Docker carries one setting by hand,
 `ip-forward-no-drop`, that keeps the `FORWARD` policy ACCEPT
 (`docs/architecture.md`, The node). A zone that must never egress would need a
-DROP rule in `DOCKER-USER`; the role that wrote it, `node_forwarding`, was
-removed while unused (#101) and is in git history. Traefik, RustFS, PBS and
+DROP rule in `DOCKER-USER`; the `node_forwarding` role that wrote it is in
+git history (#101). Traefik, RustFS, PBS and
 Docker itself are never touched from this repo.
 
 Ansible reaches every VM directly over WARP.
@@ -90,8 +83,9 @@ unprivileged `runner` user. Each runner carries the `homelab` label and its
 VM's name, so a job can pin itself to one VM.
 
 `playbooks/cluster.yml` builds the cluster: `haproxy`, `keepalived` and the
-public tunnel's `cloudflared` on the `lb` pair, holding the VIP, then
-`rke2_server` and `argocd` on each server, one at a time. The first server
+public tunnel's `cloudflared` on the `lb` pair, holding the VIPs, then
+`longhorn_node`, `rke2_server` and `argocd` on each server, one at a time, and
+last `longhorn_node` and `rke2_agent` on each agent. The first server
 initialises the cluster; the others join through the VIP, with the token from
 Vault (`ci/infrastructure/rke2`). The `argocd` role writes ArgoCD's
 `HelmChart` and the root `Application` into RKE2's manifests directory: RKE2's helm-controller
@@ -125,10 +119,10 @@ nothing is generated into a file. Validations in `variables.tf` enforce the
 invariants they can.
 
 `docs/zones.md` explains that data and keeps what cannot be code: the reserved
-ranges, the addressing plan for later phases, the Packer build address and the
+ranges, the addressing plan, the Packer build addresses and the
 invariants. **Before proposing any IP or subnet, check it against that file.**
-There are five reserved ranges that can never be used (node 2, Hetzner Cloud,
-RKE2 pods and services, lab).
+There are five reserved ranges that can never be used (a second node, Hetzner
+Cloud, RKE2 pods and services, lab).
 
 ## Hard rules
 
@@ -165,7 +159,7 @@ RKE2 pods and services, lab).
 - `ci` reaches the node over 8006 (API), never over 22.
 - No admin interface reaches the internet through the public tunnel: the
   portals, Vault and the Kubernetes API are reached only over WARP, through
-  the admin tunnel. Publishing a portal behind Cloudflare Access is deferred.
+  the admin tunnel. No portal is published behind Cloudflare Access either.
 - Secrets live in Vault, never in this repo (.github#6): CI reads them over
   JWT with GitHub's OIDC token (role `infrastructure`), the scripts locally
   with the operator's token (`scripts/vault-env`). A file holding sensitive
@@ -189,7 +183,7 @@ RKE2 pods and services, lab).
   restarts a VM on its own either (`reboot_after_update = false`): a change
   that needs one stays pending in Proxmox, and `scripts/rolling-reboot
   <vm>...` restarts them one at a time, waiting for each (and, for an RKE2
-  server, its node Ready and Longhorn healthy) before the next. A CI VM is
+  node, its node Ready and Longhorn healthy) before the next. A CI VM is
   rebuilt from the pipeline too, one at a time: the same PR points
   `.github/workflows/apply.yml`'s `runs-on` at the **other** VM's label, so
   the apply never runs on the VM it destroys; the next PR points it back at
@@ -216,7 +210,7 @@ RKE2 pods and services, lab).
 ## Before opening a PR
 
 Run the `homelab:network-reviewer` agent if the change touches network,
-firewall, addressing or inventory. Check the eight invariants in
+firewall, addressing or inventory. Check the invariants in
 `docs/zones.md`.
 
 ## Repo policy
@@ -227,8 +221,8 @@ firewall, addressing or inventory. Check the eight invariants in
 
 Traefik with the Gateway API, and CrowdSec in front of it, both deployed by
 ArgoCD from `gitops` (operator decision, 2026-09-29). Their secrets come from
-Vault through Vault Secrets Operator, not from this repo. open-appsec is
-deferred to phase 6, and the load balancers stay layer 4.
+Vault through Vault Secrets Operator, not from this repo. There is no
+open-appsec, and the load balancers stay layer 4.
 
 ## Skills in this repo
 
@@ -262,11 +256,12 @@ Caveats:
 ## Discarded — do not propose it
 
 WireGuard (Access+WARP covers it) · Coraza (the CRS needs hand-tuning;
-CrowdSec's virtual patching does not) · open-appsec for now (its Kubernetes
+CrowdSec's virtual patching does not) · open-appsec (its Kubernetes
 integrations run on retired or unmaintained pieces) · kube-vip and MetalLB
-(the load balancer VMs keep the VIP) ·
-BunkerWeb (config in SQLite) · OPNsense and VyOS (fragile hop, immature
-providers) · VLAN zones now (an SDN Simple zone covers one node) · Terraform Stacks
-(paid) · OpenBao (Vault's BSL does not affect this case) · Loki and Tempo now.
+(the load balancer VMs keep the VIP) · BunkerWeb (config in SQLite) ·
+OPNsense and VyOS (fragile hop, immature providers) · VLAN zones (an SDN
+Simple zone covers one node) · Terraform Stacks (paid) · OpenBao (Vault's BSL
+does not affect this case) · Prometheus, Grafana, Loki and Tempo (OpenObserve
+covers the three signals).
 
 Full reasoning in `../docs/design.md`.

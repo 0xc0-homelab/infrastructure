@@ -39,7 +39,7 @@ The flow is always: edit the matrix → plan → read every changed rule.
   elsewhere, its ports as written.
 - An entry towards `internet` is egress, allowed by the outbound policy.
 - An entry with an empty `to` gives that zone's VMs an outbound DROP policy.
-  Nothing uses it today, but the mechanism stays for a zone that must
+  Nothing uses it, but the mechanism stays for a zone that must
   initiate nothing.
 
 ## Never

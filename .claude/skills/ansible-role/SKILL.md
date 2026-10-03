@@ -5,7 +5,7 @@ description: Scaffolds and reviews Ansible roles for this repo — directory lay
 
 # Ansible role structure
 
-Roles here configure the Proxmox host and the homelab VMs. They are **not**
+Roles here configure the VMs; none touches the Proxmox host. They are **not**
 built for Galaxy distribution: no collection scaffolding, no `galaxy.yml`, no
 CoP inclusion review. Optimise for a single operator reading this in a year.
 

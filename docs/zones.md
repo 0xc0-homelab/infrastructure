@@ -1,11 +1,11 @@
 # Zones
 
-How the homelab network is laid out, and why. **The code decides**: the zones,
+How the network is laid out, and why. **The code decides**: the zones,
 the VMs, the transit matrix and the node's ports live in
 [`environments/prod/terraform.tfvars`](../environments/prod/terraform.tfvars),
 and the `zone-firewall` module turns the matrix into rules. This document
 explains that data and keeps what cannot be code: the reserved ranges, the
-addressing plan for later phases, and the invariants.
+addressing plan, and the invariants.
 
 ## Zones
 
@@ -34,30 +34,30 @@ none of them touches.
 
 | Range | For |
 |---|---|
-| 10.11.0.0/16 | node 2 (phase 5) |
-| 10.20.0.0/16 | Hetzner Cloud and vSwitch (phase 4) |
-| 10.42.0.0/16 | RKE2 pods (phase 2) |
-| 10.43.0.0/16 | RKE2 services (phase 2) |
-| 10.66.66.0/24 | future lab |
+| 10.11.0.0/16 | a second node (none exists) |
+| 10.20.0.0/16 | Hetzner Cloud and vSwitch (none exists) |
+| 10.42.0.0/16 | RKE2 pods |
+| 10.43.0.0/16 | RKE2 services |
+| 10.66.66.0/24 | lab (none exists) |
 
 ## Machines
 
 What exists is the `vms` map in `terraform.tfvars`, and `cluster` for the RKE2
-servers and their load balancers. This is the plan, later
-phases included, so that no address is handed out twice:
+nodes and their load balancers. The addressing plan, so that no address is
+handed out twice:
 
-| VM | Zone | IP | Phase |
-|---|---|---|---|
-| `vm-access-01` | mgmt | 10.10.0.10 | 1 |
-| `vm-access-02` | mgmt | 10.10.0.20 | 1 |
-| `vm-ci-01` | ci | 10.10.1.10 | 1 |
-| `vm-ci-02` | ci | 10.10.1.20 | 2 |
-| `vm-lb-01` | platform | 10.10.4.11 | 2 |
-| `vm-lb-02` | platform | 10.10.4.12 | 2 |
-| `vm-rke2-01` | platform | 10.10.4.21 | 2 |
-| `vm-rke2-02` | platform | 10.10.4.22 | 2 |
-| `vm-rke2-03` | platform | 10.10.4.23 | 2 |
-| `vm-rke2-04` | platform | 10.10.4.24 | 2 |
+| VM | Zone | IP |
+|---|---|---|
+| `vm-access-01` | mgmt | 10.10.0.10 |
+| `vm-access-02` | mgmt | 10.10.0.20 |
+| `vm-ci-01` | ci | 10.10.1.10 |
+| `vm-ci-02` | ci | 10.10.1.20 |
+| `vm-lb-01` | platform | 10.10.4.11 |
+| `vm-lb-02` | platform | 10.10.4.12 |
+| `vm-rke2-01` | platform | 10.10.4.21 |
+| `vm-rke2-02` | platform | 10.10.4.22 |
+| `vm-rke2-03` | platform | 10.10.4.23 |
+| `vm-rke2-04` | platform | 10.10.4.24 |
 
 The `platform` VIPs are not VMs: they are the keepalived addresses the two
 `vm-lb` VMs share, in front of HAProxy, and they always move together.
@@ -112,9 +112,8 @@ rule in Proxmox always traces back to its line of the matrix.
 - An entry towards the **internet** is egress, allowed by the outbound policy
   of every zone that has one.
 - An entry with an empty `to` gives that zone's VMs an outbound DROP policy.
-  Nothing uses it today — every zone reaches at least the node or the
-  internet — but the mechanism stays for a zone that must initiate nothing, as
-  `data` once did.
+  Nothing uses it — every zone reaches at least the node or the internet —
+  but the mechanism stays for a zone that must initiate nothing.
 
 ## Invariants
 
@@ -128,9 +127,9 @@ that breaks them fails.
 3. Every firewall rule traces to an entry of the matrix. A rule with no backing
    is a **critical** finding.
 4. Every entry is `tcp`, `udp` or `vrrp`; `tcp` and `udp` entries list their
-   ports, `vrrp` entries list none **(code)**. No zone initiates towards an
-   empty `to` today, but the mechanism — an explicit outbound DROP policy —
-   stays available for one that must.
+   ports, `vrrp` entries list none **(code)**. No entry has an empty `to`,
+   but the mechanism — an explicit outbound DROP policy — stays available for
+   a zone that must initiate nothing.
 5. Nothing enters `mgmt` from another zone **(code)**, except SSH from the CI
    VMs the entry names in `sources`, never the whole `ci` zone: the pipeline
    runs the vm-access playbook (operator decision, 2026-09-29). Besides that,
@@ -146,4 +145,3 @@ that breaks them fails.
    tunnel serves every name of `public_domains` (`terraform.tfvars`), but only
    a name with a public record reaches it, and external-dns (gitops) creates
    those only for the routes marked public. A portal's name never has one.
-8. No VM from a phase later than the one declared in `CLAUDE.md`.

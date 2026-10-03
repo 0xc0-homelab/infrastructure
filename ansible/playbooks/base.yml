@@ -1,7 +1,6 @@
 # The baseline on every VM, and nothing else: the guest agent, SSH hardening
 # and the admin keys. The other playbooks run it too, before their roles; on
-# its own it adds a key everywhere without touching what the VMs run, which is
-# how CI's key was first authorised.
+# its own it adds a key everywhere without touching what the VMs run.
 - name: Apply the baseline to every VM
   hosts: vms
   become: true

@@ -9,7 +9,7 @@ resource "cloudflare_zero_trust_organization" "main" {
   auth_domain = "${var.team_name}.cloudflareaccess.com"
 }
 
-# Include mode: WARP carries only the homelab, and the operator's other
+# Include mode: WARP carries only the listed networks, and the operator's other
 # traffic goes out as usual. Setting include clears the default exclude list.
 resource "cloudflare_zero_trust_device_default_profile" "main" {
   account_id = var.account_id
