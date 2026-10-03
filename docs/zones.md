@@ -117,7 +117,7 @@ rule in Proxmox always traces back to its line of the matrix.
 
 ## Invariants
 
-Checked by the `homelab:network-reviewer` agent before every PR. Those marked
+Checked by the `0xc0:network-reviewer` agent before every PR. Those marked
 **(code)** are also validations in `environments/prod/variables.tf`: a plan
 that breaks them fails.
 
