@@ -10,6 +10,6 @@ argocd_redis_image:
   tag: "8.6.4-alpine@sha256:2cc044fc5a07c9b701f8f1255a309ae9ad7856e694ac03513bf3648c01e40763"
 
 # The root Application: everything in the cluster after ArgoCD comes from here.
-argocd_repo_url: https://github.com/0xc0-homelab/gitops.git
+argocd_repo_url: https://github.com/0xc0-labs/gitops.git
 argocd_repo_revision: main
 argocd_repo_path: bootstrap/prod

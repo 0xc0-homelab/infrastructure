@@ -1,11 +1,11 @@
 # infrastructure
 
-OpenTofu, Packer and Ansible for the 0xc0-homelab node: its SDN zones, its
+OpenTofu, Packer and Ansible for the 0xc0-labs node: its SDN zones, its
 firewall, and the VMs on it.
 
 - **How it fits together:** [`docs/architecture.md`](docs/architecture.md)
 - **The network:** decided in [`environments/prod/terraform.tfvars`](environments/prod/terraform.tfvars), explained in [`docs/zones.md`](docs/zones.md)
-- **Why it is this way:** [`workspace/docs/design.md`](https://github.com/0xc0-homelab/workspace/blob/main/docs/design.md)
+- **Why it is this way:** [`workspace/docs/design.md`](https://github.com/0xc0-labs/workspace/blob/main/docs/design.md)
 
 ```
 environments/prod/      the root for the node — only calls modules
@@ -35,6 +35,6 @@ scripts/tofu prod plan
 Every change goes through a PR linked to an issue. `plan` comments the plan on
 the PR; `apply` runs after merge and waits for the operator's approval. The
 conventions are the org's, in
-[`0xc0-homelab/.github`](https://github.com/0xc0-homelab/.github#conventions).
+[`0xc0-labs/.github`](https://github.com/0xc0-labs/.github#conventions).
 
 The Traefik, RustFS and PBS running on the node are **not** managed here.

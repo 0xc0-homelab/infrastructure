@@ -1,7 +1,7 @@
 # Validates the Packer templates on every PR that touches them or the roles
 # they bake, and rebuilds them all on a merge to main, once the operator
 # approves the production environment. The steps live in the reusable workflow
-# in 0xc0-homelab/.github; this repo keeps the triggers and provides
+# in 0xc0-labs/.github; this repo keeps the triggers and provides
 # scripts/delete-template and scripts/packer.
 name: packer
 
@@ -20,7 +20,7 @@ permissions:
 
 jobs:
   packer:
-    uses: 0xc0-homelab/.github/.github/workflows/packer.yml@main
+    uses: 0xc0-labs/.github/.github/workflows/packer.yml@main
     with:
       # Every secret from Vault (ci/infrastructure/*, ci/shared/*), with GitHub's
       # OIDC token.

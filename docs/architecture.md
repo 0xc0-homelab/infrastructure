@@ -2,7 +2,7 @@
 
 How the pieces of the homelab fit together. The **decisions** behind them —
 and what was discarded, and why — live in
-[`workspace/docs/design.md`](https://github.com/0xc0-homelab/workspace/blob/main/docs/design.md).
+[`workspace/docs/design.md`](https://github.com/0xc0-labs/workspace/blob/main/docs/design.md).
 The **network** is decided by the code, in
 [`terraform.tfvars`](../environments/prod/terraform.tfvars), and explained in
 [`zones.md`](zones.md). This document explains how it fits together; if it
@@ -65,7 +65,7 @@ flowchart TB
   explicitly accepts only traffic *into* a VM. It leaves traffic *out of* a
   VM, and the hop across a zone bridge, to that policy, so every VM loses its
   egress and its peers (tested in
-  [`#2`](https://github.com/0xc0-homelab/infrastructure/issues/2)). On a
+  [`#2`](https://github.com/0xc0-labs/infrastructure/issues/2)). On a
   reinstalled node, write that file, restart Docker and run
   `iptables -P FORWARD ACCEPT` **before** the first apply.
 - **Hetzner firewall**, in Robot, also by hand. It is stateless: a reply gets
@@ -73,7 +73,7 @@ flowchart TB
   rule, UDP only for what is listed. Besides DNS and NTP (source ports 53 and
   123), cloudflared's QUIC needs **udp from `198.41.192.0/20`, source port
   7844, to ports 32768-65535**. Without it the tunnel falls back to HTTP/2
-  ([`#37`](https://github.com/0xc0-homelab/infrastructure/issues/37)). IPv6
+  ([`#37`](https://github.com/0xc0-labs/infrastructure/issues/37)). IPv6
   is not filtered there.
 
 **Today:** Proxmox, Traefik, RustFS and PBS run, with the three VNets, the two
@@ -226,10 +226,10 @@ flowchart LR
 ```
 
 - Every change is a PR linked to an issue on the
-  [project board](https://github.com/orgs/0xc0-homelab/projects/1); the
+  [project board](https://github.com/orgs/0xc0-labs/projects/1); the
   `issue` check fails without one.
 - Plans and applies use the reusable workflows in
-  [`0xc0-homelab/.github`](https://github.com/0xc0-homelab/.github). Applies
+  [`0xc0-labs/.github`](https://github.com/0xc0-labs/.github). Applies
   wait for the operator's approval in the `production` environment: automation
   plans, a human applies.
 - Every OpenTofu root has its own state key in RustFS, locked with a lockfile.
@@ -237,7 +237,7 @@ flowchart LR
 
 **Today:** plans, applies, Packer builds and every playbook run on ephemeral
 runners, two on each CI VM (`vm-ci-01`, `vm-ci-02`), inside the network. The
-runner group admits only the reusable workflows from `0xc0-homelab/.github`,
+runner group admits only the reusable workflows from `0xc0-labs/.github`,
 as they are on `main`, and fork PRs go to GitHub's runners, where they get no secrets.
 RustFS and the rest of Traefik are not reachable from the internet.
 
@@ -274,10 +274,10 @@ RAID 0 on the node, that restore is the recovery plan.
 
 | Concern | Source of truth |
 |---|---|
-| Decisions, phases, discarded options | [`workspace/docs/design.md`](https://github.com/0xc0-homelab/workspace/blob/main/docs/design.md) |
+| Decisions, phases, discarded options | [`workspace/docs/design.md`](https://github.com/0xc0-labs/workspace/blob/main/docs/design.md) |
 | Zones, VMs, transit matrix | [`environments/prod/terraform.tfvars`](../environments/prod/terraform.tfvars) |
 | Reserved ranges, addressing plan, invariants | [`docs/zones.md`](zones.md) |
 | How it fits together | this document |
-| State of the work | [project board](https://github.com/orgs/0xc0-homelab/projects/1) |
+| State of the work | [project board](https://github.com/orgs/0xc0-labs/projects/1) |
 | Current phase | `CLAUDE.md` of each repo; `/phase` keeps them in sync |
-| The org and its repos | [`0xc0-homelab/.github`](https://github.com/0xc0-homelab/.github) |
+| The org and its repos | [`0xc0-labs/.github`](https://github.com/0xc0-labs/.github) |
