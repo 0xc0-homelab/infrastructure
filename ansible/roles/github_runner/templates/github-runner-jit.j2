@@ -25,6 +25,10 @@ gh_api() {
     "$@" "$api$path"
 }
 
+# The organization is the account the App is installed on, by its current
+# name: renaming the org changes nothing here.
+GITHUB_ORG=$(gh_api GET "/app/installations/$GITHUB_APP_INSTALLATION_ID" "$jwt" | jq -r .account.login)
+[ -n "$GITHUB_ORG" ] && [ "$GITHUB_ORG" != null ] || { echo "App installation $GITHUB_APP_INSTALLATION_ID has no account" >&2; exit 1; }
 token=$(gh_api POST "/app/installations/$GITHUB_APP_INSTALLATION_ID/access_tokens" "$jwt" | jq -r .token)
 group_id=$(gh_api GET "/orgs/$GITHUB_ORG/actions/runner-groups?per_page=100" "$token" |
   jq -r --arg name "$GITHUB_RUNNER_GROUP" '.runner_groups[] | select(.name == $name) | .id')

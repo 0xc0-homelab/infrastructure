@@ -8,8 +8,10 @@ github_runner_tarball_sha256: "70920811a4f8ad4328818682bca5c6469c1c942fab5244886
 # Runners on this VM. Each one takes one job at a time.
 github_runner_count: 2
 
-github_runner_org: 0xc0-homelab
-# Created by 0xc0-homelab/.github (modules/runner-group), open only to the
+# The organization is the App installation's own account, read at every
+# registration (github-runner-jit): a renamed org needs no change here.
+#
+# Created by .github (modules/runner-group), open only to the
 # repos that use it.
 github_runner_group: homelab
 github_runner_labels: [homelab]
