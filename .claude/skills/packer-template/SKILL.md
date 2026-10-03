@@ -42,7 +42,7 @@ Packer injects its throwaway SSH key through cloud-init and reaches that
 address directly, so the build does not wait on the guest agent.
 
 Builds run in CI (`.github/workflows/packer.yml`, which calls the reusable
-workflow in `0xc0-homelab/.github`): `validate` on every PR, and `build` on
+workflow in `0xc0-labs/.github`): `validate` on every PR, and `build` on
 every merge to `main` that touches `packer/` or the roles, on the CI VMs,
 after the operator approves `production`. Only the templates the merge
 affects are rebuilt, one job per chain, in parallel. For each template, in

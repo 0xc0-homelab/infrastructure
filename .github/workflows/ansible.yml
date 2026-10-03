@@ -1,7 +1,7 @@
 # Runs every playbook from the pipeline (operator decision, 2026-09-29): with
 # --check --diff on every PR that touches Ansible, for real on a merge to main,
 # once the operator approves the production environment. The steps live in the
-# reusable workflow in 0xc0-homelab/.github; this repo keeps the triggers and
+# reusable workflow in 0xc0-labs/.github; this repo keeps the triggers and
 # the order.
 name: ansible
 
@@ -20,7 +20,7 @@ permissions:
 
 jobs:
   ansible:
-    uses: 0xc0-homelab/.github/.github/workflows/ansible.yml@main
+    uses: 0xc0-labs/.github/.github/workflows/ansible.yml@main
     with:
       # The wrapper reads the tunnel token and the admin keys from this root.
       tofu-root: environments/prod

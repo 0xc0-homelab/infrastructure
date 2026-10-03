@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   plan:
-    uses: 0xc0-homelab/.github/.github/workflows/tofu-plan.yml@main
+    uses: 0xc0-labs/.github/.github/workflows/tofu-plan.yml@main
     with:
       working-directory: environments/prod
       # The self-hosted runners on the CI VMs, inside the network.

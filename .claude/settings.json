@@ -1,10 +1,10 @@
 {
   "$schema": "https://code.claude.com/schemas/settings.json",
   "extraKnownMarketplaces": {
-    "0xc0-homelab": {
+    "0xc0-labs": {
       "source": {
         "source": "github",
-        "repo": "0xc0-homelab/claude-config"
+        "repo": "0xc0-labs/claude-config"
       }
     },
     "hashicorp": {
@@ -15,7 +15,7 @@
     }
   },
   "enabledPlugins": {
-    "homelab@0xc0-homelab": true,
+    "homelab@0xc0-labs": true,
     "terraform@hashicorp": true
   },
   "permissions": {

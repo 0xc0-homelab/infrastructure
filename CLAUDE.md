@@ -56,7 +56,7 @@ decide.
 `ansible/` configures what runs inside the VMs, after cloud-init. **Every
 playbook runs from the pipeline** (operator decision, 2026-09-29):
 `.github/workflows/ansible.yml` calls the reusable workflow in
-`0xc0-homelab/.github`, which runs them in order with `--check --diff` on a
+`0xc0-labs/.github`, which runs them in order with `--check --diff` on a
 PR, and for real on a merge to `main` once the operator approves. Nothing is
 applied from the laptop.
 
@@ -211,7 +211,7 @@ RKE2 pods and services, lab).
   in `terraform.tfvars`; secrets come from the environment. Module READMEs
   carry a generated inputs/outputs section (`terraform-docs`).
 - Plans and applies in CI use the reusable `tofu-plan` and `tofu-apply`
-  workflows from `0xc0-homelab/.github`. Do not write local copies of them.
+  workflows from `0xc0-labs/.github`. Do not write local copies of them.
 
 ## Before opening a PR
 
@@ -246,7 +246,7 @@ which decides, and keep `docs/zones.md`, which explains, in step.
 
 ## Claude Code plugins enabled here
 
-`homelab@0xc0-homelab` (agents and hooks) and `terraform@hashicorp` (official
+`homelab@0xc0-labs` (agents and hooks) and `terraform@hashicorp` (official
 HashiCorp skills), both declared in `.claude/settings.json`.
 
 Caveats:
