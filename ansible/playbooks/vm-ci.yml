@@ -2,7 +2,7 @@
   hosts: ci
   become: true
   # One at a time: the other VM's runners keep taking jobs meanwhile.
-  serial: "{{ homelab_serial | default(1) }}"
+  serial: "{{ play_serial | default(1) }}"
   roles:
     - role: base
     - role: github_runner

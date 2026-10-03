@@ -14,7 +14,7 @@ variable "nodes" {
 }
 
 variable "vnets" {
-  description = "One VNet per homelab zone, keyed by VNet ID (letters and digits, up to 8 characters). The gateway is always the host, on the first address of the CIDR."
+  description = "One VNet per zone, keyed by VNet ID (letters and digits, up to 8 characters). The gateway is always the host, on the first address of the CIDR."
   type = map(object({
     alias = string
     cidr  = string

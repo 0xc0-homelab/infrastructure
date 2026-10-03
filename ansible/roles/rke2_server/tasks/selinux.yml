@@ -7,7 +7,7 @@
 
 - name: Make the directory for the node's SELinux modules
   ansible.builtin.file:
-    path: /usr/local/share/selinux/homelab
+    path: /usr/local/share/selinux/0xc0
     state: directory
     owner: root
     group: root
@@ -15,8 +15,8 @@
 
 - name: Copy the container logs policy module
   ansible.builtin.copy:
-    src: homelab_container_logs.te
-    dest: /usr/local/share/selinux/homelab/homelab_container_logs.te
+    src: container_logs_watch.te
+    dest: /usr/local/share/selinux/0xc0/container_logs_watch.te
     owner: root
     group: root
     mode: "0644"
@@ -32,25 +32,37 @@
 - name: Build and load the container logs policy module
   when: >-
     rke2_server_selinux_source.changed
-    or 'homelab_container_logs' not in rke2_server_selinux_modules.stdout_lines
+    or 'container_logs_watch' not in rke2_server_selinux_modules.stdout_lines
   block:
     - name: Compile the container logs policy module
       ansible.builtin.command:
         cmd: >-
           checkmodule -M -m
-          -o /usr/local/share/selinux/homelab/homelab_container_logs.mod
-          /usr/local/share/selinux/homelab/homelab_container_logs.te
+          -o /usr/local/share/selinux/0xc0/container_logs_watch.mod
+          /usr/local/share/selinux/0xc0/container_logs_watch.te
       changed_when: true
 
     - name: Package the container logs policy module
       ansible.builtin.command:
         cmd: >-
           semodule_package
-          -o /usr/local/share/selinux/homelab/homelab_container_logs.pp
-          -m /usr/local/share/selinux/homelab/homelab_container_logs.mod
+          -o /usr/local/share/selinux/0xc0/container_logs_watch.pp
+          -m /usr/local/share/selinux/0xc0/container_logs_watch.mod
       changed_when: true
 
     - name: Load the container logs policy module
       ansible.builtin.command:
-        cmd: semodule -i /usr/local/share/selinux/homelab/homelab_container_logs.pp
+        cmd: semodule -i /usr/local/share/selinux/0xc0/container_logs_watch.pp
       changed_when: true
+
+# The same rules under their earlier name: dropped once the new module is in.
+- name: Remove the earlier container logs policy module
+  ansible.builtin.command:
+    cmd: semodule -r homelab_container_logs
+  changed_when: true
+  when: "'homelab_container_logs' in rke2_server_selinux_modules.stdout_lines"
+
+- name: Remove the earlier module directory
+  ansible.builtin.file:
+    path: /usr/local/share/selinux/homelab
+    state: absent

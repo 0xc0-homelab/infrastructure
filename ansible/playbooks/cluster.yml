@@ -5,7 +5,7 @@
   hosts: lb
   become: true
   # One at a time: the VIP stays on the other while one is reconfigured.
-  serial: "{{ homelab_serial | default(1) }}"
+  serial: "{{ play_serial | default(1) }}"
   roles:
     - role: base
     - role: haproxy
@@ -33,7 +33,7 @@
   become: true
   # One at a time: etcd keeps quorum, and the first server is up before the
   # others join.
-  serial: "{{ homelab_serial | default(1) }}"
+  serial: "{{ play_serial | default(1) }}"
   roles:
     - role: base
     - role: longhorn_node
@@ -54,7 +54,7 @@
   hosts: rke2_agents
   become: true
   # One at a time, like the servers: a bad change stops at the first.
-  serial: "{{ homelab_serial | default(1) }}"
+  serial: "{{ play_serial | default(1) }}"
   roles:
     - role: base
     - role: longhorn_node
