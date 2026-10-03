@@ -1,7 +1,7 @@
 # The pipeline points SSH_KEY_FILE at CI's key.
 ansible_user: ops
 ansible_ssh_private_key_file: >-
-  {{ query('ansible.builtin.env', 'SSH_KEY_FILE', 'HOMELAB_SSH_KEY_FILE')
+  {{ query('ansible.builtin.env', 'SSH_KEY_FILE')
      | select | first | default('~/.ssh/0xc0-homelab', true) }}
 
 # vm_admin_ssh_keys in terraform.tfvars, read from the OpenTofu state.
@@ -13,7 +13,7 @@ base_admin_ssh_keys: "{{ lookup('ansible.builtin.env', 'ADMIN_SSH_KEYS') | from_
 # hanging.
 ansible_ssh_common_args: >-
   -o StrictHostKeyChecking=accept-new
-  -o UserKnownHostsFile={{ query('ansible.builtin.env', 'KNOWN_HOSTS', 'HOMELAB_KNOWN_HOSTS') | select | first | default('~/.ssh/known_hosts', true) }}
+  -o UserKnownHostsFile={{ query('ansible.builtin.env', 'KNOWN_HOSTS') | select | first | default('~/.ssh/known_hosts', true) }}
   -o ServerAliveInterval=15 -o ServerAliveCountMax=3
 
 # The cluster's internal_vip in terraform.tfvars. Here rather than in
