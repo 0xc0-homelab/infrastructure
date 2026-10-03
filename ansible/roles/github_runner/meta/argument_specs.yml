@@ -35,10 +35,6 @@ argument_specs:
         type: int
         default: 2
         description: Runners on this VM, each taking one job at a time.
-      github_runner_org:
-        type: str
-        default: 0xc0-homelab
-        description: Organization the runners register with.
       github_runner_group:
         type: str
         default: homelab
