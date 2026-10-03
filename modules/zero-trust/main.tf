@@ -8,7 +8,7 @@ resource "cloudflare_zero_trust_organization" "main" {
 # Setting include clears the default exclude list.
 resource "cloudflare_zero_trust_device_default_profile" "main" {
   account_id = var.account_id
-  include    = [for n in var.include_networks : { address = n, description = "${var.team_name} homelab" }]
+  include    = [for n in var.include_networks : { address = n, description = "${var.team_name} zones" }]
 
   # Left out, the plan resets it to the provider default.
   tunnel_protocol = var.tunnel_protocol

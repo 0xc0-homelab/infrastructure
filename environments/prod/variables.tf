@@ -4,12 +4,12 @@ variable "nodes" {
 }
 
 variable "sdn_zone_id" {
-  description = "ID of the SDN Simple zone holding every homelab zone."
+  description = "ID of the SDN Simple zone holding every zone."
   type        = string
 }
 
 variable "zones" {
-  description = "The homelab zones, keyed by VNet ID. docs/zones.md explains them."
+  description = "The zones, keyed by VNet ID. docs/zones.md explains them."
   type = map(object({
     alias = string
     cidr  = string
@@ -61,20 +61,20 @@ variable "zero_trust_team" {
   type        = string
 }
 
-variable "homelab_network" {
-  description = "Every homelab zone, as one CIDR: what WARP carries, and what vm-access routes."
+variable "zones_cidr" {
+  description = "Every zone, as one CIDR: what WARP carries, and what vm-access routes."
   type        = string
 
   validation {
-    condition     = var.homelab_network == "10.10.0.0/16"
-    error_message = "homelab_network must be 10.10.0.0/16, the supernet of every zone."
+    condition     = var.zones_cidr == "10.10.0.0/16"
+    error_message = "zones_cidr must be 10.10.0.0/16, the supernet of every zone."
   }
 }
 
 # Not secret, but kept out of this public repo: from Vault
 # (ci/infrastructure/warp).
 variable "warp_allowed_emails" {
-  description = "Who may enroll a WARP device, and so reach the homelab."
+  description = "Who may enroll a WARP device, and so reach the zones."
   type        = list(string)
   sensitive   = true
 }

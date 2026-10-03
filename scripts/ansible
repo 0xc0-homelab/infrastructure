@@ -23,13 +23,13 @@ export PUBLIC_TUNNEL_TOKEN
 
 # The admin keys, as JSON: vm_admin_ssh_keys in terraform.tfvars is the one
 # list, for cloud-init and for the base role alike.
-HOMELAB_ADMIN_SSH_KEYS="$(tofu -chdir=environments/prod output -json vm_admin_ssh_keys)"
-export HOMELAB_ADMIN_SSH_KEYS
+ADMIN_SSH_KEYS="$(tofu -chdir=environments/prod output -json vm_admin_ssh_keys)"
+export ADMIN_SSH_KEYS
 
 # The plays go one host at a time (serial), so a bad change stops at the first
 # and the other keeps the service. A dry run changes nothing: every host at once.
 case " $* " in
-  *" --check "*) set -- -e homelab_serial=100% "$@" ;;
+  *" --check "*) set -- -e play_serial=100% "$@" ;;
 esac
 
 cd ansible

@@ -20,7 +20,7 @@ exec bash -s -- "$@" <<'SCRIPT'
 set -euo pipefail
 api="${PROXMOX_VE_ENDPOINT%/}/api2/json"
 auth="Authorization: PVEAPIToken=$PROXMOX_VE_API_TOKEN"
-key="${HOMELAB_SSH_KEY_FILE:-$HOME/.ssh/0xc0-homelab}"
+key="${SSH_KEY_FILE:-$HOME/.ssh/0xc0-homelab}"
 pve() { curl -fsS -H "$auth" "$@"; }
 kubectl_on() { # ip args...
   local ip="$1"; shift

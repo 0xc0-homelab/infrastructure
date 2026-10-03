@@ -46,7 +46,7 @@ module "zero_trust" {
 
   account_id       = var.cloudflare_account_id
   team_name        = var.zero_trust_team
-  include_networks = [var.homelab_network]
+  include_networks = [var.zones_cidr]
   allowed_emails   = var.warp_allowed_emails
 
   private_hostnames    = var.node_web_hostnames
@@ -135,7 +135,7 @@ module "admin_tunnel" {
 
   account_id = var.cloudflare_account_id
   name       = "admin"
-  routes     = [var.homelab_network]
+  routes     = [var.zones_cidr]
 }
 
 module "vms" {

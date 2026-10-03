@@ -1,6 +1,6 @@
 argument_specs:
   main:
-    short_description: Baseline for every homelab VM
+    short_description: Baseline for every VM
     description:
       - Installs the guest agent, hardens SSH, and keeps the admin user's keys. This is the baseline
         debian-13-base bakes on top of the cloud image, re-applied by the

@@ -27,7 +27,7 @@ source "proxmox-clone" "base" {
   vm_id                = 9100
   vm_name              = "debian-13-base"
   template_name        = "debian-13-base"
-  template_description = "Debian 13, the official cloud image with the homelab base role. Built by Packer from packer/debian-13-base, commit ${var.commit}."
+  template_description = "Debian 13, the official cloud image with the base role. Built by Packer from packer/debian-13-base, commit ${var.commit}."
 
   cores           = 1
   memory          = 1024

@@ -48,7 +48,7 @@ templates = {
 
 cloudflare_account_id = "ca1599ae7852d5b4718cba351adad927"
 zero_trust_team       = "0xc0"
-homelab_network       = "10.10.0.0/16"
+zones_cidr            = "10.10.0.0/16"
 
 vm_admin_user = "ops"
 # The operator's and CI's (private half in Vault, ci/infrastructure/ssh).
