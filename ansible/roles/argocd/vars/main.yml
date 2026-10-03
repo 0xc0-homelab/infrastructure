@@ -2,8 +2,6 @@
 argocd_manifests_dir: /var/lib/rancher/rke2/server/manifests
 argocd_chart_repo: https://argoproj.github.io/argo-helm
 
-# The chart's values. Dex stays off: there is no single sign-on, only the
-# admin account.
 argocd_values:
   global:
     image: "{{ argocd_image }}"
@@ -14,21 +12,15 @@ argocd_values:
   configs:
     secret:
       argocdServerAdminPassword: "{{ argocd_admin_password_bcrypt }}"
-    # gitops lays each component out as a Kustomize directory whose
-    # helmCharts inflate its pinned charts: Kustomize needs Helm for that.
+    # gitops inflates its charts through Kustomize's helmCharts.
     cm:
       kustomize.buildOptions: --enable-helm
-    # Plain HTTP behind Traefik, which ends TLS with the *.int.0xc0.cc
-    # wildcard (https://argocd.int.0xc0.cc, over WARP only).
+    # Plain HTTP: Traefik ends TLS.
     params:
       server.insecure: true
-      # Traces of every sync and request, over OTLP, to the OpenObserve
-      # collector's gateway (gitops, openobserve-collector). Plain gRPC, in
-      # the cluster.
       otlp.address: openobserve-collector-gateway-collector.openobserve-collector.svc.cluster.local:4317
       otlp.insecure: true
-  # Metrics, each with a ServiceMonitor the collector's target allocator
-  # finds. argocd has no NetworkPolicies: nothing to open.
+  # The OpenObserve collector's target allocator finds the ServiceMonitors.
   controller:
     metrics:
       enabled: true

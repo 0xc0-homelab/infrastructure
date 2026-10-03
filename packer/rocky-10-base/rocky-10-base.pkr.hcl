@@ -1,11 +1,3 @@
-# The base template the RKE2 nodes clone: the official Rocky Linux cloud image
-# (rocky-10-cloud, imported raw by OpenTofu) with the base role baked in, the
-# guest agent among it. Per-VM settings stay with cloud-init and Ansible.
-#
-# No VMID and no version: Proxmox assigns the VMID, and everything finds the
-# template by name. CI deletes the previous one by name before building it
-# again (scripts/delete-template).
-
 packer {
   required_version = "~> 1.16"
 
@@ -31,9 +23,7 @@ source "proxmox-clone" "rocky" {
   clone_vm   = "rocky-10-cloud"
   full_clone = true
 
-  # Packer's templates take 9100-9199 (the raw images, 9000-9099). The build
-  # VM gets the ID and keeps it as the template; a rebuild deletes the old
-  # template first, so the ID is free again.
+  # 9100-9199. A rebuild deletes the old template first, freeing the ID.
   vm_id                = 9102
   vm_name              = "rocky-10-base"
   template_name        = "rocky-10-base"
@@ -41,29 +31,24 @@ source "proxmox-clone" "rocky" {
 
   # The same size as the runner build: dnf upgrades the whole image.
   cores = 2
-  # RHEL 10, and Rocky 10 with it, needs an x86-64-v3 CPU; left unset, Packer
-  # uses kvm64 and the kernel never gets past GRUB.
+  # Left as kvm64, Rocky 10's kernel never gets past GRUB.
   cpu_type        = "x86-64-v3"
   memory          = 2048
   scsi_controller = "virtio-scsi-single"
   qemu_agent      = true
 
-  # Packer cannot set a VM's firewall options, so there is no zone filtering on
-  # the build VM either way: see Machines in docs/zones.md.
+  # Packer cannot set a VM's firewall options (docs/zones.md, Machines).
   network_adapters {
     bridge   = var.build_bridge
     model    = "virtio"
     firewall = false
   }
 
-  # Packer puts its throwaway SSH key into cloud-init. The address is fixed,
-  # so the build does not wait on the guest agent.
+  # A fixed address: the build does not wait on the guest agent.
   cloud_init              = true
   cloud_init_storage_pool = "local"
-  # Proxmox's cloud-init upgrades every package on first boot, systemd and
-  # NetworkManager included, while Packer is already connected and waiting on
-  # cloud-init: the wait never returns. The upgrade runs as its own
-  # provisioner below instead, once cloud-init is done.
+  # Upgrading systemd and NetworkManager under Packer's wait on cloud-init
+  # hangs it: the upgrade runs as its own provisioner below.
   cloud_init_disable_upgrade_packages = true
   ipconfig {
     ip      = var.build_ip
@@ -80,15 +65,12 @@ source "proxmox-clone" "rocky" {
 build {
   sources = ["source.proxmox-clone.rocky"]
 
-  # Package installs must not race cloud-init. Exit 2 is "done, with recoverable errors"
-  # (deprecation warnings, typically): shown in the log, and not a failure.
+  # Exit 2 is "done, with recoverable errors": not a failure.
   provisioner "shell" {
     inline = ["cloud-init status --wait --long || { rc=$?; [ $rc -eq 2 ] && exit 0; exit $rc; }"]
   }
 
-  # The baseline every VM needs: the guest agent, SSH hardening, and the repos
-  # on Rocky's CDN. First, so the upgrade below does not crawl through the
-  # mirror list's slow mirror.
+  # Before the upgrade, so it runs on Rocky's CDN, not the slow mirror.
   provisioner "ansible" {
     playbook_file = "${path.root}/playbook.yml"
     user          = "rocky"
@@ -100,8 +82,7 @@ build {
     ]
   }
 
-  # The template is baked up to date: the image is only rebuilt upstream now
-  # and then. After the base role, on the CDN.
+  # The upstream image is only rebuilt now and then.
   provisioner "shell" {
     execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
     inline          = ["dnf -y upgrade"]

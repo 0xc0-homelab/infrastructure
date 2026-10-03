@@ -1,14 +1,8 @@
-# A VM cloned from a template, configured by cloud-init through the Proxmox API
-# only: user, SSH keys, address. Everything inside the guest after that is
-# Ansible's job.
-
-# Holds the rebuild counter: the VM is replaced when it changes.
 resource "terraform_data" "rebuild" {
   input = var.rebuild
 }
 
-# No vm_id: Proxmox assigns the next free one, from 100, and it stays in the
-# state. Nobody picks VMIDs.
+# No vm_id: Proxmox assigns the next free one.
 resource "proxmox_virtual_environment_vm" "main" {
   name      = var.name
   node_name = var.node_name
@@ -17,10 +11,8 @@ resource "proxmox_virtual_environment_vm" "main" {
   started = true
   on_boot = true
 
-  # An apply never restarts a VM on its own: a change that needs one stays
-  # pending, and the VMs are restarted one at a time with
-  # scripts/rolling-reboot. Otherwise one apply could restart the CI VMs
-  # running it, both vm-access connectors, or etcd's whole quorum at once.
+  # One apply could restart the CI VMs running it, both connectors or etcd's
+  # quorum at once: scripts/rolling-reboot restarts them one at a time.
   reboot_after_update = false
 
   clone {
@@ -37,17 +29,13 @@ resource "proxmox_virtual_environment_vm" "main" {
     type  = var.cpu_type
   }
 
-  # floating = dedicated gives the VM a balloon device with no ballooning
-  # target: Proxmox gets the guest's real memory use, and the guest hands the
-  # pages it frees back to the host. Without it (floating = 0), Proxmox shows
-  # the VM's footprint on the host, full of guest cache, near 100%.
+  # A balloon device with no target: Proxmox sees the guest's real memory use
+  # instead of its footprint, full of cache.
   memory {
     dedicated = var.memory_mb
     floating  = var.memory_mb
   }
 
-  # The templates are baked with the guest agent: the provider waits for it
-  # when the VM is created.
   agent {
     enabled = true
   }
@@ -60,8 +48,7 @@ resource "proxmox_virtual_environment_vm" "main" {
     iothread     = true
   }
 
-  # Blank data disks, scsi1 onwards, left unformatted: what uses them sets
-  # them up. They live and die with the VM, so prevent_destroy covers them.
+  # They live and die with the VM, so prevent_destroy covers them.
   dynamic "disk" {
     for_each = var.data_disks_gb
     content {
@@ -103,21 +90,13 @@ resource "proxmox_virtual_environment_vm" "main" {
   }
 
   lifecycle {
-    # No VM is destroyed as a matter of course: any plan that deletes or
-    # replaces one fails, in CI and from the laptop alike. OpenTofu takes it
-    # only as a literal, so it covers every VM. A deliberate rebuild or removal
-    # lifts it in that same PR, and the next PR sets it back.
+    # Only a literal is allowed: a deliberate rebuild lifts it in that PR, and
+    # the next PR sets it back.
     prevent_destroy = true
 
     replace_triggered_by = [terraform_data.rebuild]
-    # A template only matters when the VM is created: a newer one, or one
-    # rebuilt under a new VMID, must not recreate every VM cloned from it.
-    # Moving a VM onto the new template is bumping its rebuild.
-    #
-    # The user and its keys, likewise: cloud-init applies them on a VM's first
-    # boot only, so a change later would never reach the guest, and updating a
-    # running VM's cloud-init drive may reboot it. The base role keeps the keys
-    # on every VM that exists.
+    # A new template must not recreate every VM cloned from it. cloud-init
+    # applies the user only on first boot; the base role keeps the keys.
     ignore_changes = [clone, initialization[0].user_account]
   }
 }

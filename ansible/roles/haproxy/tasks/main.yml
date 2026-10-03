@@ -6,8 +6,7 @@
     cache_valid_time: 3600
   register: haproxy_package
 
-# The backup load balancer does not hold the VIP, and HAProxy must still bind
-# it, so it takes over the moment keepalived moves it.
+# The backup load balancer binds the VIP too, to take over the moment it moves.
 - name: Allow binding an address the host does not hold
   ansible.builtin.copy:
     dest: /etc/sysctl.d/60-haproxy.conf

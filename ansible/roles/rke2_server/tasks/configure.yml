@@ -14,9 +14,7 @@
   failed_when: false
   check_mode: false
 
-# The bootstrap host keeps no server line once it holds etcd data, as the
-# first server always does; it joins only when rebuilt into a running
-# cluster. Every other host always joins.
+# The bootstrap host joins only when rebuilt into a running cluster.
 - name: Decide whether to join or initialise
   ansible.builtin.set_fact:
     rke2_server_peers_up: "{{ rke2_server_probe.results | selectattr('rc', 'equalto', 0) | list | length > 0 }}"
@@ -31,8 +29,7 @@
     fail_msg: >-
       No peer answers on 9345 and this is not the bootstrap host. Bring up the
       bootstrap server first, or fix the network: there is no cluster to join.
-  # A dry run starts nothing, so on the first one no peer is ever up: the
-  # others show as joining, which is what the real run does.
+  # On a first dry run no peer is up; the others show as joining, as for real.
   when: not ansible_check_mode
 
 - name: Create the config directory
@@ -53,9 +50,8 @@
   no_log: true
   notify: Restart rke2-server
 
-# The cluster_secrets role wrote the cluster's boot Secrets here until they
-# moved to Vault (.github#6), and left the manifest empty. RKE2 has nothing
-# left to apply from it. This task goes once it has run on every server.
+# Left empty by the removed cluster_secrets role. This task goes once it has
+# run on every server.
 - name: Remove the old boot secrets manifest
   ansible.builtin.file:
     path: /var/lib/rancher/rke2/server/manifests/cluster-secrets.yaml

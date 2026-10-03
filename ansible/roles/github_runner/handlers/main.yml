@@ -1,8 +1,4 @@
-# Handlers run in check mode too: on a first dry run the units do not exist.
-#
-# Only the idle runners restart. The busy one may be running the very job that
-# applies this, from the pipeline: killing it would fail that job halfway. It
-# starts on the new config when its job ends.
+# Only the idle runners: a busy one may be running the job that applies this.
 - name: Restart idle runners
   ansible.builtin.command:
     cmd: /usr/local/libexec/github-runner-restart-idle

@@ -1,4 +1,3 @@
-# What makes a VM a runner: the App, the JIT step and one unit per instance.
 # Never baked: the key is a secret, and the count belongs to the VM.
 
 - name: Refuse an empty App key
@@ -50,8 +49,7 @@
   loop: [github-runner-busy, github-runner-prune, github-runner-restart-idle]
   register: github_runner_helpers
 
-# One copy per instance and version: each keeps its own _work and _diag, and a
-# job running from one copy keeps it while the next version unpacks beside it.
+# A job running from one copy keeps it while the next version unpacks beside it.
 - name: Create a directory per runner and version
   ansible.builtin.file:
     path: "/opt/actions-runner/{{ item }}-{{ github_runner_version }}"
@@ -62,8 +60,7 @@
   loop: "{{ range(1, github_runner_count + 1) | list }}"
   register: github_runner_copies
 
-# The marker holds the version, so a runner that updated itself in place is
-# left alone until the next bump.
+# A runner that updated itself in place is left alone until the next bump.
 - name: Unpack the runner
   ansible.builtin.command:
     cmd: >-
@@ -74,23 +71,18 @@
   become: true
   become_user: runner
   loop: "{{ range(1, github_runner_count + 1) | list }}"
-  # On a dry run the new copy's directory is not created, so there is nothing
-  # to unpack into.
   when: not (ansible_check_mode and (github_runner_tarball.changed or github_runner_copies.changed))
 
-# Before copies were per version, each instance ran from a plain directory.
-# Renamed, it stays in use by a job running from it, and the next start of that
-# instance prunes it.
+# A plain directory from before the versioned copies: renamed, the next start
+# of that instance prunes it.
 - name: Look for a runner directory from before the versioned copies
   ansible.builtin.stat:
     path: "/opt/actions-runner/{{ item }}"
   loop: "{{ range(1, github_runner_count + 1) | list }}"
   register: github_runner_legacy
 
-# A runner that started from such a directory built its paths from it: moved
-# under a running job, they would point into the new copy and break the rest of
-# the job, the one running this playbook among them. A busy one moves on the
-# next run, once idle.
+# Moved under a running job, its paths would break: a busy one moves on the
+# next run.
 - name: Find the busy runners
   ansible.builtin.command:
     cmd: "/usr/local/libexec/github-runner-busy {{ item }}"
@@ -99,7 +91,6 @@
   changed_when: false
   failed_when: github_runner_probe.rc not in [0, 1]
   check_mode: false
-  # On a dry run before the first real one, the helper is not there yet.
   when: not (ansible_check_mode and github_runner_helpers.changed)
 
 - name: Note the legacy directories held by a busy runner
@@ -120,7 +111,6 @@
     label: "{{ item.item }}"
   when: item.stat.isdir | default(false) and not item.stat.islnk and item.item not in github_runner_held
 
-# What each instance starts from: a running job keeps the copy it started in.
 - name: Point each runner at its copy
   ansible.builtin.file:
     path: "/opt/actions-runner/{{ item }}"
@@ -154,8 +144,6 @@
   loop: "{{ range(1, github_runner_count + 1) | list }}"
   when: not (ansible_check_mode and github_runner_unit.changed)
 
-# Names the jobs need inside the network that no public DNS has (Vault on the
-# internal VIP). One managed block; an empty list removes it.
 - name: Resolve the network's private names for the jobs
   ansible.builtin.blockinfile:
     path: /etc/hosts

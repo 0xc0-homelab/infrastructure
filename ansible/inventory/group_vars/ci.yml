@@ -1,19 +1,16 @@
-# The GitHub App that registers the runners: its own, with only
-# "Self-hosted runners: Read and write" on the org. Not secret; the key is, and
-# comes from Vault (ci/infrastructure/runner-app) through scripts/ansible.
+# The runners' own GitHub App. Not secret; its key comes from Vault
+# (ci/infrastructure/runner-app).
 github_runner_app_id: "5051391"
 github_runner_app_installation_id: "164149198"
 
-# homelab is what every workflow targets. The VM's own name lets a job pin
-# itself to one VM: rebuilding a CI VM runs its apply on the other one.
+# The VM's own name lets a job pin itself to one VM: rebuilding a CI VM runs
+# its apply on the other one.
 github_runner_labels:
   - homelab
   - "{{ inventory_hostname }}"
 
-# Names the jobs reach inside the network with no public record: the CI VMs are
-# not on WARP, so Cloudflare Gateway does not resolve them here. Vault is on the
-# internal VIP (the cluster's internal_vip in terraform.tfvars); its Let's
-# Encrypt certificate is valid for the name.
+# The CI VMs are not on WARP, so Gateway does not resolve the internal names
+# for them.
 github_runner_hosts:
   - address: "{{ platform_internal_vip }}"
     names: [vault.int.0xc0.cc]

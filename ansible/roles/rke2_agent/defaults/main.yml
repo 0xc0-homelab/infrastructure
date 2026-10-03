@@ -1,5 +1,4 @@
-# The same as rke2_server's. The inventory sets it from the servers' own
-# (group_vars/platform.yml), so an agent never runs ahead of its control plane.
+# The inventory sets it from the servers' (group_vars/platform.yml).
 rke2_agent_version: "1.36.4~rke2r1"
 rke2_agent_selinux_version: "0.23"
 rke2_agent_channel: stable

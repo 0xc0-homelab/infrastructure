@@ -1,30 +1,21 @@
-# The account-wide Zero Trust pieces: the organization, the Default device
-# profile, and who may enroll a device. Singletons — one of each per account.
-
-# Adopted on create: the provider's create is an update, since the
-# organization always exists once Zero Trust is enabled.
+# The provider's create is an update: the organization always exists.
 resource "cloudflare_zero_trust_organization" "main" {
   account_id  = var.account_id
   name        = var.team_name
   auth_domain = "${var.team_name}.cloudflareaccess.com"
 }
 
-# Include mode: WARP carries only the listed networks, and the operator's other
-# traffic goes out as usual. Setting include clears the default exclude list.
+# Setting include clears the default exclude list.
 resource "cloudflare_zero_trust_device_default_profile" "main" {
   account_id = var.account_id
   include    = [for n in var.include_networks : { address = n, description = "${var.team_name} homelab" }]
 
-  # Declared so OpenTofu does not reset it: left out, the plan clears it back
-  # to the provider default.
+  # Left out, the plan resets it to the provider default.
   tunnel_protocol = var.tunnel_protocol
 
-  # Provider bug: policy_id is planned as unknown on every run, so without this
-  # the profile shows a change forever. It is computed-only, so ignoring it
-  # hides nothing we manage. OpenTofu warns "Redundant ignore_changes element"
-  # — the warning is wrong here: tested, without this line every plan shows
-  # 1 change, with it the plan is clean. Keep it until the provider is fixed:
-  # cloudflare/terraform-provider-cloudflare#6773
+  # Provider bug: policy_id is planned as unknown on every run. The
+  # "Redundant ignore_changes element" warning is wrong: without this, every
+  # plan shows a change. cloudflare/terraform-provider-cloudflare#6773
   lifecycle {
     ignore_changes = [policy_id]
   }
@@ -37,7 +28,6 @@ resource "cloudflare_zero_trust_access_policy" "main" {
   include    = [for e in var.allowed_emails : { email = { email = e } }]
 }
 
-# The device enrollment application: only the policy above can enroll WARP.
 resource "cloudflare_zero_trust_access_application" "main" {
   account_id = var.account_id
   type       = "warp"
@@ -45,9 +35,8 @@ resource "cloudflare_zero_trust_access_application" "main" {
   policies   = [{ id = cloudflare_zero_trust_access_policy.main.id, precedence = 1 }]
 }
 
-# The node's web front (Traefik: Proxmox, PBS, RustFS) answers on the node's
-# address in mgmt too. For WARP devices, Gateway resolves those names to it, so
-# the operator reaches them through the tunnel and the public 443 stays closed.
+# The node's web front answers on its mgmt address too, so the public 443
+# stays closed.
 resource "cloudflare_zero_trust_gateway_policy" "main" {
   account_id  = var.account_id
   name        = "${var.team_name} private hostnames"
@@ -62,9 +51,7 @@ resource "cloudflare_zero_trust_gateway_policy" "main" {
   }
 }
 
-# The WARP-only path: every name under the internal domains resolves to the
-# internal VIP, for WARP devices only. They have no public record at all, so
-# outside WARP they do not exist.
+# The internal names have no public record: outside WARP they do not exist.
 resource "cloudflare_zero_trust_gateway_policy" "internal" {
   count = length(var.internal_domains) > 0 ? 1 : 0
 

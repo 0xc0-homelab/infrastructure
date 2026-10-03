@@ -1,8 +1,3 @@
-# A VM template built straight from a distribution's cloud image, entirely
-# through the Proxmox API — no SSH to the node, no build VM. The image is
-# downloaded and checked by Proxmox itself, then imported as the template disk.
-# Per-VM settings (user, SSH key, address) come from cloud-init on each clone.
-
 resource "proxmox_download_file" "main" {
   node_name          = var.node_name
   datastore_id       = var.datastore_id
@@ -19,8 +14,6 @@ resource "proxmox_download_file" "main" {
   }
 }
 
-# Templates take fixed VMIDs, so the ID says what it is; VMs keep the ones
-# Proxmox assigns. Everything still finds a template by name.
 resource "proxmox_virtual_environment_vm" "main" {
   vm_id       = var.vm_id
   name        = var.name
@@ -68,7 +61,6 @@ resource "proxmox_virtual_environment_vm" "main" {
   # Debian and Ubuntu cloud images log to the serial console.
   serial_device {}
 
-  # The cloud-init drive; each clone fills in its own user, key and address.
   initialization {
     datastore_id = var.datastore_id
   }

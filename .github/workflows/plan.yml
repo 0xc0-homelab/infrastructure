@@ -18,11 +18,8 @@ jobs:
     uses: 0xc0-labs/.github/.github/workflows/tofu-plan.yml@main
     with:
       working-directory: environments/prod
-      # The self-hosted runners on the CI VMs, inside the network.
       runs-on: '{"group": "homelab", "labels": "homelab"}'
       paths: '^(environments/|modules/|mise\.toml$|\.github/workflows/(plan|apply)\.yml$)'
-      # Every secret from Vault (ci/infrastructure/*, ci/shared/*), with GitHub's
-      # OIDC token.
       vault-addr: https://vault.int.0xc0.cc
       vault-role: infrastructure
       vault-secrets: |

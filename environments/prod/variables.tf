@@ -26,7 +26,6 @@ variable "zones" {
     error_message = "Every zone CIDR must sit inside 10.10.0.0/16. The reserved ranges are listed in docs/zones.md."
   }
 
-  # data initiates nothing: it must never get SNAT.
   validation {
     condition     = alltrue([for id, z in var.zones : !(z.alias == "data" && z.snat)])
     error_message = "The data zone must not have SNAT: it initiates no connection."
@@ -72,27 +71,24 @@ variable "homelab_network" {
   }
 }
 
-# Not a secret, but kept out of this public repo: it comes from
-# Vault (ci/infrastructure/warp) as TF_VAR_warp_allowed_emails.
+# Not secret, but kept out of this public repo: from Vault
+# (ci/infrastructure/warp).
 variable "warp_allowed_emails" {
   description = "Who may enroll a WARP device, and so reach the homelab."
   type        = list(string)
   sensitive   = true
 }
 
-# Not a secret, but kept out of this public repo: the operator's mailboxes, as
-# JSON ({"operator": "..."}), from Vault (ci/infrastructure/email-routing) as
-# TF_VAR_email_destinations.
+# Not secret, but kept out of this public repo: from Vault
+# (ci/infrastructure/email-routing), as JSON.
 variable "email_destinations" {
   description = "Mailboxes Email Routing forwards to, by name."
   type        = map(string)
   sensitive   = true
 }
 
-# Not secret either, but kept out of this public repo with the destinations:
-# managed in Vault (ci/infrastructure/email-routing, forwards), as JSON, as
-# TF_VAR_email_forwards. A change there is applied by running the apply
-# workflow.
+# Likewise, from Vault (ci/infrastructure/email-routing, forwards). A change
+# there takes a run of the apply workflow.
 variable "email_forwards" {
   description = "Email Routing, by domain: its forwarded addresses (address => destination name in email_destinations), and optionally the destination of every other address."
   type = map(object({
@@ -133,7 +129,6 @@ variable "vms" {
     rebuild = optional(number, 0)
   }))
 
-  # The address must sit inside its zone, and never on the host's .1.
   validation {
     condition = alltrue([
       for v in values(var.vms) :
@@ -178,8 +173,6 @@ variable "transit" {
     note    = optional(string, "")
   }))
 
-  # TCP and UDP entries name their ports; a protocol without ports (vrrp) names
-  # none.
   validation {
     condition = alltrue([
       for e in var.transit :
@@ -194,15 +187,12 @@ variable "transit" {
     error_message = "Transit notes must be plain ASCII: they become Proxmox rule comments."
   }
 
-  # Invariant: data initiates nothing.
   validation {
     condition     = alltrue([for e in var.transit : !(e.from == "data" && length(e.to) > 0)])
     error_message = "data initiates nothing: no transit entry from data may have a destination."
   }
 
-  # Invariant: nobody initiates towards mgmt, except from inside mgmt and one
-  # exception: SSH from named CI VMs, for the pipeline's playbooks (operator
-  # decision, 2026-09-29).
+  # SSH from named CI VMs is the one exception (operator decision, 2026-09-29).
   validation {
     condition = alltrue([
       for e in var.transit :
@@ -212,7 +202,6 @@ variable "transit" {
     error_message = "Nothing may initiate towards mgmt from another zone, except SSH (22) from named CI VMs (sources)."
   }
 
-  # A source is a VM of the entry's own from zone.
   validation {
     condition = alltrue(flatten([
       for e in var.transit : [for s in e.sources : contains(keys(var.vms), s) && try(var.vms[s].vnet, "") == e.from]
@@ -268,7 +257,6 @@ variable "cluster" {
         rebuild = optional(number, 0)
       }))
     })
-    # Workers only, sized like the servers unless told otherwise.
     agents = optional(object({
       template      = optional(string, "rocky-10-base")
       cpu_type      = optional(string, "x86-64-v3")
@@ -283,8 +271,6 @@ variable "cluster" {
     }), {})
   })
 
-  # The VIP and every address sit inside the zone, never on the host's .1, and
-  # no machine takes the VIP.
   validation {
     condition = contains(keys(var.zones), var.cluster.vnet) && alltrue([
       for ip in concat([var.cluster.vip, var.cluster.internal_vip], [for n in merge(var.cluster.load_balancers.nodes, var.cluster.servers.nodes, var.cluster.agents.nodes) : n.ip]) :

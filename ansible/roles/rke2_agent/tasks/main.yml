@@ -1,5 +1,3 @@
-# The host's preparation is the servers': the same kernel module, the same
-# units out of Canal's way, NetworkManager kept off the CNI interfaces.
 - name: Prepare the host
   ansible.builtin.include_role:
     name: rke2_server
@@ -10,8 +8,6 @@
   ansible.builtin.import_tasks: install.yml
   tags: [rke2_agent, rke2_agent_install]
 
-# The same SELinux policy module as the servers': the same log readers run
-# on every node.
 - name: Load the node's SELinux policy module
   ansible.builtin.include_role:
     name: rke2_server

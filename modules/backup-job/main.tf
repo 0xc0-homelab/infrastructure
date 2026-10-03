@@ -1,5 +1,3 @@
-# One vzdump job on the node: the listed VMs, whole (data disks included), to a
-# PBS storage. Snapshot mode, so the VMs keep running.
 resource "proxmox_backup_job" "main" {
   id       = var.id
   node     = var.node_name

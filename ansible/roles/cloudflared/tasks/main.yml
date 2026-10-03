@@ -12,8 +12,7 @@
     mode: "0644"
   register: cloudflared_deb
 
-# In check mode a first download does not happen, so there is no .deb to
-# install yet: skip rather than fail the dry run.
+# A dry run downloads nothing, so there may be no .deb yet.
 - name: Install cloudflared {{ cloudflared_version }}
   ansible.builtin.apt:
     deb: "/var/cache/cloudflared-{{ cloudflared_version }}.deb"

@@ -1,8 +1,3 @@
-# The RKE2 cluster and its load balancer, deployed together: the servers, the
-# agents, and the HAProxy + keepalived pair in front of them, all in one zone.
-# The VIP is keepalived's, set up by Ansible; no VM holds it here. Everything
-# inside the guests is Ansible's job (playbooks/cluster.yml).
-
 locals {
   prefix_length = split("/", var.cidr)[1]
   gateway       = cidrhost(var.cidr, 1)
@@ -58,8 +53,6 @@ module "servers" {
   tags            = [var.vnet, "rke2"]
 }
 
-# Workers only: no control plane, no etcd. They add capacity without touching
-# etcd's quorum, which stays with the servers.
 module "agents" {
   source   = "../vm"
   for_each = var.agents.nodes

@@ -1,7 +1,3 @@
-# A Cloudflare Tunnel managed from Cloudflare (no config file on the VM), plus
-# the private networks it carries for WARP clients, or the public hostnames it
-# serves. The connector on the VM only needs the token.
-
 resource "cloudflare_zero_trust_tunnel_cloudflared" "main" {
   account_id = var.account_id
   name       = var.name
@@ -17,9 +13,7 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_route" "main" {
   comment    = "${var.name}: ${each.value}"
 }
 
-# The public hostnames and where each goes. Anything else gets a 404 from
-# Cloudflare's edge: a tunnel with no hostname exposes nothing. A tunnel that
-# only carries private networks has no ingress at all.
+# Anything else gets a 404 from Cloudflare's edge.
 resource "cloudflare_zero_trust_tunnel_cloudflared_config" "main" {
   count = var.ingress == null ? 0 : 1
 
@@ -28,8 +22,7 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "main" {
 
   config = {
     ingress = concat(
-      # An https origin is checked against its real certificate, with the
-      # request's host as SNI: one rule serves every name under a wildcard.
+      # The request's host as SNI: one rule serves every name under a wildcard.
       [for rule in var.ingress : merge(
         { hostname = rule.hostname, service = rule.service },
         startswith(rule.service, "https://") ? { origin_request = { match_sn_ito_host = true } } : {},

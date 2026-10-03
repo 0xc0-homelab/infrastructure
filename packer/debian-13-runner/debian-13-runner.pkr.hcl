@@ -1,11 +1,5 @@
-# The runner template: debian-13-base with the GitHub Actions runner baked in
-# (the github_runner role's install entry point). What makes a VM a runner,
-# the App key and the units, stays in Ansible: a secret baked into a template
+# The App key and the units stay in Ansible: a secret baked into a template
 # cannot be rotated.
-#
-# No VMID and no version: Proxmox assigns the VMID, and everything finds the
-# template by name. CI deletes the previous one by name before building it
-# again (scripts/delete-template).
 
 packer {
   required_version = "~> 1.16"
@@ -32,9 +26,7 @@ source "proxmox-clone" "runner" {
   clone_vm   = "debian-13-base"
   full_clone = true
 
-  # Packer's templates take 9100-9199 (the raw images, 9000-9099). The build
-  # VM gets the ID and keeps it as the template; a rebuild deletes the old
-  # template first, so the ID is free again.
+  # 9100-9199. A rebuild deletes the old template first, freeing the ID.
   vm_id                = 9101
   vm_name              = "debian-13-runner"
   template_name        = "debian-13-runner"
@@ -45,16 +37,14 @@ source "proxmox-clone" "runner" {
   scsi_controller = "virtio-scsi-single"
   qemu_agent      = true
 
-  # Packer cannot set a VM's firewall options, so there is no zone filtering on
-  # the build VM either way: see Machines in docs/zones.md.
+  # Packer cannot set a VM's firewall options (docs/zones.md, Machines).
   network_adapters {
     bridge   = var.build_bridge
     model    = "virtio"
     firewall = false
   }
 
-  # Packer puts its throwaway SSH key into cloud-init. The address is fixed,
-  # so the build does not wait on the guest agent.
+  # A fixed address: the build does not wait on the guest agent.
   cloud_init              = true
   cloud_init_storage_pool = "local"
   ipconfig {
@@ -72,13 +62,11 @@ source "proxmox-clone" "runner" {
 build {
   sources = ["source.proxmox-clone.runner"]
 
-  # apt must not race cloud-init. Exit 2 is "done, with recoverable errors"
-  # (deprecation warnings, typically): shown in the log, and not a failure.
+  # Exit 2 is "done, with recoverable errors": not a failure.
   provisioner "shell" {
     inline = ["cloud-init status --wait --long || { rc=$?; [ $rc -eq 2 ] && exit 0; exit $rc; }"]
   }
 
-  # The runner's install entry point. The base role is already in debian-13-base.
   provisioner "ansible" {
     playbook_file = "${path.root}/playbook.yml"
     user          = "debian"

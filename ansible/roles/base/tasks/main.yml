@@ -6,9 +6,8 @@
     cache_valid_time: 3600
   when: ansible_facts.os_family == "Debian"
 
-# Rocky's mirror list sends Hetzner's network to a mirror serving at ~40 KB/s,
-# and every dnf run crawls. Rocky's own CDN serves the same at full speed; the
-# repo files already carry its baseurl, commented out.
+# Rocky's mirror list sends Hetzner's network to a mirror serving ~40 KB/s;
+# the repo files already carry the CDN's baseurl, commented out.
 - name: Find the Rocky repo files
   ansible.builtin.find:
     paths: /etc/yum.repos.d
@@ -45,10 +44,8 @@
 # No start task for qemu-guest-agent: systemd starts it when the virtio port
 # appears.
 
-# Backups freeze every filesystem through qemu-guest-agent first. On Rocky,
-# SELinux keeps it out of any directory it has no rule for, and the RKE2
-# nodes' kubelet and CSI mounts are among them: without this, their backups
-# are crash-consistent only.
+# On Rocky, SELinux keeps qemu-guest-agent from freezing the kubelet and CSI
+# mounts: without this, backups are crash-consistent only.
 - name: Read qemu-guest-agent's SELinux boolean (Rocky)
   ansible.builtin.command:
     cmd: getsebool virt_qemu_ga_read_nonsecurity_files
@@ -80,8 +77,7 @@
     key: "{{ base_admin_user }}"
   when: base_admin_user | length > 0
 
-# Added, never removed: a key taken off the list is revoked by rebuilding the
-# VM, or by hand, deliberately.
+# Added, never removed: revoking a key is a rebuild, or by hand, deliberately.
 - name: Authorise the admin keys
   ansible.builtin.lineinfile:
     path: "{{ ansible_facts.getent_passwd[base_admin_user][4] }}/.ssh/authorized_keys"

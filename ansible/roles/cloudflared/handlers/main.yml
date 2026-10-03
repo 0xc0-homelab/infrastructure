@@ -1,10 +1,5 @@
-# Handlers run in check mode too: on a first dry run the unit does not exist.
-#
-# Ansible reaches this VM through the tunnel it is restarting. A plain restart
-# deadlocks: cloudflared waits for its connections to drain, Ansible's own SSH
-# among them, and Ansible waits for the restart. So the restart runs detached,
-# after a pause that lets this task return, and Ansible then reconnects, through
-# whichever connector WARP picks.
+# Ansible reaches this VM through the tunnel it restarts: a plain restart
+# deadlocks waiting for Ansible's own SSH to drain, so it runs detached.
 - name: Restart cloudflared
   ansible.builtin.command:
     cmd: systemd-run --collect --unit=cloudflared-restart --on-active=3s /usr/bin/systemctl restart cloudflared

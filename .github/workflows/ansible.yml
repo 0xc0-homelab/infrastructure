@@ -1,8 +1,5 @@
-# Runs every playbook from the pipeline (operator decision, 2026-09-29): with
-# --check --diff on every PR that touches Ansible, for real on a merge to main,
-# once the operator approves the production environment. The steps live in the
-# reusable workflow in 0xc0-labs/.github; this repo keeps the triggers and
-# the order.
+# Every playbook runs from the pipeline (operator decision, 2026-09-29): for
+# real on a merge to main, once the operator approves production.
 name: ansible
 
 on:
@@ -30,8 +27,6 @@ jobs:
         playbooks/cluster.yml
         playbooks/vm-access.yml
         playbooks/vm-ci.yml
-      # Every secret from Vault (ci/infrastructure/*, ci/shared/*), with GitHub's
-      # OIDC token.
       vault-addr: https://vault.int.0xc0.cc
       vault-role: infrastructure
       vault-secrets: |
@@ -41,5 +36,4 @@ jobs:
         ci/data/infrastructure/runner-app private_key | GITHUB_RUNNER_APP_PRIVATE_KEY ;
         ci/data/infrastructure/rke2 token | RKE2_TOKEN ;
         platform/data/argocd/admin password_bcrypt | ARGOCD_ADMIN_PASSWORD_BCRYPT ;
-      # The key CI logs in to the VMs with, one of vault-secrets.
       ssh-key-env: CI_SSH_PRIVATE_KEY
