@@ -7,7 +7,6 @@ github_runner_app_installation_id: "164149198"
 # its apply on the other one.
 github_runner_labels:
   - "0xc0"
-  - homelab
   - "{{ inventory_hostname }}"
 
 # The CI VMs are not on WARP, so Gateway does not resolve the internal names
