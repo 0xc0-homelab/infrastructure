@@ -6,6 +6,7 @@ github_runner_app_installation_id: "164149198"
 # The VM's own name lets a job pin itself to one VM: rebuilding a CI VM runs
 # its apply on the other one.
 github_runner_labels:
+  - "0xc0"
   - homelab
   - "{{ inventory_hostname }}"
 
