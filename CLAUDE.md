@@ -198,7 +198,7 @@ Cloud, RKE2 pods and services, lab).
   `modules/<name>/` holds the resources, `environments/<env>/` holds the roots,
   which only call modules. A VM, a firewall and a network are modules; the
   root wires them together.
-- Each root has its own state key, `homelab/infrastructure/<env>.tfstate`, in
+- Each root has its own state key, `0xc0/infrastructure/<env>.tfstate`, in
   RustFS (`https://s3.0xc0.cc`, bucket `tfstate`). Never share a key. Keep a
   root under a few dozen resources: every run refreshes all of it.
 - A resource that is the only one of its type is named `main`. Root values go
