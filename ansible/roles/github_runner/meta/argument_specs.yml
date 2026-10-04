@@ -37,12 +37,12 @@ argument_specs:
         description: Runners on this VM, each taking one job at a time.
       github_runner_group:
         type: str
-        default: homelab
-        description: Runner group they register into.
+        default: "0xc0 homelab"
+        description: Runner group they register into; several names, space-separated, take the first that exists.
       github_runner_labels:
         type: list
         elements: str
-        default: [homelab]
+        default: [0xc0, homelab]
         description: Custom labels workflows target.
       github_runner_hosts:
         type: list
