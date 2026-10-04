@@ -6,7 +6,7 @@ github_runner_tarball_sha256: "70920811a4f8ad4328818682bca5c6469c1c942fab5244886
 github_runner_count: 2
 
 # Created by .github (modules/runner-group).
-github_runner_group: "0xc0 homelab"
-github_runner_labels: [0xc0, homelab]
+github_runner_group: "0xc0"
+github_runner_labels: ["0xc0"]
 
 github_runner_hosts: []
