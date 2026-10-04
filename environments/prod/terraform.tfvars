@@ -182,8 +182,8 @@ backup = {
   }
 }
 
-# Operator decision, 2026-09-29. Both zones are in the tunnel's own account.
-public_domains = ["0xc0.cc", "offby1.cc"]
+# Operator decision, 2026-09-29. Every zone is in the tunnel's own account.
+public_domains = ["0xc0.cc", "offby1.cc", "artistlabco.com"]
 
 # The WARP-only path's names (operator decision, 2026-09-30).
 internal_domains = ["int.0xc0.cc"]
