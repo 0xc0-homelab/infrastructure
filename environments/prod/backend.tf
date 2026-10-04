@@ -2,7 +2,7 @@
 terraform {
   backend "s3" {
     bucket = "tfstate"
-    key    = "homelab/infrastructure/prod.tfstate"
+    key    = "0xc0/infrastructure/prod.tfstate"
     region = "us-east-1"
 
     endpoints = {

@@ -218,7 +218,7 @@ flowchart LR
   review --> merge["Squash merge to main"]
   merge --> apply["tofu-apply<br/>waits for approval"]
   apply --> approve{"Operator approves<br/>production"}
-  approve --> state[("RustFS<br/>homelab/&lt;repo&gt;/&lt;env&gt;.tfstate")]
+  approve --> state[("RustFS<br/>0xc0/&lt;repo&gt;/&lt;env&gt;.tfstate")]
   plan -. "reads" .-> state
 ```
 
