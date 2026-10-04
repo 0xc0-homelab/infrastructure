@@ -52,7 +52,7 @@ No modules.
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_nodes"></a> [nodes](#input\_nodes) | Proxmox nodes the zone and its VNets are deployed on. | `list(string)` | n/a | yes |
-| <a name="input_vnets"></a> [vnets](#input\_vnets) | One VNet per homelab zone, keyed by VNet ID (letters and digits, up to 8 characters). The gateway is always the host, on the first address of the CIDR. | <pre>map(object({<br/>    alias = string<br/>    cidr  = string<br/>    snat  = bool<br/>  }))</pre> | n/a | yes |
+| <a name="input_vnets"></a> [vnets](#input\_vnets) | One VNet per zone, keyed by VNet ID (letters and digits, up to 8 characters). The gateway is always the host, on the first address of the CIDR. | <pre>map(object({<br/>    alias = string<br/>    cidr  = string<br/>    snat  = bool<br/>  }))</pre> | n/a | yes |
 | <a name="input_zone_id"></a> [zone\_id](#input\_zone\_id) | SDN zone ID. Proxmox allows letters and digits only, up to 8 characters. | `string` | n/a | yes |
 
 ## Outputs

@@ -24,7 +24,7 @@ jobs:
     with:
       working-directory: environments/prod
       # Rebuilding a CI VM points this at the other one's label for that PR only.
-      runs-on: '{"group": "homelab", "labels": "homelab"}'
+      runs-on: '{"group": "0xc0", "labels": "0xc0"}'
       environment: production
       vault-addr: https://vault.int.0xc0.cc
       vault-role: infrastructure

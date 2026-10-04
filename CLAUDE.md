@@ -79,7 +79,7 @@ Ansible reaches every VM directly over WARP.
 fetching a just-in-time config from a GitHub App of their own before every
 job. The App key comes from Vault (`ci/infrastructure/runner-app`) and is
 readable only by root on the CI VMs, `vm-ci-01` and `vm-ci-02`; jobs run as the
-unprivileged `runner` user. Each runner carries the `homelab` label and its
+unprivileged `runner` user. Each runner carries the `0xc0` label and its
 VM's name, so a job can pin itself to one VM.
 
 `playbooks/cluster.yml` builds the cluster: `haproxy`, `keepalived` and the
@@ -187,7 +187,7 @@ Cloud, RKE2 pods and services, lab).
   rebuilt from the pipeline too, one at a time: the same PR points
   `.github/workflows/apply.yml`'s `runs-on` at the **other** VM's label, so
   the apply never runs on the VM it destroys; the next PR points it back at
-  `homelab`.
+  `0xc0`.
 - Templates are found by **name**, never by VMID. Each still takes a fixed
   VMID, so the ID says what it is: 9000-9099 for the raw images (`vm_id` in
   `templates`), 9100-9199 for Packer's (`vm_id` in the template), kept across
