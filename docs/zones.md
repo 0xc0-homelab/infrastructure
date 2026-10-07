@@ -67,7 +67,10 @@ path, where `*.int.0xc0.cc` resolves for WARP clients and its 443 goes to
 Traefik's `internal` entrypoint. The public tunnel only ever targets
 `10.10.4.10`, so nothing from the internet reaches the internal path.
 `vm-lb-01` and `vm-lb-02` run HAProxy, keepalived and the public tunnel's
-cloudflared connectors.
+cloudflared connectors. Both connectors target the public VIP, held by either
+LB, so inside `platform` only the LBs reach 443 from the zone itself (#187).
+The firewall cannot tell the two VIPs apart: the tunnel's own ingress, which
+names only `10.10.4.10`, keeps the internet off the internal path.
 `vm-rke2-01` to `vm-rke2-03` are identical RKE2 servers — control plane, etcd
 and workloads together — and `vm-rke2-04` is an agent, workloads only.
 `cluster` creates them all together (`modules/rke2-cluster`), so the load

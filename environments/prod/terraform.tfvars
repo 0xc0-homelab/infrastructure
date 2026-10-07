@@ -159,6 +159,9 @@ transit = [
   { from = "platform", to = ["platform"], ports = ["2379-2381", 6443, 9099, 9345, 10250, 10257, 10259, "30000-32767"], note = "the cluster: etcd and its metrics, API, Canal health, supervisor, kubelet, controller-manager and scheduler metrics, NodePorts; the LB towards the nodes" },
   { from = "platform", to = ["platform"], proto = "udp", ports = [8472], note = "Canal VXLAN between the cluster nodes" },
   { from = "platform", to = ["platform"], proto = "vrrp", ports = [], note = "keepalived between the two LB VMs" },
+  # Each LB runs a public tunnel connector that targets the public VIP, held by
+  # either LB (infrastructure#187).
+  { from = "platform", to = ["platform"], ports = [443], sources = ["vm-lb-01", "vm-lb-02"], note = "the public tunnel's connectors towards the public VIP, whichever LB holds it" },
   { from = "platform", to = ["node"], ports = [9100], note = "node metrics" },
   { from = "platform", to = ["internet"], ports = [443], note = "egress, alerts to the phone among it" },
   { from = "internet", to = ["node"], ports = [22], note = "break-glass SSH, key-only; the Hetzner firewall keeps it closed until opened" },

@@ -167,8 +167,8 @@ variable "transit" {
     to    = list(string)
     proto = optional(string, "tcp")
     ports = list(string)
-    # VM names in the from zone: the entry then admits only their addresses,
-    # not the whole zone.
+    # Machine names in the from zone, VMs or cluster machines: the entry then
+    # admits only their addresses, not the whole zone.
     sources = optional(list(string), [])
     note    = optional(string, "")
   }))
@@ -202,11 +202,16 @@ variable "transit" {
     error_message = "Nothing may initiate towards mgmt from another zone, except SSH (22) from named CI VMs (sources)."
   }
 
+  # A source is a VM of the vms map or a machine of the cluster (an LB, a
+  # server or an agent), in the entry's from zone.
   validation {
     condition = alltrue(flatten([
-      for e in var.transit : [for s in e.sources : contains(keys(var.vms), s) && try(var.vms[s].vnet, "") == e.from]
+      for e in var.transit : [for s in e.sources :
+        (contains(keys(var.vms), s) && try(var.vms[s].vnet, "") == e.from)
+        || (contains(keys(merge(var.cluster.load_balancers.nodes, var.cluster.servers.nodes, var.cluster.agents.nodes)), s) && var.cluster.vnet == e.from)
+      ]
     ]))
-    error_message = "Every transit source must be a VM in the vms map, in the entry's from zone."
+    error_message = "Every transit source must be a VM of the vms map or a cluster machine, in the entry's from zone."
   }
 
   # Invariant: from the internet the node accepts only break-glass SSH, which
