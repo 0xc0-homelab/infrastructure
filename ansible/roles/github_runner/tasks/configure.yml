@@ -1,9 +1,9 @@
-# Never baked: the key is a secret, and the count belongs to the VM.
+# Never baked: the secret ID is a secret, and the count belongs to the VM.
 
-- name: Refuse an empty App key
+- name: Refuse an empty AppRole secret ID
   ansible.builtin.assert:
-    that: github_runner_app_private_key | length > 0
-    fail_msg: No App key. Run through scripts/ansible, which reads it from Vault.
+    that: github_runner_approle_secret_id | length > 0
+    fail_msg: No AppRole secret ID. Run through scripts/ansible, which reads it from Vault.
   no_log: true
 
 - name: Create the App config directory
@@ -14,10 +14,10 @@
     group: root
     mode: "0700"
 
-- name: Write the App key
+- name: Write the AppRole secret ID
   ansible.builtin.copy:
-    dest: /etc/github-runner/app.pem
-    content: "{{ github_runner_app_private_key }}\n"
+    dest: /etc/github-runner/approle-secret-id
+    content: "{{ github_runner_approle_secret_id }}"
     owner: root
     group: root
     mode: "0600"
@@ -38,6 +38,12 @@
     owner: root
     group: root
     mode: "0700"
+
+# After the JIT step that no longer reads it: Vault signs with the key now.
+- name: Remove the App key
+  ansible.builtin.file:
+    path: /etc/github-runner/app.pem
+    state: absent
 
 - name: Install the runner helpers
   ansible.builtin.template:

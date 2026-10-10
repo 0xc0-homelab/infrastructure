@@ -1,13 +1,18 @@
 #!/usr/bin/env bash
 # {{ ansible_managed }}
 # Fetches a just-in-time config for runner instance $1 and leaves it where only
-# the runner user can read it. Runs as root, before every start: it holds the
-# App key, which jobs never see.
+# the runner user can read it. Runs as root, before every start. The App's key
+# never comes here: Vault signs the App's JWT with it (Transit), after an
+# AppRole login with a secret ID only root can read, which jobs never see.
+#
+# No secret goes on a command line, where any process on the VM could read it
+# (/proc/<pid>/cmdline), a job on the other instance included: request bodies
+# go through stdin, and auth headers through a file descriptor.
 set -euo pipefail
 instance="$1"
 # shellcheck disable=SC1091
 . /etc/github-runner/app.env
-key=/etc/github-runner/app.pem
+secret_id=/etc/github-runner/approle-secret-id
 api=https://api.github.com
 
 b64url() { openssl base64 -A | tr '+/' '-_' | tr -d '='; }
@@ -15,12 +20,29 @@ b64url() { openssl base64 -A | tr '+/' '-_' | tr -d '='; }
 now=$(date +%s)
 header=$(printf '{"alg":"RS256","typ":"JWT"}' | b64url)
 payload=$(printf '{"iat":%d,"exp":%d,"iss":"%s"}' $((now - 60)) $((now + 540)) "$GITHUB_APP_ID" | b64url)
-signature=$(printf '%s.%s' "$header" "$payload" | openssl dgst -sha256 -sign "$key" -binary | b64url)
+
+# A batch token that lives a minute and can only sign with the App's key.
+vault_token=$(jq -n --arg role_id "$VAULT_ROLE_ID" --rawfile secret_id "$secret_id" \
+    '{role_id: $role_id, secret_id: ($secret_id | rtrimstr("\n"))}' |
+  curl -fsS -X POST -H "Content-Type: application/json" --data-binary @- \
+    "$VAULT_ADDR/v1/auth/approle/login" |
+  jq -r .auth.client_token)
+[ -n "$vault_token" ] && [ "$vault_token" != null ] || { echo "AppRole login to $VAULT_ADDR failed" >&2; exit 1; }
+
+# PKCS#1 v1.5 over SHA-256 is RS256. Transit answers vault:v<n>:<base64>; the
+# JWT takes the same bytes as base64url.
+signature=$(jq -n --arg input "$(printf '%s.%s' "$header" "$payload" | openssl base64 -A)" \
+    '{input: $input, signature_algorithm: "pkcs1v15"}' |
+  curl -fsS -X POST -H @<(printf 'X-Vault-Token: %s\n' "$vault_token") \
+    -H "Content-Type: application/json" --data-binary @- \
+    "$VAULT_ADDR/v1/transit/sign/$VAULT_TRANSIT_KEY/sha2-256" |
+  jq -r .data.signature | cut -d: -f3 | openssl base64 -d -A | b64url)
+[ -n "$signature" ] || { echo "Transit did not sign with $VAULT_TRANSIT_KEY" >&2; exit 1; }
 jwt="$header.$payload.$signature"
 
 gh_api() {
   local method="$1" path="$2" auth="$3"; shift 3
-  curl -fsS -X "$method" -H "Authorization: Bearer $auth" \
+  curl -fsS -X "$method" -H @<(printf 'Authorization: Bearer %s\n' "$auth") \
     -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" \
     "$@" "$api$path"
 }

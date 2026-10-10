@@ -10,3 +10,9 @@ github_runner_group: "0xc0"
 github_runner_labels: ["0xc0"]
 
 github_runner_hosts: []
+
+# Vault signs the App's JWT with the App's key, which never leaves it (vault
+# repo: Transit and AppRole). The VM holds only the AppRole's secret ID.
+github_runner_vault_addr: https://vault.int.0xc0.cc
+github_runner_approle_role_id: github-runner
+github_runner_transit_key: github-runner-app

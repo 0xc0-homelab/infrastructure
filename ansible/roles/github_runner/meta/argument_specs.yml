@@ -8,7 +8,9 @@ argument_specs:
         starts on it when its job ends, so the job applying it is never cut. Before every start, a
         root-only step uses the GitHub App to fetch a just-in-time config, so
         each runner takes one job, deregisters and starts clean.
-      - Jobs run as the unprivileged runner user, which cannot read the App key.
+      - The App's key never reaches the VM. That step logs in to Vault with an
+        AppRole secret ID and has Transit sign the App's JWT.
+      - Jobs run as the unprivileged runner user, which cannot read the secret ID.
     options:
       github_runner_app_id:
         type: str
@@ -18,11 +20,23 @@ argument_specs:
         type: str
         required: true
         description: Installation ID of that App on the org.
-      github_runner_app_private_key:
+      github_runner_approle_secret_id:
         type: str
         required: true
         no_log: true
-        description: PEM private key of the App, from Vault through scripts/ansible.
+        description: Secret ID of the runners' AppRole role, from Vault through scripts/ansible.
+      github_runner_vault_addr:
+        type: str
+        default: https://vault.int.0xc0.cc
+        description: Vault's address, as the VM resolves it.
+      github_runner_approle_role_id:
+        type: str
+        default: github-runner
+        description: Role ID of the runners' AppRole role, which is its name.
+      github_runner_transit_key:
+        type: str
+        default: github-runner-app
+        description: Transit key holding the App's private key.
       github_runner_version:
         type: str
         default: "2.337.0"
