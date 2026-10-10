@@ -102,7 +102,9 @@ validated by actually applying it, restructure it.
    first, then implement it.
 4. Fill `defaults/main.yml` with a comment per variable, matching the specs.
 5. Write the tasks, split by stage once `main.yml` grows past a dispatcher.
-6. Run `ansible-lint` and fix everything it reports.
+6. Run `ansible-lint` from `ansible/`, from the locked environment
+   (`uv run --frozen --group lint ansible-lint`), and fix everything it
+   reports.
 7. Verify with `ansible-playbook --check --diff` and read the diff.
 8. Stop. The real run is launched by the human.
 

@@ -27,6 +27,7 @@
       "Bash(packer validate:*)",
       "Bash(packer fmt:*)",
       "Bash(ansible-lint:*)",
+      "Bash(uv run --frozen --group lint ansible-lint:*)",
       "Bash(ansible-inventory:*)"
     ],
     "deny": [

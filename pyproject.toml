@@ -1,0 +1,17 @@
+# Ansible and ansible-lint, and every Python package under them, pinned with
+# their hashes in uv.lock. The pipeline's wrappers install exactly that
+# (scripts/python-env): nothing is resolved at install time, on the runners
+# that hold the infrastructure's credentials.
+[project]
+name = "infrastructure"
+version = "0"
+requires-python = "==3.12.14"
+dependencies = ["ansible==14.4.0"]
+
+[dependency-groups]
+lint = ["ansible-lint==26.9.0"]
+
+[tool.uv]
+package = false
+# Wheels only: building from source runs a package's own code at install.
+no-build = true

@@ -9,6 +9,9 @@ template="${1:?usage: scripts/packer <template> <packer command...>}"
 shift
 [ -d "packer/$template" ] || { echo "no such template: packer/$template" >&2; exit 1; }
 
+# The Ansible provisioner runs ansible-playbook from PATH: the locked one.
+. scripts/python-env
+python_env
 . scripts/vault-env
 vault_env_proxmox
 

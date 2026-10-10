@@ -4,3 +4,6 @@
 *.tfplan
 tfplan
 crash.log
+
+# uv.lock, installed by scripts/python-env.
+.venv/
