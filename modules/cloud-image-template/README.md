@@ -9,6 +9,9 @@ which bakes `debian-13-base` and `rocky-10-base` from them.
   SHA-256 where that is all the distribution publishes). The URL must be
   a pinned, dated build; `latest` links are rejected, because they change under
   you.
+- `overwrite` is off: a pinned build never changes upstream, so the refresh
+  does not ask the node to HEAD the URL. With it on, a mirror address that
+  drops connections held every plan for over two minutes (#194).
 - The disk is imported with `import_from`, which needs the `import` content type
   on the datastore. The alternative, `file_id`, makes the provider SSH into the
   node, which this repo does not allow.
