@@ -220,9 +220,9 @@ Cloud, RKE2 pods and services, lab).
 
 ## Before opening a PR
 
-Run the `0xc0:network-reviewer` agent if the change touches network,
-firewall, addressing or inventory. Check the invariants in
-`docs/zones.md`.
+If the change touches network, firewall, addressing or inventory, the
+session making it checks it against every invariant in `docs/zones.md`,
+Invariants, before opening the PR.
 
 ## Repo policy
 
@@ -251,7 +251,7 @@ which decides, and keep `docs/zones.md`, which explains, in step.
 
 ## Claude Code plugins enabled here
 
-`0xc0@0xc0-labs` (agents and hooks) and `terraform@hashicorp` (official
+`0xc0@0xc0-labs` (hooks and skills) and `terraform@hashicorp` (official
 HashiCorp skills), both declared in `.claude/settings.json`.
 
 Caveats:

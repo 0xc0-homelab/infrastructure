@@ -120,15 +120,18 @@ rule in Proxmox always traces back to its line of the matrix.
 
 ## Invariants
 
-Checked by the `0xc0:network-reviewer` agent before every PR. Those marked
-**(code)** are also validations in `environments/prod/variables.tf`: a plan
-that breaks them fails.
+The session that makes a change checks it against this list before opening
+its PR. Those marked **(code)** are also validations in
+`environments/prod/variables.tf`: a plan that breaks them fails.
 
 1. Every IP falls inside its zone and none is the host's `.1` **(code)**, and
    none lands on a reserved range.
-2. No duplicate IPs **(code)**.
-3. Every firewall rule traces to an entry of the matrix. A rule with no backing
-   is a **critical** finding.
+2. No duplicate IPs in the `vms` and `cluster` maps **(code)**, nor in the
+   Ansible inventory, which mirrors them by hand.
+3. Every firewall rule traces to an entry of the matrix, through the
+   `zone-firewall` module, never a resource written by hand, and its comment
+   is `<from> -> <to>: <note>`. A rule with no backing is a **critical**
+   finding.
 4. Every entry is `tcp`, `udp` or `vrrp`; `tcp` and `udp` entries list their
    ports, `vrrp` entries list none **(code)**. No entry has an empty `to`,
    but the mechanism — an explicit outbound DROP policy — stays available for
@@ -148,3 +151,9 @@ that breaks them fails.
    tunnel serves every name of `public_domains` (`terraform.tfvars`), but only
    a name with a public record reaches it, and external-dns (gitops) creates
    those only for the routes marked public. A portal's name never has one.
+8. This document agrees with the code: every machine of the `vms` and
+   `cluster` maps is in the addressing plan, at the same address, and the
+   matrix contradicts no explanation here.
+9. No secret in the tree, encrypted or not: secrets live in Vault and reach
+   OpenTofu and Ansible from the environment. A root's `terraform.tfvars` is
+   committed and holds no secret; no other `.tfvars` file is committed.

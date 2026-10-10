@@ -27,8 +27,9 @@ The flow is always: edit the matrix → plan → read every changed rule.
 3. `scripts/tofu prod plan` and read every changed rule. Each rule's comment is
    `<from> -> <to>: <note>`.
 4. Update the explanation in `docs/zones.md` if the change alters what it says.
-5. Open the PR. `network-reviewer` checks the invariants; the validations in
-   `variables.tf` already refuse the ones they can.
+5. Check the change against every invariant in `docs/zones.md`, Invariants,
+   then open the PR. The validations in `variables.tf` already refuse the
+   ones they can; the rest are yours to check.
 
 ## What the module does
 

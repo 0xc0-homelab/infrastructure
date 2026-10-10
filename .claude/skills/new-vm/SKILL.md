@@ -55,8 +55,9 @@ in `docs/zones.md`.
 
 ## Step 3 — add it to the Ansible inventory
 
-One entry, in the group matching its zone, with the same IP. A duplicate IP in
-the inventory is a critical finding for `network-reviewer`.
+One entry, in the group matching its zone, with the same IP. The inventory
+mirrors the maps by hand, so no validation catches a duplicate IP there:
+check it yourself (`docs/zones.md`, Invariants).
 
 ## Step 4 — traffic, only if it needs it
 
@@ -78,8 +79,9 @@ scripts/tofu prod plan
 ansible-inventory --list
 ```
 
-Run `network-reviewer` before opening the PR. Show the plan and stop — the
-apply is launched by the human.
+Check the change against every invariant in `docs/zones.md`, Invariants,
+before opening the PR. Show the plan and stop — the apply is launched by the
+human.
 
 ## Check before calling it done
 
