@@ -8,7 +8,7 @@ cd "$(dirname "$0")/.."
 
 . scripts/vault-env
 vault_env_state
-vault_env GITHUB_RUNNER_APP_PRIVATE_KEY infrastructure/runner-app private_key
+vault_env GITHUB_RUNNER_APPROLE_SECRET_ID infrastructure/runner-approle secret_id
 vault_env RKE2_TOKEN infrastructure/rke2 token
 # ArgoCD's, under platform/: it is ArgoCD's secret, granted to this CI by name.
 vault_env ARGOCD_ADMIN_PASSWORD_BCRYPT argocd/admin password_bcrypt platform

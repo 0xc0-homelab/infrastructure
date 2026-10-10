@@ -1,5 +1,5 @@
-# The runners' own GitHub App. Not secret; its key comes from Vault
-# (ci/infrastructure/runner-app).
+# The runners' own GitHub App. Not secret; its key stays in Vault, which signs
+# with it (transit/ github-runner-app).
 github_runner_app_id: "5051391"
 github_runner_app_installation_id: "164149198"
 

@@ -238,6 +238,11 @@ runner group admits only the reusable workflows from `0xc0-labs/.github`,
 as they are on `main`, and fork PRs go to GitHub's runners, where they get no secrets.
 RustFS and the rest of Traefik are not reachable from the internet.
 
+Each runner registers itself just in time, before its one job, through its
+own GitHub App. The App's key never reaches the CI VMs: Vault's Transit signs
+the App's JWT for them, after an AppRole login whose token can do nothing
+else, with a secret ID only root reads.
+
 ## Secrets
 
 ```mermaid

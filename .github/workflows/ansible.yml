@@ -33,7 +33,7 @@ jobs:
         ci/data/shared/rustfs access_key_id | AWS_ACCESS_KEY_ID ;
         ci/data/shared/rustfs secret_access_key | AWS_SECRET_ACCESS_KEY ;
         ci/data/infrastructure/ssh private_key | CI_SSH_PRIVATE_KEY ;
-        ci/data/infrastructure/runner-app private_key | GITHUB_RUNNER_APP_PRIVATE_KEY ;
+        ci/data/infrastructure/runner-approle secret_id | GITHUB_RUNNER_APPROLE_SECRET_ID ;
         ci/data/infrastructure/rke2 token | RKE2_TOKEN ;
         platform/data/argocd/admin password_bcrypt | ARGOCD_ADMIN_PASSWORD_BCRYPT ;
       ssh-key-env: CI_SSH_PRIVATE_KEY

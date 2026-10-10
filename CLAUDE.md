@@ -77,10 +77,13 @@ Ansible reaches every VM directly over WARP.
 
 `playbooks/vm-ci.yml` runs the `github_runner` role: ephemeral runners, each
 fetching a just-in-time config from a GitHub App of their own before every
-job. The App key comes from Vault (`ci/infrastructure/runner-app`) and is
-readable only by root on the CI VMs, `vm-ci-01` and `vm-ci-02`; jobs run as the
-unprivileged `runner` user. Each runner carries the `0xc0` label and its
-VM's name, so a job can pin itself to one VM.
+job. The App's key never reaches the CI VMs, `vm-ci-01` and `vm-ci-02`: it
+lives in Vault's Transit, which signs the App's JWT for them. They hold only an
+AppRole secret ID (`ci/infrastructure/runner-approle`), readable only by root,
+whose token can do nothing but ask for that signature; jobs run as the
+unprivileged `runner` user. No secret goes on a command line there, where any
+process could read it. Each runner carries the `0xc0` label and its VM's
+name, so a job can pin itself to one VM.
 
 `playbooks/cluster.yml` builds the cluster: `haproxy`, `keepalived` and the
 public tunnel's `cloudflared` on the `lb` pair, holding the VIPs, then

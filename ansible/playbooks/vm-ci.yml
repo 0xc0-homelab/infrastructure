@@ -7,4 +7,4 @@
     - role: base
     - role: github_runner
       vars:
-        github_runner_app_private_key: "{{ lookup('ansible.builtin.env', 'GITHUB_RUNNER_APP_PRIVATE_KEY') }}"
+        github_runner_approle_secret_id: "{{ lookup('ansible.builtin.env', 'GITHUB_RUNNER_APPROLE_SECRET_ID') }}"

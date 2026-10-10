@@ -9,8 +9,8 @@ User=runner
 Group=runner
 WorkingDirectory=/opt/actions-runner/%i
 # "+" runs these as root: the copies of older versions pruned, a clean work
-# folder, then a fresh just-in-time config fetched with the App key, which the
-# runner user cannot read.
+# folder, then a fresh just-in-time config fetched through Vault with the
+# AppRole secret ID, which the runner user cannot read.
 ExecStartPre=+/usr/local/libexec/github-runner-prune %i
 ExecStartPre=+/usr/bin/rm -rf /opt/actions-runner/%i/_work
 ExecStartPre=+/usr/local/libexec/github-runner-jit %i
