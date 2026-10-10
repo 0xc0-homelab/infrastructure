@@ -11,6 +11,7 @@ shift
 
 # The Ansible provisioner runs ansible-playbook from PATH: the locked one.
 . scripts/python-env
+python_env
 . scripts/vault-env
 vault_env_proxmox
 
