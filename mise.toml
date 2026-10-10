@@ -2,15 +2,13 @@
 [tools]
 opentofu = "1.12.6"
 packer   = "1.16.1"
-ansible  = "14.4.0"
 jq       = "1.8.2"
 # The Vault CLI, the server's version: the scripts read the secrets with it locally.
 vault    = "2.0.4"
 terraform-docs = "0.24.0"
-# mise installs ansible and ansible-lint through uv, which manages its own Python.
+# Ansible and ansible-lint are not here: uv installs them, with their Python
+# and every dependency, from uv.lock, hashes checked (scripts/python-env).
 uv       = "0.12.17"
-
-"pipx:ansible-lint" = "26.9.0"
 
 [tasks.docs]
 description = "Regenerate the inputs/outputs section of every module README"

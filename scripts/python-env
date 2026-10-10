@@ -1,0 +1,10 @@
+# shellcheck shell=bash
+# Sourced, from the repo's root, by the wrappers the pipeline calls
+# (scripts/ansible, and scripts/packer for its Ansible provisioner). Installs
+# exactly uv.lock into .venv, every package checked against its hash, wheels
+# only, then puts it first on PATH. Nothing is resolved here: a new release of
+# a dependency changes nothing until a PR updates the lock.
+# Usage: . scripts/python-env [--group lint]
+uv sync --frozen --quiet "$@"
+PATH="$PWD/.venv/bin:$PATH"
+export PATH

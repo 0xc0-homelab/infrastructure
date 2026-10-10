@@ -6,6 +6,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+. scripts/python-env
 . scripts/vault-env
 vault_env_state
 vault_env GITHUB_RUNNER_APPROLE_SECRET_ID infrastructure/runner-approle secret_id

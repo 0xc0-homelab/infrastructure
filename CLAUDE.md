@@ -101,6 +101,14 @@ memory.
 Every role follows the `ansible-role` skill and passes `ansible-lint` on the
 `production` profile.
 
+Ansible and ansible-lint do not come from mise. `pyproject.toml` pins them,
+and `uv.lock` pins them and every Python package under them, with hashes, and
+their Python. The wrappers the pipeline calls (`scripts/ansible`,
+`scripts/packer`) install exactly that lock, wheels only, and put it first on
+`PATH` (`scripts/python-env`): nothing is resolved on the runners. A
+dependency changes only through a PR that updates the lock (`uv lock`).
+Locally, from `ansible/`: `uv run --frozen --group lint ansible-lint`.
+
 ## Packer
 
 `packer/<template>/` bakes the templates every VM clones, in

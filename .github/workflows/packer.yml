@@ -4,10 +4,10 @@ name: packer
 on:
   pull_request:
     branches: [main]
-    paths: ['packer/**', 'ansible/roles/base/**', 'ansible/roles/github_runner/**', 'scripts/packer', 'scripts/delete-template', 'scripts/vault-env', '.github/workflows/packer.yml']
+    paths: ['packer/**', 'ansible/roles/base/**', 'ansible/roles/github_runner/**', 'scripts/packer', 'scripts/delete-template', 'scripts/vault-env', 'scripts/python-env', 'pyproject.toml', 'uv.lock', '.github/workflows/packer.yml']
   push:
     branches: [main]
-    paths: ['packer/**', 'ansible/roles/base/**', 'ansible/roles/github_runner/**', 'scripts/packer', 'scripts/delete-template', 'scripts/vault-env', '.github/workflows/packer.yml']
+    paths: ['packer/**', 'ansible/roles/base/**', 'ansible/roles/github_runner/**', 'scripts/packer', 'scripts/delete-template', 'scripts/vault-env', 'scripts/python-env', 'pyproject.toml', 'uv.lock', '.github/workflows/packer.yml']
 
 # id-token: the build logs in to Vault with GitHub's OIDC token.
 permissions:
@@ -18,6 +18,8 @@ jobs:
   packer:
     uses: 0xc0-labs/.github/.github/workflows/packer.yml@main
     with:
+      # mise's tools only: Ansible comes from uv.lock (scripts/python-env).
+      tools: packer jq uv
       vault-addr: https://vault.int.0xc0.cc
       vault-role: infrastructure
       vault-secrets: |

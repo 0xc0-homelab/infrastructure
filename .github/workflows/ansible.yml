@@ -5,10 +5,10 @@ name: ansible
 on:
   pull_request:
     branches: [main]
-    paths: ['ansible/**', 'scripts/ansible', 'scripts/vault-env', '.github/workflows/ansible.yml']
+    paths: ['ansible/**', 'scripts/ansible', 'scripts/vault-env', 'scripts/python-env', 'pyproject.toml', 'uv.lock', '.github/workflows/ansible.yml']
   push:
     branches: [main]
-    paths: ['ansible/**', 'scripts/ansible', 'scripts/vault-env', '.github/workflows/ansible.yml']
+    paths: ['ansible/**', 'scripts/ansible', 'scripts/vault-env', 'scripts/python-env', 'pyproject.toml', 'uv.lock', '.github/workflows/ansible.yml']
 
 # id-token: the job logs in to Vault with GitHub's OIDC token.
 permissions:
@@ -19,6 +19,8 @@ jobs:
   ansible:
     uses: 0xc0-labs/.github/.github/workflows/ansible.yml@main
     with:
+      # mise's tools only: Ansible comes from uv.lock (scripts/python-env).
+      tools: opentofu jq uv
       # The wrapper reads the tunnel token and the admin keys from this root.
       tofu-root: environments/prod
       # The cluster first; the CI VMs last, one at a time, since their runners
