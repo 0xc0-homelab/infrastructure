@@ -5,13 +5,15 @@
       "source": {
         "source": "github",
         "repo": "0xc0-labs/claude-config"
-      }
+      },
+      "autoUpdate": true
     },
     "hashicorp": {
       "source": {
         "source": "github",
         "repo": "hashicorp/agent-skills"
-      }
+      },
+      "autoUpdate": true
     }
   },
   "enabledPlugins": {
